@@ -1,4 +1,4 @@
-"use client"; // must be the very first line
+"use client"; // This must be the very first line
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -57,15 +57,11 @@ export default function SEOPreview() {
 
   // Update counts when SEO settings change
   useEffect(() => {
-    setTitleCount(seoSettings.title.length);
-    setDescriptionCount(seoSettings.description.length);
+    setTitleCount(seoSettings.title);
+    setDescriptionCount(seoSettings.description);
   }, [seoSettings.title, seoSettings.description]);
 
   // Auto-generate slug when title changes
-  useEffect(() => {
-    const newSlug = seoSettings.title.replace(/\s+/g, "-").toLowerCase();
-    setSeoSettings((prev: typeof seoSettings) => ({ ...prev, slug: newSlug }));
-  }, [seoSettings.title, setSeoSettings]);
 
   const formatDate = () => {
     return new Date().toLocaleDateString("en-US", {
