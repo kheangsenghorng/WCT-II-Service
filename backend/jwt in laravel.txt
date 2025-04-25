@@ -1,0 +1,96 @@
+*Jwt 
+* Install the composer require tymon/jwt-auth
+    > composer require tymon/jwt-auth:
+
+* Pusbish the package's cofiguration file:
+   > php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+   -this will Pusbish a cofig/jwt.php cofiguration file and create a JWT_SECRET key in you .env file 
+
+* Generate the JWT_SECRET 
+   > php artisan jwt:secret
+   - This will Generate a random key and set it in the .env file as JWT_SECRET.
+
+* Set up Authentiction with Jwt 
+   - Update the cofig/auth.php file to use jwt as the default guard for api Authentiction.
+
+        'guards' => [
+        
+            'api' => [
+                'driver' => 'jwt',  // Change this line to 'jwt'
+                'provider' => 'users',
+                'hash' => false,
+            ],
+        ],
+        -This tells laravel to use jwt for Authentiction when the api guard is used
+
+* Update the user  model
+   use tymon\JWTAuth\contracts\JWTSubject
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [];  
+}
+
+* create auth controller
+  > php artisan make:controller Authentiction
+        use Illuminate\Http\Request;
+        use Illuminate\Support\Facades\Hash;
+        use Tymon\JWTAuth\Facades\JWTAuth;
+        use Illuminate\JwTauth\Exceptions\JWTException;
+        use App\Models\User;
+        JWTException;
+    use App\Models\User;
+
+    //Register a new user
+        public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return response()->json(['message' => 'User registered successfully'], 201);
+    }
+
+   
+     //Login user
+    public function login(Request $request){
+        $credentials = $request->only('email', 'password');
+
+        try {
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+    
+            $user = auth()->user();
+    
+            return response()->json([
+                'token' => $token,  
+                'user' => JWTAuth::user(),
+                'message' => 'Login successful',
+            ]);
+    
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
+        }
+    }
+
+* Protect Routes with JWT Authentiction
+    Route::middleware("auth:api")->group(function () {
+        Route::get("user", [AuthController::class, "user"]);
+        Route::post("logout", [AuthController::class, "logout"]);
+        Route::post("refresh", [AuthController::class, "refresh"]);
+        Route::post("me", [AuthController::class, "me"]);
+    });

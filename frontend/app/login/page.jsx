@@ -3,10 +3,65 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Facebook, Eye } from "lucide-react";
+import { request } from "@/util/request";
+import { useAuthStore } from "@/store/authStore";
 
 export default function LoginForm() {
+  const router = useRouter();
+  const { login } = useAuthStore();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState();
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await login(email, password); // { token, user, message }
+      console.log("Login response:", res);
+
+      const user = res.user;
+
+      setTimeout(() => {
+        const { role, id } = user;
+
+        if (!role || !id) {
+          throw new Error("Missing user information.");
+        }
+
+        if (role === "admin") {
+          router.push(`/admin/dashboard/${id}`);
+        } else if (role === "subadmin") {
+          router.push(`/owner/dashboard/${id}`);
+        } else {
+          router.push(`/profile/myprofile/${id}`);
+        }
+      }, 2000);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(
+        err?.response?.data?.message ||
+          err.message ||
+          "Login failed. Please try again."
+      );
+      toast?.error?.(err.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -29,7 +84,7 @@ export default function LoginForm() {
                 Login
               </h1>
               <p className="text-center text-sm text-gray-600 mb-6">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/register"
                   className="text-orange-500 hover:underline"
@@ -38,7 +93,7 @@ export default function LoginForm() {
                 </Link>
               </p>
 
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label
                     htmlFor="email"
@@ -49,6 +104,8 @@ export default function LoginForm() {
                   <input
                     id="email"
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -64,6 +121,8 @@ export default function LoginForm() {
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <button
@@ -76,11 +135,29 @@ export default function LoginForm() {
                   </div>
                 </div>
 
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="remember" className="text-sm text-gray-600">
+                    Remember me
+                  </label>
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition duration-200"
+                  disabled={loading}
+                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition duration-200 disabled:opacity-50"
                 >
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </button>
 
                 <div className="text-center">
