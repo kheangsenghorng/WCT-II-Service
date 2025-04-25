@@ -40,3 +40,4 @@ Route::middleware('auth:api')->group(function () {
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
 });
+
