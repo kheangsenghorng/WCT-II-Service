@@ -1,8 +1,147 @@
+"use client";
+
+import { use, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { request } from "@/util/request"; // adjust path if needed
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(null); // null | true | false
+
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Update form state with the new value
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    // Clear email error when the user types email
+    if (name === "email") {
+      setEmailAvailable(null);
+    }
+
+    // Password and password_confirmation validation
+    if (name === "password" || name === "password_confirmation") {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+
+        // Check for password match
+        if (form.password !== form.password_confirmation) {
+          newErrors.password_confirmation = ["Passwords do not match."];
+        } else {
+          delete newErrors.password_confirmation; // Clear error if passwords match
+        }
+
+        // Check for password strength
+        if (form.password.length < 8) {
+          newErrors.password = ["Password must be at least 8 characters long."];
+        } else {
+          delete newErrors.password; // Clear error if password is long enough
+        }
+
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    setErrors({});
+
+    const { first_name, last_name, email, password, password_confirmation } =
+      form;
+
+    if (
+      !first_name ||
+      !last_name ||
+      !email ||
+      !password ||
+      !password_confirmation
+    ) {
+      setMessage("Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== password_confirmation) {
+      setMessage("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await request("/register", "POST", form);
+      router.push("/login");
+      setMessage("User registered successfully!");
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      } else {
+        setMessage("Registration failed.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  const checkEmailAvailability = debounce(async (email) => {
+    if (!email) return;
+
+    setEmailChecking(true);
+    setEmailAvailable(null);
+
+    try {
+      const res = await request(`/check-email?email=${email}`, "GET");
+
+      if (res.available) {
+        setEmailAvailable(true);
+        setErrors((prev) => ({ ...prev, email: null }));
+      } else {
+        setEmailAvailable(false);
+        setErrors((prev) => ({
+          ...prev,
+          email: ["The email has already been taken."],
+        }));
+      }
+    } catch (error) {
+      console.error("Email check failed:", error);
+    } finally {
+      setEmailChecking(false);
+    }
+  }, 600);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-20 bg-gray-50">
       <div className="w-full max-w-6xl bg-white rounded-3xl shadow-sm overflow-hidden flex">
@@ -35,18 +174,21 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="firstName"
                   className="block text-sm text-gray-600 mb-1"
                 >
-                  First name
+                  First Name
                 </label>
                 <input
                   id="firstName"
+                  name="first_name"
                   type="text"
-                  placeholder="firstName"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  placeholder="First name"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
@@ -60,26 +202,63 @@ export default function RegisterPage() {
                 </label>
                 <input
                   id="lastName"
+                  name="last_name"
                   type="text"
-                  placeholder="lastName"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  placeholder="Last name"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm text-gray-600 mb-1"
-                >
-                  Email
-                </label>
+              <div className="relative">
                 <input
                   id="email"
+                  name="email"
                   type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  onBlur={() => checkEmailAvailability(form.email)}
                   placeholder="email@gmail.com"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent pr-10"
                 />
+                {emailChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg
+                      className="animate-spin h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 100 16v-4l-3.5 3.5L12 24v-4a8 8 0 01-8-8z"
+                      />
+                    </svg>
+                  </div>
+                )}
+                {emailAvailable === true && !emailChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    ✔
+                  </div>
+                )}
+                {emailAvailable === false && !emailChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                    ✖
+                  </div>
+                )}
               </div>
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email[0]}</p>
+              )}
 
               <div>
                 <label
@@ -91,49 +270,82 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input
                     id="password"
-                    type="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
                     placeholder="Password"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     aria-label="Toggle password visibility"
                   >
-                    <EyeIcon className="h-5 w-5" />
+                    {showPassword ? (
+                      <EyeOffIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.password[0]}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label
-                  htmlFor="confirmPassword"
+                  htmlFor="password_confirmation"
                   className="block text-sm text-gray-600 mb-1"
                 >
                   Confirm Password
                 </label>
                 <div className="relative">
                   <input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={form.password_confirmation}
+                    onChange={handleChange}
+                    placeholder="Confirm Password"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    aria-label="Toggle password visibility"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    aria-label="Toggle confirm password visibility"
                   >
-                    <EyeIcon className="h-5 w-5" />
+                    {showConfirmPassword ? (
+                      <EyeOffIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
+                {errors.password_confirmation && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.password_confirmation[0]}
+                  </p>
+                )}
               </div>
+
+              {message && (
+                <p className="text-sm text-center text-red-500 mt-2">
+                  {message}
+                </p>
+              )}
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full py-3 mt-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition duration-200"
               >
-                Register
+                {loading ? "Registering..." : "Register"}
               </button>
 
               <div className="relative flex items-center justify-center mt-6 mb-6">
@@ -143,10 +355,12 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Social buttons */}
               <button
                 type="button"
                 className="w-full py-3 px-4 border border-gray-300 rounded-lg bg-[#f0f4f9] hover:bg-gray-100 flex items-center justify-center gap-2 transition duration-200"
               >
+                {/* Facebook SVG */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 48 48"
@@ -169,6 +383,7 @@ export default function RegisterPage() {
                 type="button"
                 className="w-full py-3 px-4 border border-gray-300 rounded-lg bg-[#f0f4f9] hover:bg-gray-100 flex items-center justify-center gap-2 transition duration-200"
               >
+                {/* Google SVG */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 48 48"
