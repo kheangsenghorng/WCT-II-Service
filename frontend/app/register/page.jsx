@@ -149,7 +149,7 @@ export default function RegisterPage() {
         <div className="hidden md:flex md:w-1/2 relative bg-[#e8f4f5] items-center justify-center p-8">
           <div className="w-full max-w-md aspect-square rounded-full bg-[#cce6ea] flex items-center justify-center overflow-hidden">
             <Image
-              src="/placeholder.svg?height=400&width=400"
+              src="/images/image.png"
               alt="Bathroom illustration"
               width={400}
               height={400}
