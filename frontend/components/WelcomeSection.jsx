@@ -8,21 +8,25 @@ const WelcomeSection = () => {
     <section className="bg-white py-16">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         {/* Image */}
-        <div className="relative ">
-          <div className="absolute top-8 left-8 w-full h-full border-4 border-green-500 rounded-3xl overflow-hidden z-0">
-            <Image
-              src="/Hero.png" // Replace with your image path
-              alt="Cleaning Team"
-              width={600}
-              height={400}
-              className="w-full h-full object-cover absolute z-10 "
-            />
-          </div>
-        </div>
+        <div className="relative w-full h-auto flex justify-center">
+  {/* Back Image */}
+  <div className="w-[500px] md:w-[550px] rounded-2xl overflow-hidden border-[6px] border-green-500 z-0">
+    <Image
+      src="/welcome.png"
+      alt="Team"
+      width={350}
+      height={400}
+      className="object-cover w-full h-auto"
+    />
+  </div>
+
+ 
+</div>
+
 
         {/* Content */}
         <div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 className="text-5xl font-bold text-gray-800 mb-4">
             Welcome To Our cleaning-Pro Company!
           </h2>
           <p className="text-gray-600 mb-6">
