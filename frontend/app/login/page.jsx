@@ -43,11 +43,11 @@ export default function LoginForm() {
         }
 
         if (role === "admin") {
-          router.push(`/admin/dashboard/${id}`);
-        } else if (role === "subadmin") {
-          router.push(`/owner/dashboard/${id}`);
+          router.push(`/admin/${id}/dashboard`); // Redirect to admin dashboard
+        } else if (role === "owner") {
+          router.push(`/owner/${id}/dashboard`);
         } else {
-          router.push(`/profile/myprofile/${id}`);
+          router.push(`/profile/${id}/myprofile`);
         }
       }, 2000);
     } catch (err) {
