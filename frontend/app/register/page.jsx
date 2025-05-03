@@ -13,6 +13,7 @@ export default function RegisterPage() {
     first_name: "",
     last_name: "",
     email: "",
+    phone: "",
     password: "",
     password_confirmation: "",
   });
@@ -23,6 +24,8 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState({});
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState(null); // null | true | false
+  const [phoneAvailable, setPhoneAvailable] = useState(null); // null | true | false
+  const [phoneChecking, setPhoneChecking] = useState(false);
 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -43,6 +46,11 @@ export default function RegisterPage() {
     // Clear email error when the user types email
     if (name === "email") {
       setEmailAvailable(null);
+    }
+
+    // Clear phone error when the user types phone number
+    if (name === "phone") {
+      setPhoneAvailable(null);
     }
 
     // Password and password_confirmation validation
@@ -69,19 +77,53 @@ export default function RegisterPage() {
     }
   };
 
+  // Add debounce for phone number checking
+  const checkPhoneAvailability = debounce(async (phone) => {
+    if (!phone) return;
+
+    setPhoneChecking(true);
+    setPhoneAvailable(null);
+
+    try {
+      const res = await request(`/check-phone?phone=${phone}`, "GET");
+
+      if (res.available) {
+        setPhoneAvailable(true);
+        setErrors((prev) => ({ ...prev, phone: null }));
+      } else {
+        setPhoneAvailable(false);
+        setErrors((prev) => ({
+          ...prev,
+          phone: ["The phone number has already been taken."],
+        }));
+      }
+    } catch (error) {
+      console.error("Phone check failed:", error);
+    } finally {
+      setPhoneChecking(false);
+    }
+  }, 600);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setErrors({});
 
-    const { first_name, last_name, email, password, password_confirmation } =
-      form;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      password,
+      password_confirmation,
+    } = form;
 
     if (
       !first_name ||
       !last_name ||
       !email ||
+      !phone ||
       !password ||
       !password_confirmation
     ) {
@@ -212,6 +254,74 @@ export default function RegisterPage() {
               </div>
 
               <div className="relative">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm text-gray-600 mb-1"
+                >
+                  Phone *
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  value={form.phone}
+                  onChange={handleChange}
+                  onBlur={() => checkPhoneAvailability(form.phone)}
+                  placeholder="Enter phone number"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                {phoneChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg
+                      className="animate-spin h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 100 16v-4l-3.5 3.5L12 24v-4a8 8 0 01-8-8z"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {phoneAvailable === true && !phoneChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    ✔
+                  </div>
+                )}
+
+                {phoneAvailable === false && !phoneChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                    ✖
+                  </div>
+                )}
+
+                {errors.phone && (
+                  <p className="text-red-500 text-sm mt-1">
+                    The phone number has already{" "}
+                  </p>
+                )}
+              </div>
+
+              {/* Other fields here... */}
+
+              <div className="relative">
+                <label
+                  htmlFor="email"
+                  className="block text-sm text-gray-600 mb-1"
+                >
+                  email *
+                </label>
                 <input
                   id="email"
                   name="email"
@@ -257,7 +367,9 @@ export default function RegisterPage() {
                 )}
               </div>
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email[0]}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  The email has already{""}
+                </p>
               )}
 
               <div>

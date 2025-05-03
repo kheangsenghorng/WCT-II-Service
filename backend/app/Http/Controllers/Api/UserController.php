@@ -42,19 +42,21 @@ class UserController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'required|string|max:20|unique:users', // <-- Add phone validation
             'password' => 'required|string|min:8|confirmed',
             'role' => 'in:user,admin,owner',
         ]);
-
+        
         $newUser = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'phone' => $request->phone, // <-- Save phone
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'user',
-            'admin_id' => $user->role === 'admin' ? $user->id : null, // Set admin ID if the logged-in user is an admin
+            'admin_id' => $user->role === 'admin' ? $user->id : null,
         ]);
-
+        
         return response()->json([
             'user' => $newUser,
             'message' => 'User registered successfully'
@@ -93,10 +95,11 @@ class UserController extends Controller
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+            'phone' => 'sometimes|string|max:20|unique:users,phone,' . $id, // <-- Allow phone update
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'in:user,admin,owner',
         ]);
-
+        
         if ($request->has('password')) {
             $data['password'] = Hash::make($request->password);
         }

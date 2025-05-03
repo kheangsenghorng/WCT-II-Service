@@ -19,6 +19,7 @@ class AuthController extends Controller
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'required|string|max:20|unique:users', // <-- Add phone validation
                 'password' => 'required|string|min:8|confirmed',
                 'role' => 'in:user,admin,owner',
             ]);
@@ -31,6 +32,7 @@ class AuthController extends Controller
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $request->email,
+                'phone' => $request->phone, // <-- Save phone
                 'password' => Hash::make($request->password),
                 'role' => $request->role ?? 'user',
                 'admin_id' => $admin ? $admin->id : null,
@@ -88,5 +90,28 @@ class AuthController extends Controller
                 'available' => !$exists,
             ]);
         }
+        /**
+     * Update phone number for the authenticated user.
+     */
+   /**
+     * Check if phone number is already taken.
+     */
+    public function checkPhone(Request $request)
+    {
+        $phone = $request->query('phone'); // Get the phone number from the request
+
+        if (!$phone) {
+            return response()->json([
+                'message' => 'Phone number is required.',
+            ], 400);
+        }
+
+        // Check if phone exists in the database
+        $exists = User::where('phone', $phone)->exists();
+
+        return response()->json([
+            'available' => !$exists, // If phone doesn't exist, it's available
+        ]);
+    }
 
 }
