@@ -33,11 +33,12 @@ class User extends Authenticatable implements JWTSubject
         'first_name',
         'last_name',
         'email',
+        'phone',
         'password',
         'role',
         'admin_id',
     ];
-
+    
     /**
      * The attributes that should be hidden for serialization.
      *
