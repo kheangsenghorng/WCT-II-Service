@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Edit, Trash2, XCircle } from "lucide-react";
+import { useParams } from "next/navigation";
 
 // Helper components for modals
 const ModalBackdrop = ({ onClick, children }) => (
@@ -43,6 +44,7 @@ export default function CompanyPage() {
 
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [deleteCompanyId, setDeleteCompanyId] = useState(null);
+  const { id } = useParams();
 
   useEffect(() => {
     fetchCompanies();
@@ -52,7 +54,7 @@ export default function CompanyPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:8000/api/admin/companies", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/owner/owner`, {
         method: "GET",
       });
       if (!response.ok) {
@@ -74,7 +76,7 @@ export default function CompanyPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/admin/companies", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/owner/owner`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +104,7 @@ export default function CompanyPage() {
     if (!selectedCompany) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/companies/${selectedCompany.company_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/owner/owner/${selectedCompany.company_id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +128,7 @@ export default function CompanyPage() {
 
   const deleteCompany = async (companyId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/companies/${companyId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/owner/owner/${companyId}`, {
         method: "DELETE",
       });
 
@@ -290,25 +292,26 @@ export default function CompanyPage() {
         </ModalBackdrop>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && deleteCompanyId && (
+      {/* Delete Company Modal */}
+      {showDeleteModal && (
         <ModalBackdrop onClick={() => setShowDeleteModal(false)}>
           <ModalContainer onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Confirm Delete</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Are you sure you want to delete this company?</p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => deleteCompany(deleteCompanyId)}
-                className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none"
-              >
-                Delete
-              </button>
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Are you sure you want to delete this company?</h3>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => deleteCompany(deleteCompanyId)}
+                  className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </ModalContainer>
         </ModalBackdrop>

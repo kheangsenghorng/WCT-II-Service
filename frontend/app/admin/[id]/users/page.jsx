@@ -31,7 +31,7 @@ const Users = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:8000/api/admin/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ const Users = () => {
 
   const confirmEditUser = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/users/${editingUserId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users/${editingUserId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +100,7 @@ const Users = () => {
     if (!userToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/users/${userToDelete}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users/${userToDelete}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -133,7 +133,7 @@ const Users = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/admin/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
