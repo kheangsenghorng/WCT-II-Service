@@ -114,8 +114,8 @@ export default function AboutUsPage() {
   // Mock Data (replace with your actual data source)
   const teamMembers = [
     {
-      name: "John Doe",
-      title: "CEO",
+      name: "Chen SreyNeat",
+      title: "EER and USE Case Designer",
       imageUrl: "/team/1.png",
       linkedinUrl: "https://www.linkedin.com/in/johndoe",
       facebookUrl: "https://www.facebook.com/johndoe",
@@ -123,8 +123,8 @@ export default function AboutUsPage() {
       email: "john.doe@example.com",
     },
     {
-      name: "Jane Smith",
-      title: "Lead Designer",
+      name: "Sen Vibol",
+      title: "UX/UI Designer",
       imageUrl: "/team/2.png",
       linkedinUrl: "https://www.linkedin.com/in/janesmith",
       facebookUrl: "https://www.facebook.com/janesmith",
@@ -132,7 +132,7 @@ export default function AboutUsPage() {
       email: "jane.smith@example.com",
     },
     {
-      name: "Mike Johnson",
+      name: "Sam Nisa",
       title: "Frontend Developer",
       imageUrl: "/team/3.png",
       linkedinUrl: "https://www.linkedin.com/in/mikejohnson",
@@ -141,16 +141,16 @@ export default function AboutUsPage() {
       email: "mike.johnson@example.com",
     },
     {
-      name: "Sarah Williams",
-      title: "Backend Developer",
+      name: "Khorn Saokhouch",
+      title: "Frontend Developer",
       imageUrl: "/team/4.png",
       linkedinUrl: "https://www.linkedin.com/in/sarahwilliams",
       githubUrl: "https://github.com/sarahwilliams",
       email: "sarah.williams@example.com",
     },
     {
-      name: "David Brown",
-      title: "Marketing Manager",
+      name: "Kheng Senghorng",
+      title: "Bankend Developer",
       imageUrl: "/team/5.png",
       linkedinUrl: "https://www.linkedin.com/in/davidbrown",
       facebookUrl: "https://www.facebook.com/davidbrown",
