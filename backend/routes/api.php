@@ -44,7 +44,7 @@ Route::middleware('auth:api')->group(function () {
             Route::get('/', [ServiceCategoryController::class, 'index']);
             Route::post('/', [ServiceCategoryController::class, 'store']);
             Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
-            Route::put('/{slug}', [ServiceCategoryController::class, 'update']);
+            Route::put('/{id}', [ServiceCategoryController::class, 'update']);
             Route::delete('/{slug}', [ServiceCategoryController::class, 'destroy']);
         });
     });

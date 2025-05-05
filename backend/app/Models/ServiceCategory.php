@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ServiceCategory extends Model
 {
-    protected $fillable = ['name', 'description', 'slug'];
+    protected $fillable = ['name', 'slug', 'description', 'image'];
 
     // Automatically generate slug on creating
     protected static function booted()
