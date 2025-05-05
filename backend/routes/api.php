@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ServiceCategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,9 +38,27 @@ Route::middleware('auth:api')->group(function () {
         Route::get('users/{id}', [UserController::class, 'show']); // Get user by id (admin only)
         Route::put('users/{id}', [UserController::class, 'update']); // Update user (admin only)
         Route::delete('users/{id}', [UserController::class, 'destroy']); // Delete user (admin only)
+
+        //Category by admin
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [ServiceCategoryController::class, 'index']);
+            Route::post('/', [ServiceCategoryController::class, 'store']);
+            Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
+            Route::put('/{slug}', [ServiceCategoryController::class, 'update']);
+            Route::delete('/{slug}', [ServiceCategoryController::class, 'destroy']);
+        });
     });
 
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
+});
+
+
+//category
+
+
+Route::prefix('categories')->group(function () {
+    Route::get('/', [ServiceCategoryController::class, 'index']);
+    Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
 });
 
