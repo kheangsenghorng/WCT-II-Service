@@ -1,0 +1,23 @@
+* File Storage Configuration
+    1. Ensure your application is set up to handle file uploads:
+       in the .evn file, the FILESYSTEM_DISK TO public:
+       FILESYSTEM_DISK=public
+    2. Run the command to create a symbolic link for public Storage
+       >  php artisan storage:link
+       This command will make the storage/app/public directory assessible from the public/storage URL.
+
+       *create 
+       $imagePath = null;
+        - if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+        }
+
+       if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+    
+            // Store new image
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
