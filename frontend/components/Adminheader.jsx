@@ -3,14 +3,21 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Search, HelpCircle, Bell } from "lucide-react"; // Import icons from lucide-react
+import { useParams } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
 
 const Navbar = () => {
+  const { id } = useParams();
+  console.log(id);
+
+  const { fetchUserById, user, error, loading } = useUserStore();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     // Ensure this runs only on the client
     setIsClient(true);
-  }, []);
+    fetchUserById(id);
+  }, [fetchUserById]);
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md py-3 px-6 flex items-center justify-between transition-colors duration-300">
@@ -37,7 +44,10 @@ const Navbar = () => {
       {/* Search Bar */}
       <div className="relative w-1/3">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+          <Search
+            className="h-5 w-5 text-gray-400 dark:text-gray-500"
+            aria-hidden="true"
+          />
         </div>
         <input
           type="search"
@@ -58,15 +68,19 @@ const Navbar = () => {
         {isClient && (
           <div className="flex items-center">
             <Image
-              src="/sam.svg" // Replace with your actual user profile image path
-              alt="Sam Nisa"
+              src={user?.image || "/path/to/default-avatar.jpg"} // Replace with your actual user profile image path
+              alt={user?.last_name || "USER"}
               width={30}
               height={30}
               className="rounded-full mr-2"
             />
             <div>
-              <h1 className="font-semibold text-sm text-gray-800 dark:text-white">Sam Nisa</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">samnisa@gmail.com</p>
+              <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
+                {user?.first_name} {user?.last_name}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {user?.email}
+              </p>
             </div>
           </div>
         )}

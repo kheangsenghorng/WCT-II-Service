@@ -16,7 +16,7 @@ const AdminLayout = ({ children }) => {
       {/* Sidebar below navbar */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* Sidebar */}
-        <SidebarCompany className="w-full md:w-64 flex-shrink-0" />
+        <SidebarCompany id={id} className="w-full md:w-64 flex-shrink-0" />
 
         {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 md:p-8">

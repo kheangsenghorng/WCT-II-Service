@@ -1,10 +1,11 @@
+// store/authStore.js
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { request } from "@/util/request";
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       loading: false,
@@ -48,11 +49,15 @@ export const useAuthStore = create(
           set({ loading: false });
         }
       },
+
+      getToken: () => {
+        return get().token;
+      },
     }),
     {
-      name: "auth-storage", // Key in storage
-      storage: createJSONStorage(() => sessionStorage), // You can also use localStorage here
-      partialize: (state) => ({ user: state.user, token: state.token }), // Only persist necessary fields
+      name: "auth-storage",
+      storage: createJSONStorage(() => sessionStorage), // or localStorage
+      partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )
 );

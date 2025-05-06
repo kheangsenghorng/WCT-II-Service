@@ -21,3 +21,4 @@
             // Store new image
             $data['image'] = $request->file('image')->store('categories', 'public');
         }
+
