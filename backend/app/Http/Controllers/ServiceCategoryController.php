@@ -11,12 +11,18 @@ class ServiceCategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    
-     public function index()
-     {
-         $categories = ServiceCategory::all();
-         return response()->json($categories);
-     }
+    public function index()
+{
+    $categories = ServiceCategory::all()->map(function ($category) {
+        $category->image = $category->image
+            ? asset('storage/' . $category->image)
+            : null;
+        return $category;
+    });
+
+    return response()->json($categories);
+}
+
  
 
     /**
@@ -24,27 +30,27 @@ class ServiceCategoryController extends Controller
      */
     
      public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|unique:service_categories,name',
-        'description' => 'nullable|string',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|unique:service_categories,name',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
 
-    $imagePath = null;
-    if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('categories', 'public');
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+        }
+
+        $category = ServiceCategory::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'description' => $request->description,
+            'image' => $imagePath,
+        ]);
+
+        return response()->json($category, 201);
     }
-
-    $category = ServiceCategory::create([
-        'name' => $request->name,
-        'slug' => Str::slug($request->name),
-        'description' => $request->description,
-        'image' => $imagePath,
-    ]);
-
-    return response()->json($category, 201);
-}
 
 
     /**
@@ -63,9 +69,10 @@ class ServiceCategoryController extends Controller
     
         $request->validate([
             'name' => 'sometimes|required|string|unique:service_categories,name,' . $category->id,
-            'description' => 'sometimes|nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', // Check these rules
         ]);
+        
     
         $data = [];
     

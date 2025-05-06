@@ -6,6 +6,7 @@ use Illuminate\Routing\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -21,9 +22,23 @@ class UserController extends Controller
     public function index()
     {
         $user = auth()->user();
+
+        // Check if the authenticated user has the 'admin' role
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized access. Only admins can view users.'], 403);
         }
+    
+        // Fetch all users and append the full image URL if it exists
+        $users = User::all()->map(function ($user) {
+            // Update user image URL
+            $user->image = $user->image
+                ? asset('storage/' . $user->image)
+                : null; // Return null if no image
+    
+            return $user;
+        });
+    
+    
 
         return response()->json(User::all());
     }
@@ -37,47 +52,122 @@ class UserController extends Controller
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized access. Only admins can register users.'], 403);
         }
-
+    
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20|unique:users', // <-- Add phone validation
+            'phone' => 'required|string|max:20|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'in:user,admin,owner',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-        
-        $newUser = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone' => $request->phone, // <-- Save phone
-            'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'user',
-            'admin_id' => $user->role === 'admin' ? $user->id : null,
-        ]);
-        
+    
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('users', 'public');
+        }
+    
+        $data['password'] = Hash::make($data['password']);
+        $data['admin_id'] = $user->id;
+    
+        $newUser = User::create($data);
+    
         return response()->json([
             'user' => $newUser,
             'message' => 'User registered successfully'
         ], 201);
     }
 
+    public function storeUserUnderOwner(Request $request, $ownerId)
+    {
+        $authUser = auth()->user();
+    
+        if ($authUser->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized access. Only admins can register users.'], 403);
+        }
+    
+        if (!in_array($authUser->role, ['admin', 'owner']) || 
+            ($authUser->role === 'owner' && $authUser->id != $ownerId)) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+    
+        $data = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|string|email|max:255|unique:users',
+            'phone'      => 'required|string|max:20|unique:users',
+            'password'   => 'required|string|min:8|confirmed',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+    
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('users', 'public');
+        }
+    
+        $data['password'] = Hash::make($data['password']);
+        $data['admin_id'] = $authUser->id;
+        $data['owner_id'] = $ownerId;
+        $data['role']     = 'user';
+    
+        $newUser = User::create($data);
+    
+        return response()->json([
+            'user' => $newUser,
+            'message' => 'User created under owner successfully.'
+        ], 201);
+    }
+    
+    public function getUsersByOwner($ownerId)
+    {
+        $authUser = auth()->user();
+    
+        // Authorization check
+        if (!in_array($authUser->role, ['admin', 'owner']) || 
+            ($authUser->role === 'owner' && $authUser->id != $ownerId)) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+    
+        $users = User::where('owner_id', $ownerId)->get();
+    
+        // Modify image paths
+        foreach ($users as $userDetail) {
+            $userDetail->image = $userDetail->image
+                ? asset('storage/' . $userDetail->image)
+                : null;
+        }
+    
+        return response()->json([
+            'users' => $users
+        ]);
+    }
+    
+
+
+    
+
     /**
      * Show a user by ID (admin or self).
      */
-    public function show($id)
-    {
-        $user = auth()->user();
+   public function show($id)
+{
+    $user = auth()->user();
 
-        // Ensure that the user is an admin or they are trying to access their own account
-        if ($user->role !== 'admin' && $user->id !== (int) $id) {
-            return response()->json(['message' => 'Unauthorized access.'], 403);
-        }
-
-        $userDetail = User::findOrFail($id);
-        return response()->json($userDetail);
+    // Ensure that the user is an admin or they are trying to access their own account
+    if ($user->role !== 'admin' && $user->id !== (int) $id) {
+        return response()->json(['message' => 'Unauthorized access.'], 403);
     }
+
+    // Fetch the user details
+    $userDetail = User::findOrFail($id);
+
+    // Update the user's image URL if exists
+    $userDetail->image = $userDetail->image
+        ? asset('storage/' . $userDetail->image)  // Prepend the full URL to the image path
+        : null; // If no image, return null
+
+    return response()->json($userDetail);
+}
+
 
     /**
      * Update user (admin or self).
@@ -85,12 +175,13 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = auth()->user();
-
+    
         // Ensure that the user is an admin or they are updating their own account
         if ($user->role !== 'admin' && $user->id !== (int) $id) {
             return response()->json(['message' => 'Unauthorized access.'], 403);
         }
-
+    
+        // Validation for input fields
         $data = $request->validate([
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
@@ -98,16 +189,31 @@ class UserController extends Controller
             'phone' => 'sometimes|string|max:20|unique:users,phone,' . $id, // <-- Allow phone update
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'in:user,admin,owner',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', // Image validation
         ]);
-        
+    
         if ($request->has('password')) {
             $data['password'] = Hash::make($request->password);
         }
-
+    
+        // If a new image is provided, handle the image upload
+        if ($request->hasFile('image')) {
+            // Delete the old image if it exists
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
+            }
+    
+            // Store the new image
+            $data['image'] = $request->file('image')->store('users', 'public');
+        }
+    
+        // Find the user to update and apply the changes
         $userToUpdate = User::findOrFail($id);
         $userToUpdate->update($data);
+    
         return response()->json($userToUpdate);
     }
+    
 
     /**
      * Remove the specified user (only admins can delete users).
