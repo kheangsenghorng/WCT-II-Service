@@ -1,238 +1,150 @@
 "use client";
 
 import {
-  LayoutGrid,
-  BarChart,
-  ShoppingCart,
-  Boxes,
-  Factory,
-  FileBarChart,
-  ChevronDown,
+  Home,
+  Users,
+  FolderKanban,
+  Building2,
+  LogOut,
 } from "lucide-react";
-
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { useParams } from "next/navigation";
+import { useState, useEffect } from "react"; //Import useEffect
+import { motion, AnimatePresence } from "framer-motion";
+import { useParams, usePathname } from "next/navigation"; //Import usePathname
+import Link from "next/link";
 
 const Sidebar = () => {
-    const { id } = useParams();
-  const [expanded, setExpanded] = useState({
-    Sales: false,
-    Purchasing: false,
-    Production: false,
-    Warehouse: false,
-  });
+  const { id } = useParams();
+  const pathname = usePathname(); // Hook to get the current pathname
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const toggleExpand = (section) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+  const sidebarVariants = {
+    hidden: { x: -250 },
+    visible: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" },
+    }),
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    // Redirect or handle sign out
+    window.location.href = "/";
   };
 
   return (
-    <aside className="bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 w-64 h-screen py-4 px-3 transition-colors duration-300">
-      <nav>
-        <motion.a
-          className="flex items-center py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-          <LayoutGrid className="h-5 w-5 mr-2" />
-          Dashboard
-        </motion.a>
+    <>
+      <motion.aside
+        className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-64 h-screen py-8 px-4 shadow-md flex flex-col"
+        initial="hidden"
+        animate="visible"
+        variants={sidebarVariants}
+      >
+       
+        <nav className="space-y-3 flex-1">
+          {[
+            { href: `/owner/${id}/dashboard`, icon: Home, label: "Dashboard" },
+            { href: `/owner/${id}/users`, icon: Users, label: "Users" },
+            { href: `/owner/${id}/services`, icon: FolderKanban, label: "Service" },
+            { href: `/owner/${id}/company`, icon: Building2, label: "Company" },
+          ].map(({ href, icon: Icon, label }, i) => {
+            const isActive = pathname === href; // Check if the current path matches the link's href
 
-        <motion.a
-          href={`/owner/${id}/dashboard`}
-          className="flex items-center py-2 px-3 rounded-md  bg-blue-50 dark:bg-blue-900 text-black hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-900 dark:hover:text-blue-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-          Home
-        </motion.a>
+            return (
+              <Link
+                key={label}
+                href={href}
+                className={`group flex items-center py-3 px-4 rounded-md text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-900 dark:hover:text-white transition-colors ${
+                  isActive
+                    ? "bg-blue-100 dark:bg-gray-600 text-blue-900 dark:text-white font-semibold"
+                    : ""
+                }`}
+              >
+                <motion.div
+                  custom={i}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex items-center"
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  <span className="text-sm font-medium">{label}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
 
-        <motion.a
-          href={`/owner/${id}/users`}
-          className="flex items-center py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-         Users
-        </motion.a>
+          {/* Spacer */}
+          <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
 
-        <motion.a
-          href={`/owner/${id}/services`}
-          className="flex items-center py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-        Service
-        </motion.a>
-
-        <motion.a
-          href={`/`}
-          className="flex items-center py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-         Logout
-         </motion.a>
-
-        {/* Sales Section */}
-        <div className="mt-2">
+          {/* Logout Button */}
           <motion.button
-            onClick={() => toggleExpand("Sales")}
-            className="flex items-center w-full py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 justify-between transition-colors duration-200"
+            onClick={handleLogout}
+            className="group flex items-center py-3 px-4 rounded-md w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-800 dark:text-red-400 hover:text-red-700 dark:hover:text-red-200 transition-colors"
+            custom={4}
             variants={itemVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="flex items-center">
-              <BarChart className="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500" />
-              Sales
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 transition-transform duration-200 text-gray-400 dark:text-gray-500 ${
-                expanded.Sales ? "rotate-180" : ""
-              }`}
-            />
+            <LogOut className="h-5 w-5 mr-3" />
+            <span className="text-sm font-medium">Logout</span>
           </motion.button>
-          {expanded.Sales && (
-            <motion.div className="pl-6" variants={itemVariants}>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Overview
-              </a>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Orders
-              </a>
-            </motion.div>
-          )}
-        </div>
+        </nav>
+      </motion.aside>
 
-        {/* Purchasing Section */}
-        <div className="mt-2">
-          <motion.button
-            onClick={() => toggleExpand("Purchasing")}
-            className="flex items-center w-full py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 justify-between transition-colors duration-200"
-            variants={itemVariants}
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <div className="flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500" />
-              Purchasing
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 transition-transform duration-200 text-gray-400 dark:text-gray-500 ${
-                expanded.Purchasing ? "rotate-180" : ""
-              }`}
-            />
-          </motion.button>
-          {expanded.Purchasing && (
-            <motion.div className="pl-6" variants={itemVariants}>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Requests
-              </a>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Vendors
-              </a>
+            <motion.div
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-80"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+            >
+              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Confirm Logout</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Are you sure you want to log out?
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              </div>
             </motion.div>
-          )}
-        </div>
-
-        {/* Production Section */}
-        <div className="mt-2">
-          <motion.button
-            onClick={() => toggleExpand("Production")}
-            className="flex items-center w-full py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 justify-between transition-colors duration-200"
-            variants={itemVariants}
-          >
-            <div className="flex items-center">
-              <Factory className="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500" />
-              Production
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 transition-transform duration-200 text-gray-400 dark:text-gray-500 ${
-                expanded.Production ? "rotate-180" : ""
-              }`}
-            />
-          </motion.button>
-          {expanded.Production && (
-            <motion.div className="pl-6" variants={itemVariants}>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Orders
-              </a>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Processes
-              </a>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Warehouse Section */}
-        <div className="mt-2">
-          <motion.button
-            onClick={() => toggleExpand("Warehouse")}
-            className="flex items-center w-full py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 justify-between transition-colors duration-200"
-            variants={itemVariants}
-          >
-            <div className="flex items-center">
-              <Boxes className="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500" />
-              Warehouse
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 transition-transform duration-200 text-gray-400 dark:text-gray-500 ${
-                expanded.Warehouse ? "rotate-180" : ""
-              }`}
-            />
-          </motion.button>
-          {expanded.Warehouse && (
-            <motion.div className="pl-6" variants={itemVariants}>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Inventory
-              </a>
-              <a
-                href="#"
-                className="block py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-              >
-                Locations
-              </a>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Reports Section */}
-        <motion.a
-          href="#"
-          className="flex items-center py-2 px-3 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-          variants={itemVariants}
-        >
-          <FileBarChart className="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500" />
-          Reports
-        </motion.a>
-      </nav>
-    </aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

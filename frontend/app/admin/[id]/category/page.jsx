@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, XCircle, ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, ImageIcon, CheckCircle } from "lucide-react";
 import { useCategoryStore } from "@/store/useCateroyStore";
 
 // Helper components for modals
@@ -38,8 +38,8 @@ export default function CategoryPage() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [newCategoryImageFile, setNewCategoryImageFile] = useState(null);
-
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
+
   const {
     categories,
     loading,
@@ -55,10 +55,20 @@ export default function CategoryPage() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000); // Clear message after 3 seconds
+
+      return () => clearTimeout(timer); // Clear timer on unmount
+    }
+  }, [successMessage]);
 
   const handleAddCategory = async (e) => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append("name", newCategoryName);
     formData.append("description", newCategoryDescription);
@@ -70,13 +80,19 @@ export default function CategoryPage() {
     try {
       await addCategory(formData);
       setShowAddModal(false); // Close modal on success
-    } catch (error) {
-      console.error("Error adding category:", error);
+      setSuccessMessage("Category added successfully!"); // Set sucess message
+    } catch (err) {
+      console.error("Error adding category:", err);
     }
   };
 
   const handleEditCategory = async (e) => {
     e.preventDefault();
+
+    if (!selectedCategory) {
+      console.error("No selected category to edit");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", selectedCategory.name);
@@ -86,13 +102,27 @@ export default function CategoryPage() {
       formData.append("image", newCategoryImageFile);
     }
 
-    formData.append("_method", "PUT"); // Laravel compatibility
-
     try {
       await editCategory(selectedCategory.slug, formData);
       setShowEditModal(false);
-    } catch (error) {
-      console.error("Error editing category:", error);
+      setSuccessMessage("Category edited successfully!"); // Set sucess message
+    } catch (err) {
+      console.error("Error editing category:", err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteCategoryId) {
+      console.error("No category ID to delete");
+      return;
+    }
+
+    try {
+      await deleteCategory(deleteCategoryId);
+      setShowDeleteModal(false);
+      setSuccessMessage("Category deleted successfully!"); // Set sucess message
+    } catch (err) {
+      console.error("Error deleting category:", err);
     }
   };
 
@@ -109,6 +139,12 @@ export default function CategoryPage() {
       <p className="mb-4 text-gray-600 dark:text-gray-400">
         Add, edit, or delete service categories.
       </p>
+      {successMessage && (
+        <div className="bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded mb-4 flex items-center">
+          <CheckCircle className="w-5 h-5 mr-2" />
+          {successMessage}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded mb-4">
@@ -152,7 +188,7 @@ export default function CategoryPage() {
             <tbody>
               {categories.map((category) => (
                 <tr
-                  key={category.id}
+                  key={category.slug}
                   className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <td className="px-4 py-2">
@@ -178,18 +214,19 @@ export default function CategoryPage() {
                         setSelectedCategory(category);
                         setShowEditModal(true);
                       }}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+                      className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
                     >
-                      <Edit className="h-4 w-4 inline-block mr-1" /> Edit
+                      <Edit className="w-8" />
                     </button>
                     <button
                       onClick={() => {
-                        deleteCategory(category.id);
+                        setSelectedCategory(category); // Select category to be deleted
+                        setDeleteCategoryId(category.slug); // Ensure you are using the correct identifier (slug)
                         setShowDeleteModal(true);
                       }}
-                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm"
+                      className="text-red-500 font-bold py-2 rounded inline-flex items-center"
                     >
-                      <Trash2 className="h-4 w-4 inline-block mr-1" /> Delete
+                      <Trash2 className="w-8" />
                     </button>
                   </td>
                 </tr>
@@ -199,93 +236,187 @@ export default function CategoryPage() {
         </div>
       )}
 
-      {/* Add Category Modal */}
-      {showAddModal && (
-        <ModalBackdrop onClick={() => setShowAddModal(false)}>
-          <ModalContainer onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
-                Add New Category
-              </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
+{/* Add Category Modal */}
+ {showAddModal && (
+  <ModalBackdrop onClick={() => setShowAddModal(false)}>
+   <ModalContainer onClick={(e) => e.stopPropagation()}>
+    <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+     Add New Category
+    </h3>
+    {error && (
+     <div className="bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded shadow-md mb-4 flex items-center justify-between">
+      <div>
+       <AlertTriangle className="w-5 h-5 mr-2 inline-block" />
+       {error}
+      </div>
+      <button
+       onClick={() => setError(null)}
+       className="text-red-700 hover:text-red-900"
+      >
+       Dismiss
+      </button>
+     </div>
+    )}
+    {successMessage && (
+     <div className="bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded shadow-md mb-4 flex items-center justify-between">
+      <div>
+       <CheckCircle className="w-5 h-5 mr-2 inline-block" />
+       {successMessage}
+      </div>
+      <button
+       onClick={() => setSuccessMessage(null)}
+       className="text-green-700 hover:text-green-900"
+      >
+       Dismiss
+      </button>
+     </div>
+    )}
+    <form onSubmit={handleAddCategory}>
+     <div className="mb-4">
+      <label
+       htmlFor="name"
+       className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
+      >
+       Category Name
+      </label>
+      <input
+       type="text"
+       id="name"
+       value={newCategoryName}
+       onChange={(e) => setNewCategoryName(e.target.value)}
+       className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+       required
+      />
+     </div>
+     <div className="mb-4">
+      <label
+       htmlFor="description"
+       className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
+      >
+       Description
+      </label>
+      <textarea
+       id="description"
+       value={newCategoryDescription}
+       onChange={(e) => setNewCategoryDescription(e.target.value)}
+       className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+       rows="4"
+       required
+      />
+     </div>
+     <div className="mb-4">
+      <label
+       htmlFor="image"
+       className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
+      >
+       Category Image (optional)
+      </label>
+      <input
+       type="file"
+       id="image"
+       accept="image/*"
+       onChange={(e) => setNewCategoryImageFile(e.target.files[0])}
+       className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+      />
+     </div>
+     <div className="flex justify-end space-x-3">
+      <button
+       onClick={() => setShowAddModal(false)}
+       type="button"
+       className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+      >
+       Cancel
+      </button>
+      <button
+       type="submit"
+       className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+       Add Category
+      </button>
+     </div>
+    </form>
+   </ModalContainer>
+  </ModalBackdrop>
+ )}
 
-            <form onSubmit={handleAddCategory}>
+      {/* Edit Category Modal */}
+      {showEditModal && selectedCategory && (
+        <ModalBackdrop onClick={() => setShowEditModal(false)}>
+          <ModalContainer onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+              Edit Category
+            </h3>
+            <form onSubmit={handleEditCategory}>
               <div className="mb-4">
                 <label
-                  htmlFor="categoryName"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  htmlFor="name"
+                  className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
                 >
                   Category Name
                 </label>
                 <input
-                  id="categoryName"
                   type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Enter category name"
+                  id="name"
+                  value={selectedCategory?.name || ""}
+                  onChange={(e) =>
+                    setSelectedCategory({
+                      ...selectedCategory,
+                      name: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
                   required
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
-
               <div className="mb-4">
                 <label
-                  htmlFor="categoryDescription"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  htmlFor="description"
+                  className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
                 >
-                  Category Description
+                  Description
                 </label>
                 <textarea
-                  id="categoryDescription"
-                  value={newCategoryDescription}
-                  onChange={(e) => setNewCategoryDescription(e.target.value)}
-                  placeholder="Enter category description"
+                  id="description"
+                  value={selectedCategory?.description || ""}
+                  onChange={(e) =>
+                    setSelectedCategory({
+                      ...selectedCategory,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  rows="4"
                   required
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
-
               <div className="mb-4">
                 <label
-                  htmlFor="categoryImage"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  htmlFor="image"
+                  className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"
                 >
-                  Upload Image
+                  New Category Image (optional)
                 </label>
                 <input
-                  id="categoryImage"
                   type="file"
+                  id="image"
                   accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setNewCategoryImageFile(file);
-                  }}
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  onChange={(e) => setNewCategoryImageFile(e.target.files[0])}
+                  className="w-full px-4 py-2 border rounded-lg text-sm text-gray-800 dark:text-white dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
-
-              <div className="flex justify-end mt-6 space-x-2">
+              <div className="flex justify-end space-x-3">
                 <button
+                  onClick={() => setShowEditModal(false)}
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowAddModal(false);
-                  }}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none"
+                  className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded focus:outline-none"
+                  className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
-                  Add Category
+                  Save Changes
                 </button>
               </div>
             </form>
@@ -293,104 +424,30 @@ export default function CategoryPage() {
         </ModalBackdrop>
       )}
 
-      {/* Edit Category Modal */}
-      {showEditModal && selectedCategory && (
-        <ModalBackdrop onClick={() => setShowEditModal(false)}>
+      {/* Delete Category Modal */}
+      {showDeleteModal && (
+        <ModalBackdrop onClick={() => setShowDeleteModal(false)}>
           <ModalContainer onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
-                Edit Category
-              </h3>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+              Confirm Delete
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Are you sure you want to delete this category?
+            </p>
+            <div className="flex justify-end space-x-3">
               <button
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                <XCircle className="w-6 h-6" />
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete
               </button>
             </div>
-
-            <form onSubmit={handleEditCategory}>
-              <div className="mb-4">
-                <label
-                  htmlFor="categoryName"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Category Name
-                </label>
-                <input
-                  id="categoryName"
-                  type="text"
-                  value={selectedCategory.name}
-                  onChange={(e) =>
-                    setSelectedCategory({
-                      ...selectedCategory,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="Enter category name"
-                  required
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="categoryDescription"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Category Description
-                </label>
-                <textarea
-                  id="categoryDescription"
-                  value={selectedCategory.description}
-                  onChange={(e) =>
-                    setSelectedCategory({
-                      ...selectedCategory,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Enter category description"
-                  required
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="categoryImage"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Upload Image
-                </label>
-                <input
-                  id="categoryImage"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setNewCategoryImageFile(file);
-                  }}
-                  className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-                
-              </div>
-
-              <div className="flex justify-end mt-6 space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
           </ModalContainer>
         </ModalBackdrop>
       )}
