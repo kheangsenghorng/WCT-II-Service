@@ -24,47 +24,18 @@ const HomePage = () => {
         setLoading(true);
 
         const token = localStorage.getItem("token"); // Adjust based on your storage
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const users = response.data;
 
         // Example transformation: adjust based on real API structure
-        const transformedStats = [
-          {
-            id: "user",
-            label: "Total Users",
-            value: users.length.toString(),
-            change: 10, // You can calculate change or remove it
-            isPositive: true,
-          },
-          {
-            id: "company",
-            label: "Total Company",
-            value: "1700", // You might need another endpoint for this
-            change: -11,
-            isPositive: false,
-          },
-          {
-            id: "customer",
-            label: "Total Customer",
-            value: "2420", // Mock or fetch real
-            change: 20,
-            isPositive: true,
-          },
-          {
-            id: "order",
-            label: "Total Orders",
-            value: "2530",
-            change: 17,
-            isPositive: true,
-          },
-        ];
-
-        setStats(transformedStats);
       } catch (err) {
         setError("Failed to fetch stats");
         console.error(err);
@@ -102,7 +73,9 @@ const HomePage = () => {
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Home</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Home
+          </h1>
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
             <QuestionMarkCircleIcon className="w-5 h-5 mr-2" />
             Support
@@ -113,7 +86,11 @@ const HomePage = () => {
         <DragDropContext onDragEnd={handleDragEndStats}>
           <Droppable droppableId="stats" direction="horizontal" type="STAT">
             {(provided) => (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" ref={provided.innerRef} {...provided.droppableProps}>
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
                 {stats.map((stat, index) => (
                   <Draggable key={stat.id} draggableId={stat.id} index={index}>
                     {(provided) => (
@@ -128,18 +105,28 @@ const HomePage = () => {
                         whileHover="hover"
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">{stat.label}</h2>
+                          <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                            {stat.label}
+                          </h2>
                           <MoreVerticalIcon className="h-5 w-5 text-gray-400" />
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-3xl font-bold text-gray-800 dark:text-white">{stat.value}</p>
+                          <p className="text-3xl font-bold text-gray-800 dark:text-white">
+                            {stat.value}
+                          </p>
                           <div className="flex items-center text-sm">
                             {stat.isPositive ? (
                               <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
                             ) : (
                               <ArrowDownIcon className="h-4 w-4 text-red-500 mr-1" />
                             )}
-                            <span className={stat.isPositive ? "text-green-500" : "text-red-500"}>
+                            <span
+                              className={
+                                stat.isPositive
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }
+                            >
                               {Math.abs(stat.change)}%
                             </span>
                           </div>
@@ -158,7 +145,11 @@ const HomePage = () => {
         <DragDropContext onDragEnd={handleDragEndCharts}>
           <Droppable droppableId="charts" direction="horizontal" type="CHART">
             {(provided) => (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" ref={provided.innerRef} {...provided.droppableProps}>
+              <div
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
                 {chartOrder.map((chart, index) => (
                   <Draggable key={chart} draggableId={chart} index={index}>
                     {(provided) => (
@@ -171,7 +162,9 @@ const HomePage = () => {
                         {chart === "marketing" ? (
                           <>
                             <div className="flex items-center justify-between mb-4">
-                              <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">Marketing Report</h2>
+                              <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+                                Marketing Report
+                              </h2>
                               <select className="border rounded-md p-1 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                                 <option>This Month</option>
                                 <option>Last Month</option>
@@ -184,7 +177,9 @@ const HomePage = () => {
                         ) : (
                           <>
                             <div className="flex items-center justify-between mb-4">
-                              <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">Sales Report</h2>
+                              <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+                                Sales Report
+                              </h2>
                               <select className="border rounded-md p-1 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                                 <option>This Month</option>
                                 <option>Last Month</option>
@@ -194,11 +189,26 @@ const HomePage = () => {
                               Sales Doughnut Chart Placeholder
                             </div>
                             <div className="flex justify-around mt-4 text-sm text-gray-600 dark:text-gray-400">
-                              <span><span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>Online Shop</span>
-                              <span><span className="inline-block w-2 h-2 bg-orange-500 rounded-full mr-1"></span>Acquisition</span>
-                              <span><span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>Investing</span>
-                              <span><span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></span>Subscription</span>
-                              <span><span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-1"></span>Purchase</span>
+                              <span>
+                                <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
+                                Online Shop
+                              </span>
+                              <span>
+                                <span className="inline-block w-2 h-2 bg-orange-500 rounded-full mr-1"></span>
+                                Acquisition
+                              </span>
+                              <span>
+                                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                                Investing
+                              </span>
+                              <span>
+                                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                                Subscription
+                              </span>
+                              <span>
+                                <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                Purchase
+                              </span>
                             </div>
                           </>
                         )}

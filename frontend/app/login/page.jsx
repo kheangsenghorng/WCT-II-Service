@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Facebook, Eye, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { toast } from "react-toastify"; // Import toast
+import { toast } from "react-toastify";
 
 export default function LoginForm() {
   const router = useRouter();

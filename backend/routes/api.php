@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ServiceCategoryController;
@@ -47,6 +48,15 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/{slug}', [ServiceCategoryController::class, 'update']);
             Route::delete('/{slug}', [ServiceCategoryController::class, 'destroy']);
         });
+
+        Route::prefix('type')->group(function () {
+            Route::get('', [TypeController::class, 'index']);  // Get all users (admin only)
+            Route::post('/', [TypeController::class, 'store']); // Create a new user (admin only)
+            Route::get('/{id}', [TypeController::class, 'show']); // Get user by id (admin only)
+            Route::put('/{id}', [TypeController::class, 'update']); // Update user (admin only)
+            Route::delete('/{id}', [TypeController::class, 'destroy']); // Delete user (admin only)
+    
+        });
     });
 
     // Users can update their own profile
@@ -68,12 +78,17 @@ Route::middleware('auth:api')->group(function () {
 
 });
 
-
 //category
 
+Route::middleware('auth:api')->group(function () {
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [ServiceCategoryController::class, 'index']);
+        Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
+    });
 
-Route::prefix('categories')->group(function () {
-    Route::get('/', [ServiceCategoryController::class, 'index']);
-    Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
 });
+
+
+
+
 
