@@ -4,9 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Facebook, Eye } from "lucide-react";
-import { request } from "@/util/request";
+import { Facebook, Eye, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "react-toastify"; // Import toast
 
 export default function LoginForm() {
   const router = useRouter();
@@ -18,6 +18,8 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,12 +30,16 @@ export default function LoginForm() {
 
     setLoading(true);
     setError(null);
+    setSuccessMessage(null); // Clear any previous success message
 
     try {
       const res = await login(email, password); // { token, user, message }
       console.log("Login response:", res);
 
       const user = res.user;
+
+      // Show success message
+      setSuccessMessage("Login ...");
 
       setTimeout(() => {
         const { role, id } = user;
@@ -46,8 +52,10 @@ export default function LoginForm() {
           router.push(`/admin/${id}/dashboard`); // Redirect to admin dashboard
         } else if (role === "owner") {
           router.push(`/owner/${id}/dashboard`);
+        } else if (role === "staff") {
+          router.push(`/staff/${id}/dashboard`); // Redirect to staff dashboard
         } else {
-          router.push(`/profile/${id}/myprofile`);
+          router.push(`/profile/${id}/myprofile`); // Default redirect to profile
         }
       }, 2000);
     } catch (err) {
@@ -65,7 +73,50 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl relative">
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
+            <div className="flex flex-col items-center">
+              {/* Spinner Animation */}
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
+              {/* Loading Text */}
+              <p className="mt-4 text-green-600 font-medium text-xl">
+                Logging in...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message Overlay */}
+        {successMessage && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-lg p-6 flex items-center gap-4 transform transition-all animate-fade-in max-w-md mx-auto">
+              {/* Success Icon */}
+              <div className="bg-green-100 rounded-full p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              {/* Success Message Text */}
+              <span className="text-gray-800 text-lg font-semibold">
+                {successMessage}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-1/2 bg-gradient-to-br from-sky-50 to-sky-100 p-8 flex items-center justify-center">
             <div className="relative w-64 h-64">
@@ -149,15 +200,24 @@ export default function LoginForm() {
                 </div>
 
                 {error && (
-                  <p className="text-sm text-red-500 text-center">{error}</p>
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600 text-center">{error}</p>
+                  </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition duration-200 disabled:opacity-50"
+                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition duration-200 disabled:opacity-50 flex items-center justify-center"
                 >
-                  {loading ? "Logging in..." : "Login"}
+                  {loading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin mr-2" />
+                      Logging in...
+                    </>
+                  ) : (
+                    "Login"
+                  )}
                 </button>
 
                 <div className="text-center">
