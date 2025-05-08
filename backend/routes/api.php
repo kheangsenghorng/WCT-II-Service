@@ -64,7 +64,6 @@ Route::middleware('auth:api')->group(function () {
         Route::put('users/{id}', [UserController::class, 'update']); // Update user (admin only)
         Route::delete('users/{id}', [UserController::class, 'destroy']); // Delete user (admin only)
 
-
     });
 
 });

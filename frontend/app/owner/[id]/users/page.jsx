@@ -109,7 +109,7 @@ const Users = () => {
 
   return (
     <motion.div
-      className="container mx-auto p-4 md:p-8"
+      className="container "
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -157,25 +157,26 @@ const Users = () => {
           <table className="min-w-full border border-gray-200 dark:border-gray-700">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Image</th>
                 <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">First Name</th>
-                <th className="py-3 px-6 text-left">Last Name</th>
+                <th className="py-3 px-6 text-left">Image</th>
+                <th className="py-3 px-6 text-left text-nowrap">First Name</th>
+                <th className="py-3 px-6 text-left text-nowrap">Last Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Role</th>
-                <th className="py-3 px-6 text-left">Created At</th>
+                <th className="py-3 px-6 text-left text-nowrap">Created At</th>
                 <th className="py-3 px-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
               {users.length > 0 ? (
-                users.map((user) => (
+                users.map((user, index) => (
                   <motion.tr
                     key={user.id}
                     className="border-b dark:border-gray-700"
                     variants={rowVariants}
                     whileHover="hover"
                   >
+                    <td className="py-3 px-6">{index + 1}</td>
                     <td className="py-3 px-6">
                       <img
                         src={user?.image || "/default-avatar.png"}
@@ -183,7 +184,7 @@ const Users = () => {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     </td>
-                    <td className="py-3 px-6">{user.id}</td>
+
                     <td className="py-3 px-6">{user.first_name}</td>
                     <td className="py-3 px-6">{user.last_name}</td>
                     <td className="py-3 px-6">{user.email}</td>

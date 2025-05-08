@@ -22,7 +22,7 @@ class UserController extends Controller
     public function index()
     {
         $user = auth()->user();
-
+    
         // Check if the authenticated user has the 'admin' role
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized access. Only admins can view users.'], 403);
@@ -30,19 +30,16 @@ class UserController extends Controller
     
         // Fetch all users and append the full image URL if it exists
         $users = User::all()->map(function ($user) {
-            // Update user image URL
             $user->image = $user->image
                 ? asset('storage/' . $user->image)
-                : null; // Return null if no image
+                : null;
     
             return $user;
         });
     
-    
-
-        return response()->json(User::all());
+        return response()->json($users);
     }
-
+    
     /**
      * Register a new user (only admins can register users).
      */
@@ -107,7 +104,7 @@ class UserController extends Controller
         $data['password'] = Hash::make($data['password']);
         $data['admin_id'] = $authUser->id;
         $data['owner_id'] = $ownerId;
-        $data['role']     = 'user';
+        $data['role']     = 'staff';
     
         $newUser = User::create($data);
     
