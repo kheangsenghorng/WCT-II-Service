@@ -68,7 +68,7 @@ const Navbar = () => {
         {isClient && (
           <div className="flex items-center">
             <Image
-              src={user?.image || "/path/to/default-avatar.jpg"} // Replace with your actual user profile image path
+              src={user?.image || "/default-user.svg"} // Replace with your actual user profile image path
               alt={user?.last_name || "USER"}
               width={30}
               height={30}

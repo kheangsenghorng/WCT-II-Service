@@ -37,19 +37,18 @@ export const useCategoryStore = create((set, get) => ({
     }
   },
   editCategory: async (slug, formData) => {
-    const { fetchCategories } = get();
-    if (!slug || !formData) return;
+    if (!slug || !formData) {
+      console.error("Slug or formData is missing for editCategory");
+      return;
+    }
 
     try {
-      await request(
-        `/admin/categories/${slug}`,
-        "POST", // Use "POST" with `_method=PUT` if Laravel expects it
-        formData
-      );
-
+      formData.append("_method", "PUT"); // Or "PATCH" if your backend prefers it
+      await request(`/admin/categories/${slug}`, "POST", formData); // Use POST with FormData
       set({ selectedCategory: null });
-      await fetchCategories();
+      await get().fetchCategories();
     } catch (err) {
+      console.error("Error editing category:", err);
       set({ error: `Error editing category: ${err.message}` });
     }
   },

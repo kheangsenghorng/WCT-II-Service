@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Edit, Trash2, CheckCircle, AlertTriangle, UserPlus } from "lucide-react";
+import { request } from "@/util/request";  // Correct import of request
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -16,12 +17,12 @@ const Users = () => {
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
 
-  const [showAddUserModal, setShowAddUserModal] = useState(false); // New state for Add User Modal
-  const [newFirstName, setNewFirstName] = useState(""); // New state for form field
-  const [newLastName, setNewLastName] = useState(""); // New state for form field
-  const [newEmail, setNewEmail] = useState(""); // New state for form field
-  const [newPassword, setNewPassword] = useState(""); // New state for form field
-  const [newConfirmPassword, setNewConfirmPassword] = useState(""); // New state for form field
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newFirstName, setNewFirstName] = useState("");
+  const [newLastName, setNewLastName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newConfirmPassword, setNewConfirmPassword] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -31,19 +32,7 @@ const Users = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await request("/admin/users", "GET");
       setUsers(data);
     } catch (err) {
       setError(`Error fetching users: ${err.message}`);
@@ -61,22 +50,11 @@ const Users = () => {
 
   const confirmEditUser = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users/${editingUserId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ role: editedRole }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
+      await request(`/admin/users/${editingUserId}`, "PUT", { role: editedRole });
 
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.user_id === editingUserId ? { ...user, role: editedRole } : user
+          user.id === editingUserId ? { ...user, role: editedRole } : user
         )
       );
 
@@ -100,21 +78,9 @@ const Users = () => {
     if (!userToDelete) return;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users/${userToDelete}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await request(`/admin/users/${userToDelete}`, "DELETE");
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.user_id !== userToDelete)
-      );
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userToDelete));
       setSuccessMessage("User deleted successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -125,7 +91,6 @@ const Users = () => {
     }
   };
 
-  // Function to handle adding a new user
   const handleAddUser = async () => {
     if (newPassword !== newConfirmPassword) {
       setError("Passwords do not match.");
@@ -133,26 +98,14 @@ const Users = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          first_name: newFirstName,
-          last_name: newLastName,
-          email: newEmail,
-          password: newPassword,
-        }),
+      await request("/admin/users", "POST", {
+        first_name: newFirstName,
+        last_name: newLastName,
+        email: newEmail,
+        password: newPassword,
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      // Fetch users again to update the user list
-      fetchUsers();
+      await fetchUsers();
       setSuccessMessage("User added successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -166,6 +119,7 @@ const Users = () => {
       setNewConfirmPassword("");
     }
   };
+  
 
   const containerVariants = {
     hidden: { opacity: 0 },
