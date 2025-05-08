@@ -186,61 +186,78 @@ const Users = () => {
         <div className="text-center text-gray-500 dark:text-gray-300">Loading users...</div>
       ) : (
         <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <table className="min-w-full border border-gray-200 dark:border-gray-700">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">First Name</th>
-                <th className="py-3 px-6 text-left">Last Name</th>
-                <th className="py-3 px-6 text-left">Email</th>
-                <th className="py-3 px-6 text-left">Role</th>
-                <th className="py-3 px-6 text-left">Created At</th>
-                <th className="py-3 px-6 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <motion.tr
-                    key={user.id}
-                    className="border-b dark:border-gray-700"
-                    variants={rowVariants}
-                    whileHover="hover"
-                  >
-                    <td className="py-3 px-6">{user.id}</td>
-                    <td className="py-3 px-6">{user.first_name}</td>
-                    <td className="py-3 px-6">{user.last_name}</td>
-                    <td className="py-3 px-6">{user.email}</td>
-                    <td className="py-3 px-6 capitalize">{user.role}</td>
-                    <td className="py-3 px-6">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-3  whitespace-nowrap">
-                      <button
-                        onClick={() => handleEditRole(user)}
-                        className=" text-blue-500 font-bold py-2  rounded mr-2 inline-flex items-center"
-                      >
-                        <Edit className="w-8" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className=" text-red-500 font-bold py-2 rounded inline-flex items-center"
-                      >
-                        <Trash2 className="w-8" />
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-6">
-                    No users found.
+        <table className="min-w-full border border-gray-200 dark:border-gray-700">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
+              <th className="py-3 px-6 text-left">ID</th>
+              <th className="py-3 px-6 text-left">Image</th>
+              <th className="py-3 px-6 text-left">First Name</th>
+              <th className="py-3 px-6 text-left">Last Name</th>
+              <th className="py-3 px-6 text-left">Email</th>
+              <th className="py-3 px-6 text-left">Phone</th>
+              <th className="py-3 px-6 text-left">Role</th>
+              <th className="py-3 px-6 text-left">Created At</th>
+              <th className="py-3 px-6 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
+          {users.length > 0 ? (
+        users
+          .filter((user) => user.role !== "admin") // ✅ filter out admin users
+          .map((user,index) => (
+                <motion.tr
+                  key={user.id}
+                  className="border-b dark:border-gray-700"
+                  variants={rowVariants}
+                  whileHover="hover"
+                >
+                  <td className="py-3 px-6">{index + 1}</td>
+                  <td className="py-3 px-6">
+                    {user.image ? (
+                      <img
+                        src={user.image}
+                        alt="User"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      "No Image"
+                    )}
                   </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  <td className="py-3 px-6">{user.first_name}</td>
+                  <td className="py-3 px-6">{user.last_name}</td>
+                  <td className="py-3 px-6">{user.email}</td>
+                  <td className="py-3 px-6">{user.phone}</td>
+                  <td className="py-3 px-6 capitalize">{user.role}</td>
+                  <td className="py-3 px-6">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 px-6 whitespace-nowrap">
+                    <button
+                      onClick={() => handleEditRole(user)}
+                      className="text-blue-500 font-bold py-2 px-2 rounded inline-flex items-center"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-500 font-bold py-2 px-2 rounded inline-flex items-center"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </td>
+                </motion.tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={9} className="text-center py-6">
+                  No users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
       )}
 
       {/* Delete Confirmation Modal */}

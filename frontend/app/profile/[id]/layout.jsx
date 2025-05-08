@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useParams } from "next/navigation";
-import ProfileUser from "@/components/ProfileUser";
+// import ProfileUser from "@/components/ProfileUser";
 import SidebarUser from "@/components/SidebarUser";
 
 const OwnerLayout = ({ children }) => {
@@ -15,7 +15,7 @@ const OwnerLayout = ({ children }) => {
       <Navbar id={id} />
 
       {/* Profile Section */}
-      <ProfileUser id={id} />
+      {/* <ProfileUser id={id} /> */}
 
       {/* Content with Sidebar and Main */}
       <div className="flex flex-1 px-4 md:px-10 py-5 space-x-6">
@@ -25,7 +25,7 @@ const OwnerLayout = ({ children }) => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 md:p-8 rounded-xl shadow-sm">
+        <main className="flex-1 overflow-x-hidden overflow-y-autu dark:bg-gray-900 p-4 md:p-8 rounded-xl shadow-sm">
           {children}
         </main>
       </div>
