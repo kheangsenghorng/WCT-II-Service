@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ServiceCategory;
 use App\Models\Type;
 use Illuminate\Http\Request;
 
@@ -19,16 +20,28 @@ class TypeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'service_categories_id' => 'nullable|exists:service_categories,id',
-            'name' => 'required|string|max:255',
-        ]);
+   
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'service_categories_id' => 'nullable|exists:service_categories,id',
+        'name' => 'required|string|max:255',
+    ]);
 
-        $type = Type::create($validated);
-        return response()->json($type, 201);
+    // Manually check if the category has services
+    if (!empty($validated['service_categories_id'])) {
+        $category = ServiceCategory::find($validated['service_categories_id']);
+
+        if ($category->services_count === 0) {
+            return response()->json([
+                'message' => 'The selected category does not have any services.'
+            ], 422);
+        }
     }
+
+    $type = Type::create($validated);
+    return response()->json($type, 201);
+}
 
     /**
      * Display the specified resource.

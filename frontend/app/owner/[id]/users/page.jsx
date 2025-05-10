@@ -13,8 +13,9 @@ import { useUserStore } from "@/store/useUserStore";
 import { useParams } from "next/navigation";
 
 const Users = () => {
-  const { id } = useParams();
-  const { users, fetchUsersByOwner, loading, error } = useUserStore();
+  const { id: ownerId } = useParams();
+  const { users, fetchUsersByOwner, createUserUnderOwner, loading, error } =
+    useUserStore();
 
   const [successMessage, setSuccessMessage] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -30,13 +31,15 @@ const Users = () => {
   const [newLastName, setNewLastName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newPhone, setNewPhone] = useState(""); // Add new state for phone number
+
   const [newConfirmPassword, setNewConfirmPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
-    fetchUsersByOwner(id);
-  }, [id]);
+    if (ownerId) fetchUsersByOwner(ownerId);
+  }, [ownerId]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -69,47 +72,64 @@ const Users = () => {
   };
 
   const confirmDeleteUser = () => {
+    // Replace with real delete logic
     setSuccessMessage("User deleted successfully");
     setShowConfirmDelete(false);
   };
 
   const confirmEditUser = () => {
+    // Replace with real update logic
     setSuccessMessage("User role updated successfully");
     setShowConfirmEdit(false);
   };
 
-  const handleAddUser = () => {
-    // Upload logic here...
-    console.log("Creating user with:", {
-      newFirstName,
-      newLastName,
-      newEmail,
-      selectedImage,
-    });
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleAddUser = async () => {
+    const formData = new FormData();
+
+    // Append form fields to FormData
+    formData.append("email", newEmail);  // Correcting from userEmail to newEmail
+    formData.append("first_name", newFirstName);
+    formData.append("last_name", newLastName);  // Fixed missing value for last_name
+    formData.append("phone", newPhone);
+    formData.append("password", newPassword);
+    formData.append("password_confirmation", newConfirmPassword);
+    // Append image if selected
+    if (selectedImage) {
+      formData.append("image", selectedImage);
+    }
+
+    // Send request to create user under owner
+    await createUserUnderOwner(formData, ownerId);
+
+    // Fetch updated user list by owner
+    await fetchUsersByOwner(ownerId);
+
+    // Show success message
     setSuccessMessage("User added successfully");
-    setShowAddUserModal(false);
+
+    // Reset form fields
     setNewFirstName("");
     setNewLastName("");
     setNewEmail("");
     setNewPassword("");
     setNewConfirmPassword("");
+    setNewPhone(""); // Reset phone number
     setSelectedImage(null);
     setImagePreview(null);
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setSelectedImage(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
+    setShowAddUserModal(false);
   };
 
   return (
     <motion.div
-      className="container "
+      className="container"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -184,7 +204,6 @@ const Users = () => {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     </td>
-
                     <td className="py-3 px-6">{user.first_name}</td>
                     <td className="py-3 px-6">{user.last_name}</td>
                     <td className="py-3 px-6">{user.email}</td>
@@ -223,83 +242,144 @@ const Users = () => {
       {/* Add User Modal */}
       {showAddUserModal && (
         <motion.div
-          className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
           variants={modalVariants}
           initial="hidden"
           animate="visible"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg mx-auto w-full">
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
               Add User
-            </h3>
+            </h2>
             <form>
-              <input
-                type="text"
-                placeholder="First Name"
-                value={newFirstName}
-                onChange={(e) => setNewFirstName(e.target.value)}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={newLastName}
-                onChange={(e) => setNewLastName(e.target.value)}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={newConfirmPassword}
-                onChange={(e) => setNewConfirmPassword(e.target.value)}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
+              <div className="mb-4">
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  id="first_name"
+                  value={newFirstName}
+                  onChange={(e) => setNewFirstName(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="last_name"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="last_name"
+                  value={newLastName}
+                  onChange={(e) => setNewLastName(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Phone
+                </label>
+                <input
+                  type="text"
+                  id="phone"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="password_confirmation"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  id="password_confirmation"
+                  value={newConfirmPassword}
+                  onChange={(e) => setNewConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="w-full p-2 mb-3 border border-gray-300 rounded"
-              />
-
-              {imagePreview && (
-                <div className="mb-3 text-center">
+              {/* Image Upload */}
+              <div className="mb-4">
+                <label
+                  htmlFor="image"
+                  className="block text-sm font-semibold text-gray-800 dark:text-white"
+                >
+                  Profile Image
+                </label>
+                <input
+                  type="file"
+                  id="image"
+                  onChange={handleImageChange}
+                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {imagePreview && (
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="w-24 h-24 mx-auto rounded-full object-cover"
+                    className="mt-2 w-20 h-20 object-cover rounded-full"
                   />
-                </div>
-              )}
+                )}
+              </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setShowAddUserModal(false)}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded mr-2"
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleAddUser}
-                  className="bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
-                  Add
+                  Add User
                 </button>
               </div>
             </form>

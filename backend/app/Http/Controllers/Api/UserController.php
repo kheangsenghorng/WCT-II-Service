@@ -75,19 +75,25 @@ class UserController extends Controller
         ], 201);
     }
 
+
+
     public function storeUserUnderOwner(Request $request, $ownerId)
     {
         $authUser = auth()->user();
     
-        if ($authUser->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized access. Only admins can register users.'], 403);
+        // ✅ Ensure the ownerId is valid and belongs to an actual owner
+        $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
+        if (!$owner) {
+            return response()->json(['message' => 'Invalid owner ID or user is not an owner.'], 404);
         }
     
-        if (!in_array($authUser->role, ['admin', 'owner']) || 
-            ($authUser->role === 'owner' && $authUser->id != $ownerId)) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+        // ✅ Find the admin (e.g., the first one you have in the system)
+        $admin = User::where('role', 'admin')->first(); // Or use specific logic to pick which admin
+        if (!$admin) {
+            return response()->json(['message' => 'Admin not found in the system.'], 500);
         }
     
+        // ✅ Validate request
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name'  => 'required|string|max:255',
@@ -97,14 +103,16 @@ class UserController extends Controller
             'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
     
+        // ✅ Handle image upload
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('users', 'public');
         }
     
+        // ✅ Prepare and store new user
         $data['password'] = Hash::make($data['password']);
-        $data['admin_id'] = $authUser->id;
-        $data['owner_id'] = $ownerId;
-        $data['role']     = 'staff';
+        $data['admin_id'] = $admin->id; // Link to admin
+        $data['owner_id'] = $ownerId;   // Link to owner
+        $data['role']     = 'staff';    // Default role
     
         $newUser = User::create($data);
     
@@ -113,6 +121,10 @@ class UserController extends Controller
             'message' => 'User created under owner successfully.'
         ], 201);
     }
+    
+    
+    
+
     
     public function getUsersByOwner($ownerId)
     {
