@@ -36,6 +36,23 @@ export const useUserStore = create((set) => ({
       set({ loading: false });
     }
   },
+  createUserUnderOwner: async (formData, ownerId) => {
+    set({ loading: true, error: null, successMessage: null });
 
+    try {
+      // Request to create user under owner
+      const response = await request(`/owner/${ownerId}`, "POST", formData);
+      // Handle success response
+      set({
+        successMessage: response?.message || "User created successfully",
+        loading: false,
+      });
+    } catch (error) {
+      // Extract error message from response
+      const message =
+        error?.response?.data?.message || "An unexpected error occurred.";
+      set({ error: message, loading: false });
+    }
+  },
   clearUsers: () => set({ users: [] }),
 }));

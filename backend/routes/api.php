@@ -69,7 +69,7 @@ Route::middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->group(function () {
     Route::prefix('owner')->group(function () {
         Route::get('users', [UserController::class, 'index']);  // Get all users (admin only)
-        Route::post('users/{id}', [UserController::class, 'storeUserUnderOwner']); // Create a new user (admin only)
+        Route::post('/{id}', [UserController::class, 'storeUserUnderOwner']); // Create a new user (admin only)
         Route::get('users/{id}', [UserController::class, 'getUsersByOwner']); // Get user by id (admin only)
         Route::put('users/{id}', [UserController::class, 'update']); // Update user (admin only)
         Route::delete('users/{id}', [UserController::class, 'destroy']); // Delete user (admin only)
