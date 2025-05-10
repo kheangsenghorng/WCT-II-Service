@@ -74,15 +74,13 @@ const ProfilePage = () => {
           onClick={handleOpenImageModal}
         >
           <Image
-            src={user.avatarUrl || "/default-user.svg"}
+            src={user.image || "/default-user.svg"}
             alt={`${user.first_name} ${user.last_name}'s avatar`}
             fill
             style={{ objectFit: "cover" }}
             priority
           />
-          <motion.div
-            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300"
-          >
+          <motion.div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
             <ZoomIn className="w-6 h-6 text-white" />
           </motion.div>
         </div>
@@ -119,7 +117,9 @@ const ProfilePage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-8 h-8 text-blue-500" />
-              <span className="text-xl">{user.hotelsBooked ?? 0} Hotels Booked</span>
+              <span className="text-xl">
+                {user.hotelsBooked ?? 0} Hotels Booked
+              </span>
             </div>
           </div>
         </div>
