@@ -18,13 +18,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
+  
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body
+      <body data-gptw=""
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}

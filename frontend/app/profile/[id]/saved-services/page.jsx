@@ -43,7 +43,7 @@ const SavedPage = () => {
   const confirmRemove = async () => {
     try {
       // Replace with your actual API endpoint for removing a saved restaurant
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/saved-services/${restaurantToDelete}`, {
+      const response = await fetch(`$/saved-services/${restaurantToDelete}`, {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -126,8 +126,13 @@ const SavedPage = () => {
       </section>
 
       {loading ? (
-        <div className="text-center text-gray-500 dark:text-gray-300">Loading saved restaurants...</div>
-      ) : error ? (
+  <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
+      <p className="mt-4 text-green-600 font-medium text-xl">Loading...</p>
+    </div>
+  </div>
+) : error ? (
         <div className="bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded">{error}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
