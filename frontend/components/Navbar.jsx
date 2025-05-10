@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState  } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { useUserStore } from "../store/useUserStore";
 
 const Navbar = ({ id }) => {
   const router = useRouter();
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
 
   useEffect(() => {
     setValue(Math.random().toString());
@@ -41,11 +41,27 @@ const Navbar = ({ id }) => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex space-x-14 text-xl">
-          <Link href="/" className="text-gray-600 hover:text-green-500">Home</Link>
-          <Link href={`/about-us`} className="text-gray-600 hover:text-green-500">About us</Link>
-          <Link href="/services" className="text-gray-600 hover:text-green-500">Service</Link>
-          <Link href="/blog" className="text-gray-600 hover:text-green-500">Blog</Link>
-          <Link href={`/user/${id}/contact`} className="text-gray-600 hover:text-green-500">Contact</Link>
+          <Link href="/" className="text-gray-600 hover:text-green-500">
+            Home
+          </Link>
+          <Link
+            href={`/about-us`}
+            className="text-gray-600 hover:text-green-500"
+          >
+            About us
+          </Link>
+          <Link href="/services" className="text-gray-600 hover:text-green-500">
+            Service
+          </Link>
+          <Link href="/blog" className="text-gray-600 hover:text-green-500">
+            Blog
+          </Link>
+          <Link
+            href={`/user/${id}/contact`}
+            className="text-gray-600 hover:text-green-500"
+          >
+            Contact
+          </Link>
         </div>
 
         {/* Right Side: User Avatar or Login */}
@@ -55,22 +71,24 @@ const Navbar = ({ id }) => {
           ) : error ? (
             <div className="text-red-500">{error}</div>
           ) : user ? (
-            <Link href={`/profile/${user.id}/myprofile`} className="flex items-center gap-2 cursor-pointer">
-            <Avatar>
-              <AvatarImage
-                src={user.profileImage || "/default-user.svg"}
-                alt={`${user.first_name} ${user.last_name}`}
-              />
-              <AvatarFallback>
-                {user.first_name?.[0]}
-                {user.last_name?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <span className="hidden md:inline text-gray-800 font-medium">
-              {user.first_name} {user.last_name}
-            </span>
-          </Link>
-          
+            <Link
+              href={`/profile/${user.id}/myprofile`}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <Avatar>
+                <AvatarImage
+                  src={user.image || "/default-user.svg"}
+                  alt={`${user.first_name} ${user.last_name}`}
+                />
+                <AvatarFallback>
+                  {user.first_name?.[0]}
+                  {user.last_name?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden md:inline text-gray-800 font-medium">
+                {user.first_name} {user.last_name}
+              </span>
+            </Link>
           ) : (
             <Link
               href="/login"
