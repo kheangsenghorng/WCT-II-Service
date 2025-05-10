@@ -17,8 +17,8 @@ const Footer = () => {
                 className="mr-2"
               />
               <div>
-                <span className="text-xl font-bold text-white">CleaningPro</span>
-                <p className="text-xs text-gray-400">Cleaning Services Provider</p>
+                <span className="text-xl font-bold text-white">Services Me</span>
+                <p className="text-xs text-gray-400">Services Provider</p>
               </div>
             </div>
             <p className="text-sm">

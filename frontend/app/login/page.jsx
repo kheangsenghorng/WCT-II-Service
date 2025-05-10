@@ -4,9 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Facebook, Eye, Loader2 } from "lucide-react";
+import { Facebook, Eye, Loader2, CheckCircle } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"; // Import toast
 
 export default function LoginForm() {
   const router = useRouter();
@@ -16,106 +16,74 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-
-    setLoading(true);
+  
+    setLoading(true); // Start loading
     setError(null);
     setSuccessMessage(null); // Clear any previous success message
-
+  
     try {
       const res = await login(email, password); // { token, user, message }
       console.log("Login response:", res);
-
+  
       const user = res.user;
-
-      // Show success message
-      setSuccessMessage("Login ...");
-
-      setTimeout(() => {
-        const { role, id } = user;
-
-        if (!role || !id) {
-          throw new Error("Missing user information.");
-        }
-
-        if (role === "admin") {
-          router.push(`/admin/${id}/dashboard`); // Redirect to admin dashboard
-        } else if (role === "owner") {
-          router.push(`/owner/${id}/dashboard`);
-        } else if (role === "staff") {
-          router.push(`/staff/${id}/dashboard`); // Redirect to staff dashboard
-        } else {
-          router.push(`/profile/${id}/myprofile`); // Default redirect to profile
-        }
-      }, 2000);
+  
+      // Check if the user object contains necessary information
+      if (!user || !user.role || !user.id) {
+        throw new Error("Missing user information.");
+      }
+  
+      const { role, id } = user;
+  
+      // Redirect immediately based on the user's role
+      if (role === "admin") {
+        router.push(`/admin/${id}/dashboard`);
+      } else if (role === "owner") {
+        router.push(`/owner/${id}/dashboard`);
+      } else if (role === "staff") {
+        router.push(`/staff/${id}/dashboard`);
+      } else {
+        // Default route for other roles
+        router.push(`/user/${id}/home`);
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError(
         err?.response?.data?.message ||
-          err.message ||
-          "Login failed. Please try again."
+        err.message ||
+        "Login failed. Please try again."
       );
       toast?.error?.(err.message || "Login failed.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading
     }
   };
+  
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl relative">
         {/* Loading Overlay */}
         {loading && (
-          <div className="absolute inset-0 bg-white bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
-            <div className="flex flex-col items-center">
-              {/* Spinner Animation */}
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
-              {/* Loading Text */}
-              <p className="mt-4 text-green-600 font-medium text-xl">
-                Logging in...
-              </p>
-            </div>
-          </div>
-        )}
+  <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
+      <p className="mt-4 text-green-600 font-medium text-xl">Logging in...</p>
+    </div>
+  </div>
+)}
 
-        {/* Success Message Overlay */}
-        {successMessage && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-lg p-6 flex items-center gap-4 transform transition-all animate-fade-in max-w-md mx-auto">
-              {/* Success Icon */}
-              <div className="bg-green-100 rounded-full p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              {/* Success Message Text */}
-              <span className="text-gray-800 text-lg font-semibold">
-                {successMessage}
-              </span>
-            </div>
-          </div>
-        )}
 
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-1/2 bg-gradient-to-br from-sky-50 to-sky-100 p-8 flex items-center justify-center">
