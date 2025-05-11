@@ -15,8 +15,6 @@ const Navbar = ({ id }) => {
     setValue(Math.random().toString());
   }, []);
 
-  console.log("User ID:", id); // Example usage of the id prop
-
   const { user, fetchUserById, loading, error, clearUser } = useUserStore();
 
   useEffect(() => {
@@ -77,7 +75,7 @@ const Navbar = ({ id }) => {
             >
               <Avatar>
                 <AvatarImage
-                  src={user.image || "/default-user.svg"}
+                  src={user?.image || "/default-user.svg"}
                   alt={`${user.first_name} ${user.last_name}`}
                 />
                 <AvatarFallback>

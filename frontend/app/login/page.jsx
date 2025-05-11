@@ -22,30 +22,28 @@ export default function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    // Basic validation
+
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-  
-    setLoading(true); // Start loading
+
+    setLoading(true);
     setError(null);
-    setSuccessMessage(null); // Clear any previous success message
-  
+    setSuccessMessage(null);
+
     try {
-      const res = await login(email, password); // { token, user, message }
-      console.log("Login response:", res);
-  
+      const res = await login(email, password);
       const user = res.user;
-  
-      // Check if the user object contains necessary information
+
       if (!user || !user.role || !user.id) {
         throw new Error("Missing user information.");
       }
-  
+
       const { role, id } = user;
-  
-      // Redirect immediately based on the user's role
+
       if (role === "admin") {
         router.push(`/admin/${id}/dashboard`);
       } else if (role === "owner") {
@@ -53,37 +51,35 @@ export default function LoginForm() {
       } else if (role === "staff") {
         router.push(`/staff/${id}/dashboard`);
       } else {
-        // Default route for other roles
         router.push(`/user/${id}/home`);
       }
     } catch (err) {
       console.error("Login error:", err);
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Login failed. Please try again."
+          err.message ||
+          "Login failed. Please try again."
       );
       toast?.error?.(err.message || "Login failed.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
-  
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl relative">
         {/* Loading Overlay */}
         {loading && (
-  <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
-    <div className="flex flex-col items-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
-      <p className="mt-4 text-green-600 font-medium text-xl">Logging in...</p>
-    </div>
-  </div>
-)}
-
+          <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md"></div>
+              <p className="mt-4 text-green-600 font-medium text-xl">
+                Logging in...
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-1/2 bg-gradient-to-br from-sky-50 to-sky-100 p-8 flex items-center justify-center">

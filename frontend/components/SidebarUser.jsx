@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useParams, usePathname } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useParams, usePathname } from "next/navigation";
 import {
   User,
   Bookmark,
@@ -14,31 +14,33 @@ import {
   Settings,
   LogOut,
   AlertTriangle,
-} from 'lucide-react';
+} from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 const Sidebar = () => {
   const { id } = useParams();
   const pathname = usePathname();
+  const { logout } = useAuthStore();
 
   const [items, setItems] = useState([
-    { name: 'MyProfile', icon: User },
-    { name: 'Saved Services', icon: Bookmark },
-    { name: 'Bookings', icon: Calendar },
-    { name: 'Payment Details', icon: CreditCard },
-    { name: 'Reviews & Ratings', icon: Star },
-    { name: 'Saved Address', icon: MapPin },
-    { name: 'Settings', icon: Settings },
-    { name: 'Logout', icon: LogOut },
+    { name: "MyProfile", icon: User },
+    { name: "Saved Services", icon: Bookmark },
+    { name: "Bookings", icon: Calendar },
+    { name: "Payment Details", icon: CreditCard },
+    { name: "Reviews & Ratings", icon: Star },
+    { name: "Saved Address", icon: MapPin },
+    { name: "Settings", icon: Settings },
+    { name: "Logout", icon: LogOut },
   ]);
 
-  const [selectedItem, setSelectedItem] = useState('Profile');
+  const [selectedItem, setSelectedItem] = useState("Profile");
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 
   useEffect(() => {
     if (pathname) {
-      const pathParts = pathname.split('/') || [];
+      const pathParts = pathname.split("/") || [];
       const lastPathSegment = pathParts[pathParts.length - 1];
-      const formattedSegment = lastPathSegment.replace(/-/g, ' ') || '';
+      const formattedSegment = lastPathSegment.replace(/-/g, " ") || "";
 
       const matchingItem = items.find(
         (item) => item.name.toLowerCase() === formattedSegment
@@ -49,9 +51,9 @@ const Sidebar = () => {
     }
   }, [pathname, items]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/login";
   };
 
   const containerVariants = {
@@ -61,7 +63,7 @@ const Sidebar = () => {
       y: 0,
       transition: {
         duration: 0.2, // Reduced duration for faster transitions
-        ease: 'easeInOut',
+        ease: "easeInOut",
       },
     },
   };
@@ -77,7 +79,7 @@ const Sidebar = () => {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.2, ease: 'easeInOut' }, // Shorter transition duration for the popup
+      transition: { duration: 0.2, ease: "easeInOut" }, // Shorter transition duration for the popup
     },
     exit: { opacity: 0, scale: 0.5, transition: { duration: 0.2 } },
   };
@@ -98,13 +100,14 @@ const Sidebar = () => {
               variants={itemVariants}
               whileHover="hover"
             >
-              {item.name === 'Logout' ? (
+              {item.name === "Logout" ? (
                 <div
                   onClick={() => setShowLogoutPopup(true)}
                   className={`flex items-center py-4 px-4 rounded-2xl font-medium transition-colors duration-200 cursor-pointer
-                    ${isActive
-                      ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
+                    ${
+                      isActive
+                        ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
                     }`}
                 >
                   <item.icon className="w-5 h-5 mr-2" />
@@ -112,11 +115,14 @@ const Sidebar = () => {
                 </div>
               ) : (
                 <Link
-                  href={`/profile/${id}/${item.name.toLowerCase().replace(/ /g, '-')}`}
+                  href={`/profile/${id}/${item.name
+                    .toLowerCase()
+                    .replace(/ /g, "-")}`}
                   className={`flex items-center py-4 px-4 rounded-2xl font-medium transition-colors duration-200
-                    ${isActive
-                      ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
+                    ${
+                      isActive
+                        ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
                     }`}
                   onClick={() => setSelectedItem(item.name)}
                 >

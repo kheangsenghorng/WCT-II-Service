@@ -125,30 +125,31 @@ class UserController extends Controller
     
     
 
-    
     public function getUsersByOwner($ownerId)
-    {
-        $authUser = auth()->user();
-    
-        // Authorization check
-        if (!in_array($authUser->role, ['admin', 'owner']) || 
-            ($authUser->role === 'owner' && $authUser->id != $ownerId)) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-    
-        $users = User::where('owner_id', $ownerId)->get();
-    
-        // Modify image paths
-        foreach ($users as $userDetail) {
-            $userDetail->image = $userDetail->image
-                ? asset('storage/' . $userDetail->image)
-                : null;
-        }
-    
-        return response()->json([
-            'users' => $users
-        ]);
+{
+    $authUser = auth()->user();
+
+    // Authorization check
+    if (!in_array($authUser->role, ['admin', 'owner']) || 
+        ($authUser->role === 'owner' && $authUser->id != $ownerId)) {
+        return response()->json(['message' => 'Unauthorized.'], 403);
     }
+
+    $users = User::where('owner_id', $ownerId)->get();
+
+    // Modify image paths
+    foreach ($users as $userDetail) {
+        $userDetail->image = $userDetail->image
+            ? asset('storage/' . $userDetail->image)
+            : null;
+    }
+
+    return response()->json([
+        'users' => $users,
+        'count' => $users->count()
+    ]);
+}
+
     
 
 
