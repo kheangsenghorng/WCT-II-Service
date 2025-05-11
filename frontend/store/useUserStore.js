@@ -2,10 +2,12 @@
 import { create } from "zustand";
 import { request } from "@/util/request";
 
+
 export const useUserStore = create((set) => ({
   user: null,
   users: [],
   error: null,
+  count: 0,
   loading: false,
 
   fetchUserById: async (id) => {
@@ -26,7 +28,10 @@ export const useUserStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const res = await request(`/owner/users/${ownerId}`, "GET");
-      set({ users: res.users });
+      set({
+        users: res.users,
+        count: res.count,
+      });
     } catch (err) {
       console.error("Error fetching users:", err);
       set({
@@ -52,6 +57,20 @@ export const useUserStore = create((set) => ({
       const message =
         error?.response?.data?.message || "An unexpected error occurred.";
       set({ error: message, loading: false });
+    }
+  },
+
+  updateUser: async (id, formData) => {
+    formData.append("_method", "PUT"); // Laravel needs this for method spoofing on POST
+
+    try {
+      const updatedUser = await request(`/users/${id}`, "POST", formData);
+
+      set({ user: updatedUser }); // Update Zustand store
+      return updatedUser;
+    } catch (err) {
+      console.error("Failed to update user:", err);
+      throw err;
     }
   },
   clearUsers: () => set({ users: [] }),

@@ -65,7 +65,6 @@ const Calendar = () => {
             Total Amount
           </div>
         )}
-        
       </div>
     );
   }
@@ -92,11 +91,19 @@ const Calendar = () => {
       <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
         {/* Month Navigation */}
         <div className="flex items-center">
-          <button onClick={goToPreviousMonth} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200">
+          <button
+            onClick={goToPreviousMonth}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+          >
             <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-          <span className="mx-3 text-lg font-semibold text-gray-800 dark:text-white">{monthName} {year}</span>
-          <button onClick={goToNextMonth} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200">
+          <span className="mx-3 text-lg font-semibold text-gray-800 dark:text-white">
+            {monthName} {year}
+          </span>
+          <button
+            onClick={goToNextMonth}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+          >
             <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
         </div>
@@ -111,7 +118,10 @@ const Calendar = () => {
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-0">
         {dayNames.map((dayName) => (
-          <div key={dayName} className="p-2 text-center font-medium text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
+          <div
+            key={dayName}
+            className="p-2 text-center font-medium text-gray-600 dark:text-gray-400 border-b dark:border-gray-700"
+          >
             {dayName}
           </div>
         ))}

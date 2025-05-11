@@ -1,66 +1,75 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Save, ArrowLeft } from 'lucide-react';
-import { useUserStore } from '@/store/useUserStore';  // Make sure the import path is correct
+import { useState, useRef, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { Save, ArrowLeft } from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function SettingsPage() {
-  const { user, updateUser } = useUserStore();  // Destructure updateUser from the store
-  const [firstName, setFirstName] = useState(user?.first_name || '');
-  const [lastName, setLastName] = useState(user?.last_name || '');
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatarUrl || '');
-  const [avatarFile, setAvatarFile] = useState(null);
-
-  const fileInputRef = useRef(null);
+  const { user, updateUser, fetchUserById } = useUserStore();
+  const { id } = useParams();
   const router = useRouter();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState("/default-user.svg");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Fetch user on mount
+  useEffect(() => {
+    if (id) {
+      fetchUserById(id);
+    }
+  }, [id]);
+
+  // Sync user state when user is fetched
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+      setPhone(user?.phone || "000000");
+      setAvatarPreview(
+        user.image?.startsWith("http")
+          ? user.image
+          : user.image
+          ? `/${user.image}`
+          : "/default-user.svg"
+      );
+    }
+  }, [user]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (reader.result) {
-          setAvatarPreview(reader.result); // Set the preview image
-        }
+        if (reader.result) setAvatarPreview(reader.result);
       };
       reader.readAsDataURL(file);
-      setAvatarFile(file); // Keep track of the file for later use
+      setAvatarFile(file);
     }
   };
 
-  const handleSave = async () => {
-    // If there's an image file, upload it and get the URL
-    let imageUrl = avatarPreview;
-    if (avatarFile) {
-      imageUrl = await uploadImage(avatarFile);
-    }
-
-    // Call updateUser function to update the user profile
-    updateUser(user.id, {
-      first_name: firstName,
-      last_name: lastName,
-      avatarUrl: imageUrl, // Updated avatar URL after uploading
-    });
-
-    router.push(`/profile/${user.id}`);
-  };
-
-  // Image upload function to the backend
-  const uploadImage = async (file) => {
+  const handleUpdate = async () => {
+    if (!user) return;
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("first_name", firstName);
+    formData.append("last_name", lastName);
+    formData.append("phone", phone);
+    if (avatarFile) {
+      formData.append("image", avatarFile);
+    }
 
-    const response = await fetch('/api/upload-avatar', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Failed to upload image');
-
-    const data = await response.json();
-    return data.url;  // Assuming your backend returns the image URL
+    try {
+      await updateUser(user.id, formData);
+      await fetchUserById(user.id); // Refresh store
+      router.push(`/profile/${user.id}/myprofile`);
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
   };
 
   return (
@@ -80,11 +89,12 @@ export default function SettingsPage() {
       <div className="flex justify-center mb-8">
         <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md">
           <Image
-            src={avatarPreview || '/default-user.svg'}
+            src={avatarPreview}
             alt="Avatar"
             fill
             className="object-cover"
           />
+
           <button
             onClick={() => fileInputRef.current?.click()}
             className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition"
@@ -111,7 +121,9 @@ export default function SettingsPage() {
       {/* Name Fields */}
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">First Name</label>
+          <label className="block text-sm font-medium text-gray-700">
+            First Name
+          </label>
           <input
             type="text"
             value={firstName}
@@ -120,10 +132,35 @@ export default function SettingsPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Last Name</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Last Name
+          </label>
           <input
             type="text"
             value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Phone Number
+          </label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="text"
+            value={user?.email || "User"}
+            disabled
             onChange={(e) => setLastName(e.target.value)}
             className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
           />
@@ -132,7 +169,7 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <button
-        onClick={handleSave}
+        onClick={handleUpdate}
         className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
       >
         <Save className="w-4 h-4" />

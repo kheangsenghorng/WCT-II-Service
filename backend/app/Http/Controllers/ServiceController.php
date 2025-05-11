@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Service;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ServiceController extends Controller
+{
+    public function index(Request $request, $id)
+    {
+        // Start by querying services for the given owner_id
+        $query = Service::where('owner_id', $id);
+    
+        // If 'category' parameter is provided, filter by service_categories_id
+        if ($request->has('category')) {
+            $query->where('service_categories_id', $request->category);
+        }
+    
+        // If 'type' parameter is provided, filter by type_id
+        if ($request->has('type')) {
+            $query->where('type_id', $request->type);
+        }
+    
+        // Execute the query and return the results as JSON
+        return response()->json($query->get());
+    }
+    
+
+
+    public function show($id, $serviceId)
+{
+    $service = Service::with(['category', 'type', 'owner'])
+        ->where('id', $serviceId)
+        ->where('owner_id', $id)
+        ->first();
+
+    if (!$service) {
+        return response()->json(['message' => 'Service not found or access denied'], 404);
+    }
+
+    return response()->json($service);
+}
+
+    public function store(Request $request, $id)
+    {
+        // Validate input fields
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'base_price' => 'required|numeric',
+            'available_day' => 'required|integer',
+            'available_time' => 'required|integer',
+            'service_categories_id' => 'required|exists:service_categories,id', // Validates against service_categories table
+            'type_id' => 'required|exists:types,id', // Validates against types table
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Adjusted for multiple images
+        ]);
+        
+        // Handle image upload (supporting multiple images)
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+        
+            // Ensure $images is always an array
+            $images = is_array($images) ? $images : [$images];
+        
+            $imagePaths = [];
+        
+            foreach ($images as $image) {
+                if ($image->isValid()) {
+                    $imagePaths[] = $image->store('services', 'public');
+                }
+            }
+        
+            $validated['images'] = $imagePaths; // Don't encode to JSON here if you want array output
+        }
+        
+        // Add the owner_id to the validated data
+        $validated['owner_id'] = $id;
+        
+        // Create the service record in the database
+        $service = Service::create($validated);
+    
+        // Return the created service as a response
+        return response()->json($service, 201);
+    }
+    
+    public function update(Request $request, $id, $serviceId)
+    {
+        $service = Service::find($serviceId);
+    
+        if (!$service) {
+            return response()->json(['message' => 'Service not found'], 404);
+        }
+    
+        // Optional: check ownership
+        if ($service->owner_id != $id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+    
+        $validated = $request->validate([
+            'name' => 'sometimes|string',
+            'description' => 'nullable|string',
+            'base_price' => 'sometimes|numeric',
+            'available_day' => 'sometimes|integer',
+            'available_time' => 'sometimes|integer',
+            'service_categories_id' => 'sometimes|exists:service_categories,id',
+            'type_id' => 'sometimes|exists:types,id',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+    
+        $existingImages = $service->images ?? [];
+    
+        if ($request->hasFile('images')) {
+            $newImages = $request->file('images');
+            $newImages = is_array($newImages) ? $newImages : [$newImages];
+    
+            foreach ($newImages as $image) {
+                if ($image->isValid()) {
+                    $path = $image->store('services', 'public');
+                    $existingImages[] = $path;
+                }
+            }
+        }
+    
+        $validated['images'] = $existingImages;
+    
+        $service->update($validated);
+
+        $service->load(['category', 'type', 'owner']);
+
+        return response()->json($service);
+    }
+    
+
+    public function destroy($id, $serviceId)
+    {
+        $service = Service::where('id', $serviceId)
+            ->where('owner_id', $id)
+            ->first();
+    
+        if (!$service) {
+            return response()->json(['message' => 'Service not found or access denied'], 404);
+        }
+    
+        $service->delete();
+    
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+    
+}
