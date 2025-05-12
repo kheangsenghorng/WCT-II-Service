@@ -73,5 +73,27 @@ export const useUserStore = create((set) => ({
       throw err;
     }
   },
+
+ fetchAdminUsers: async () => {
+  set({ loading: true, error: null });
+
+  try {
+    const res = await request("/admin/users", "GET");
+    set({
+      users: res,         // assuming res is an array of users
+      count: res.length,  // total number of users
+    });
+  } catch (err) {
+    console.error("Error fetching admin users:", err);
+    set({
+      error: err.response?.data?.message || "Failed to fetch admin users.",
+    });
+  } finally {
+    set({ loading: false });
+  }
+},
+
+  
+
   clearUsers: () => set({ users: [] }),
 }));
