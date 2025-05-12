@@ -60,13 +60,29 @@ public function store(Request $request)
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'service_categories_id' => 'nullable|exists:service_categories,id',
+            'name' => 'sometimes|string|max:255',
         ]);
-
+    
+        // Check if a service category ID is provided and if it has services
+        if (!empty($validated['service_categories_id'])) {
+            $category = ServiceCategory::find($validated['service_categories_id']);
+    
+            if (!$category || $category->services_count === 0) {
+                return response()->json([
+                    'message' => 'The selected category does not have any services.'
+                ], 422);
+            }
+        }
+    
         $type = Type::findOrFail($id);
         $type->update($validated);
+    
         return response()->json($type);
     }
+    
+    
+    
 
 
     /**
