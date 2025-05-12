@@ -1,7 +1,4 @@
 "use client";
-import axios from "axios";
-
-import { useState, useEffect } from "react";
 import {
   ArrowUp as ArrowUpIcon,
   ArrowDown as ArrowDownIcon,
@@ -11,41 +8,39 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
 import Calendar from "../../../../components/Calander";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
+import { useEffect, useState } from "react";
+import { useUserStore } from "@/store/useUserStore";
 
 const HomePage = () => {
+  const {
+    fetchAdminUsers,
+    users,
+    count,
+    error,
+    loading,
+  } = useUserStore();
+  
+
   const [stats, setStats] = useState([]);
   const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
-  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch dashboard data from backend
   useEffect(() => {
     const fetchStats = async () => {
-      try {
-        setLoading(true);
-
-        const token = localStorage.getItem("token"); // Adjust based on your storage
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/users`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const users = response.data;
-
-        // Example transformation: adjust based on real API structure
-      } catch (err) {
-        setError("Failed to fetch stats");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      await fetchAdminUsers();
+      setStats([
+        {
+          id: "total-users",
+          label: "Total Users",
+          value: count,
+          change: 4.2,
+          isPositive: true,
+        },
+      ]);
     };
-
+  
     fetchStats();
-  }, []);
+  }, [fetchAdminUsers, count]);
+  
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -73,14 +68,15 @@ const HomePage = () => {
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-            Home
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Home</h1>
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
             <QuestionMarkCircleIcon className="w-5 h-5 mr-2" />
             Support
           </button>
         </header>
+
+        {loading && <p className="text-gray-500 mb-4">Loading stats...</p>}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
 
         {/* Stats Cards */}
         <DragDropContext onDragEnd={handleDragEndStats}>

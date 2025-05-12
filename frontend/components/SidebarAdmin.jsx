@@ -6,6 +6,8 @@ import {
   FolderKanban,
   Building2,
   LogOut,
+  Tags,
+  Calendar, Briefcase,
 } from "lucide-react";
 import { useState, useEffect } from "react"; //Import useEffect
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,10 +60,14 @@ const Sidebar = () => {
        
         <nav className="space-y-3 flex-1">
           {[
-            { href: `/admin/${id}/dashboard`, icon: Home, label: "Dashboard" },
+            { href: `/admin/${id}/dashboard`, icon: Home, label: "Admin Dashboard" },
             { href: `/admin/${id}/users`, icon: Users, label: "Users" },
             { href: `/admin/${id}/category`, icon: FolderKanban, label: "Category" },
             { href: `/admin/${id}/company`, icon: Building2, label: "Company" },
+            { href: `/admin/${id}/type`,  icon: Tags , label: "Type" },
+            { href: `/admin/${id}/booking`, icon: Calendar, label: "Booking" },  // New Booking
+            { href: `/admin/${id}/service`, icon: Briefcase, label: "Service" },   // New Service
+
           ].map(({ href, icon: Icon, label }, i) => {
             const isActive = pathname === href; // Check if the current path matches the link's href
 

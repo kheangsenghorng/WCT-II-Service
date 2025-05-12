@@ -1,33 +1,29 @@
 import { create } from "zustand";
-import { request } from "@/utils/request"; // Assuming this utility is already created
+import { request } from "@/util/request"; // Assuming this utility is already created
 
-// Zustand store for managing services
 export const useServicesStore = create((set) => ({
   services: [],
   loading: false,
   error: null,
+  categories: [],
 
-  // Fetch services with optional filters
-  fetchServices: async (ownerId, filters = {}) => {
+  // ✅ Fetch services for owner
+  fetchServices: async (ownerId) => {
     set({ loading: true, error: null });
     try {
-      const { category, type } = filters;
-      const response = await request(`/services/${ownerId}`, "GET", {
-        category,
-        type,
-      });
+      const response = await request(`/owner/${ownerId}/services`, "GET");
       set({ services: response, loading: false });
     } catch {
       set({ error: "Failed to fetch services", loading: false });
     }
   },
 
-  // Fetch a single service
+  // ✅ Fetch a single service
   fetchService: async (ownerId, serviceId) => {
     set({ loading: true, error: null });
     try {
       const response = await request(
-        `/services/${ownerId}/${serviceId}`,
+        `/owner/${ownerId}/services/${serviceId}`,
         "GET"
       );
       return response;
@@ -36,12 +32,12 @@ export const useServicesStore = create((set) => ({
     }
   },
 
-  // Add a new service
+  // ✅ Add a new service
   addService: async (ownerId, serviceData) => {
     set({ loading: true, error: null });
     try {
       const response = await request(
-        `/services/${ownerId}`,
+        `/owner/${ownerId}/services`,
         "POST",
         serviceData
       );
@@ -54,12 +50,12 @@ export const useServicesStore = create((set) => ({
     }
   },
 
-  // Update an existing service
+  // ✅ Update a service
   updateService: async (ownerId, serviceId, serviceData) => {
     set({ loading: true, error: null });
     try {
       const response = await request(
-        `/services/${ownerId}/${serviceId}`,
+        `/owner/${ownerId}/services/${serviceId}`,
         "PUT",
         serviceData
       );
@@ -74,17 +70,30 @@ export const useServicesStore = create((set) => ({
     }
   },
 
-  // Delete a service
+  // ✅ Delete a service
   deleteService: async (ownerId, serviceId) => {
     set({ loading: true, error: null });
     try {
-      await request(`/services/${ownerId}/${serviceId}`, "DELETE");
+      await request(`/owner/${ownerId}/services/${serviceId}`, "DELETE");
       set((state) => ({
-        services: state.services.filter((service) => service.id !== serviceId),
+        services: state.services.filter((s) => s.id !== serviceId),
         loading: false,
       }));
     } catch {
       set({ error: "Failed to delete service", loading: false });
+    }
+  },
+
+  // ✅ Fetch categories (Admin route)
+  fetchCategories: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await request("/admin/categories", "GET");
+      set({ categories: response });
+    } catch (err) {
+      set({ error: `Error fetching categories: ${err.message}` });
+    } finally {
+      set({ loading: false });
     }
   },
 }));
