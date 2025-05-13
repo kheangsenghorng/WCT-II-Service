@@ -61,6 +61,8 @@ Route::middleware('auth:api')->group(function () {
         });
         
     });
+    
+    Route::get('/', [ServiceController::class, 'index']);  
 
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
@@ -116,7 +118,7 @@ Route::middleware('auth:api')->group(function () {
 
 Route::middleware('auth:api')->prefix('owner')->group(function () {
     Route::prefix('{id}/services')->group(function () {
-        Route::get('/', [ServiceController::class, 'index']);         // List services for owner
+             // List services for owner
         Route::post('/', [ServiceController::class, 'store']);        // Create service for owner
         Route::get('/{serviceId}', [ServiceController::class, 'show']);   // Show specific service
         Route::put('/{serviceId}', [ServiceController::class, 'update']); // Update service
