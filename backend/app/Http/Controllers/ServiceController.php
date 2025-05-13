@@ -8,10 +8,28 @@ use Illuminate\Support\Facades\Auth;
 
 class ServiceController extends Controller
 {
-    public function index(Request $request, $id)
+    // public function index(Request $request)
+    // {
+    //     // Start by querying services for the given owner_id
+    //     $query = Service::where('owner_id');
+    
+    //     // If 'category' parameter is provided, filter by service_categories_id
+    //     if ($request->has('category')) {
+    //         $query->where('service_categories_id', $request->category);
+    //     }
+    
+    //     // If 'type' parameter is provided, filter by type_id
+    //     if ($request->has('type')) {
+    //         $query->where('type_id', $request->type);
+    //     }
+    
+    //     // Execute the query and return the results as JSON
+    //     return response()->json($query->get());
+    // }
+    public function index(Request $request)
     {
-        // Start by querying services for the given owner_id
-        $query = Service::where('owner_id', $id);
+        // Start by creating a query for all services with eager loading
+        $query = Service::with(['category', 'type', 'owner']);
     
         // If 'category' parameter is provided, filter by service_categories_id
         if ($request->has('category')) {
@@ -26,7 +44,7 @@ class ServiceController extends Controller
         // Execute the query and return the results as JSON
         return response()->json($query->get());
     }
-    
+
 
 
     public function show($id, $serviceId)
@@ -50,8 +68,6 @@ class ServiceController extends Controller
             'name' => 'required|string',
             'description' => 'nullable|string',
             'base_price' => 'required|numeric',
-            'available_day' => 'required|integer',
-            'available_time' => 'required|integer',
             'service_categories_id' => 'required|exists:service_categories,id', // Validates against service_categories table
             'type_id' => 'required|exists:types,id', // Validates against types table
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Adjusted for multiple images
@@ -102,8 +118,6 @@ class ServiceController extends Controller
             'name' => 'sometimes|string',
             'description' => 'nullable|string',
             'base_price' => 'sometimes|numeric',
-            'available_day' => 'sometimes|integer',
-            'available_time' => 'sometimes|integer',
             'service_categories_id' => 'sometimes|exists:service_categories,id',
             'type_id' => 'sometimes|exists:types,id',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
