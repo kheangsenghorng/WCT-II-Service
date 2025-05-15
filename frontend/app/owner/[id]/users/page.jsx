@@ -12,7 +12,7 @@ import {
 import { useUserStore } from "@/store/useUserStore";
 import { useParams } from "next/navigation";
 import EditUserModal from "@/components/users/EditUserModal";
-
+import { request } from "@/util/request";
 
 const Users = () => {
   const { id: ownerId } = useParams();
@@ -24,6 +24,14 @@ const Users = () => {
     error,
     deleteUser,
   } = useUserStore();
+
+  function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
 
   const [successMessage, setSuccessMessage] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -47,6 +55,11 @@ const Users = () => {
   const [newConfirmPassword, setNewConfirmPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [phoneChecking, setPhoneChecking] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(null);
+  const [phoneAvailable, setPhoneAvailable] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (ownerId) fetchUsersByOwner(ownerId);
@@ -70,23 +83,67 @@ const Users = () => {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
-
-  const handleEditRole = (user) => {
-    setUserToEdit(user);
-    setEditedRole(user.role);
-    setShowConfirmEdit(true);
-  };
-
   const handleEditUser = (user) => {
-    setUserToEdit(user);
+    setUserToEdit(user.id);
     setShowEditUserModal(true);
   };
-  
 
   const handleDeleteUser = (userId) => {
     setDeletingUserId(userId); // store the user to delete
     setShowConfirmDelete(true); // show confirmation modal
   };
+
+  const checkPhoneAvailability = debounce(async (phone) => {
+    if (!phone) return;
+
+    setPhoneChecking(true);
+    setPhoneAvailable(null);
+
+    try {
+      const res = await request(`/check-phone?phone=${phone}`, "GET");
+
+      if (res.available) {
+        setPhoneAvailable(true);
+        setErrors((prev) => ({ ...prev, phone: null }));
+      } else {
+        setPhoneAvailable(false);
+        setErrors((prev) => ({
+          ...prev,
+          phone: ["The phone number has already been taken."],
+        }));
+      }
+    } catch (error) {
+      console.error("Phone check failed:", error);
+    } finally {
+      setPhoneChecking(false);
+    }
+  }, 600);
+
+  const checkEmailAvailability = debounce(async (email) => {
+    if (!email) return;
+
+    setEmailChecking(true);
+    setEmailAvailable(null);
+
+    try {
+      const res = await request(`/check-email?email=${email}`, "GET");
+
+      if (res.available) {
+        setEmailAvailable(true);
+        setErrors((prev) => ({ ...prev, email: null }));
+      } else {
+        setEmailAvailable(false);
+        setErrors((prev) => ({
+          ...prev,
+          email: ["The email has already been taken."],
+        }));
+      }
+    } catch (error) {
+      console.error("Email check failed:", error);
+    } finally {
+      setEmailChecking(false);
+    }
+  }, 600);
 
   const confirmDeleteUser = async () => {
     if (!deletingUserId) return;
@@ -122,8 +179,49 @@ const Users = () => {
       setImagePreview(URL.createObjectURL(file));
     }
   };
+  const handlePasswordChange = (name, value) => {
+    if (name === "password") {
+      setNewPassword(value);
+    } else if (name === "password_confirmation") {
+      setNewConfirmPassword(value);
+    }
+
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      const password = name === "password" ? value : newPassword;
+      const confirmPassword =
+        name === "password_confirmation" ? value : newConfirmPassword;
+
+      // Check for password match
+      if (password !== confirmPassword) {
+        newErrors.password_confirmation = ["Passwords do not match."];
+      } else {
+        delete newErrors.password_confirmation;
+      }
+
+      // Check for password strength
+      if (password.length < 8) {
+        newErrors.password = ["Password must be at least 8 characters long."];
+      } else {
+        delete newErrors.password;
+      }
+
+      return newErrors;
+    });
+  };
 
   const handleAddUser = async () => {
+    if (emailAvailable === false || phoneAvailable === false) {
+      setErrorMessage(
+        "Please resolve the validation errors before submitting."
+      );
+      return;
+    }
+    if (errors.password || errors.password_confirmation) {
+      setErrorMessage("Please fix password errors before submitting.");
+      return;
+    }
+
     const formData = new FormData();
 
     // Append form fields to FormData
@@ -251,12 +349,12 @@ const Users = () => {
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3 whitespace-nowrap">
-                    <button
-  onClick={() => handleEditUser(user)}
-  className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
->
-  <Edit className="w-8" />
-</button>
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
+                      >
+                        <Edit className="w-8" />
+                      </button>
 
                       <button
                         onClick={() => handleDeleteUser(user.id)}
@@ -279,31 +377,27 @@ const Users = () => {
         </div>
       )}
 
-
-{showEditUserModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
-      className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6"
-    >
-      <EditUserModal
-        user={userToEdit}
-        onClose={() => setShowEditUserModal(false)}
-        onSave={(updatedUser) => {
-          // Here, you can call your update logic, e.g.:
-          // updateUser(updatedUser);
-          setSuccessMessage("User updated successfully");
-          setShowEditUserModal(false);
-          fetchUsersByOwner(ownerId);
-        }}
-      />
-    </motion.div>
-  </div>
-)}
-
+      {showEditUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6"
+          >
+            <EditUserModal
+              userId={userToEdit}
+              onClose={() => setShowEditUserModal(false)}
+              onSave={(updatedUser) => {
+                setSuccessMessage("User updated successfully");
+                setShowEditUserModal(false);
+                fetchUsersByOwner(ownerId);
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
 
       {/* Add User Modal */}
       {showAddUserModal && (
@@ -361,9 +455,22 @@ const Users = () => {
                   type="email"
                   id="email"
                   value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewEmail(value);
+                    checkEmailAvailability(value);
+                  }}
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {emailChecking && (
+                  <p className="text-sm text-gray-500">Checking email...</p>
+                )}
+                {emailAvailable === false && (
+                  <p className="text-sm text-red-500">{errors.email?.[0]}</p>
+                )}
+                {emailAvailable === true && (
+                  <p className="text-sm text-green-500">Email is available.</p>
+                )}
               </div>
 
               <div className="mb-4">
@@ -377,9 +484,24 @@ const Users = () => {
                   type="text"
                   id="phone"
                   value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewPhone(value);
+                    checkPhoneAvailability(value);
+                  }}
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {phoneChecking && (
+                  <p className="text-sm text-gray-500">Checking phone...</p>
+                )}
+                {phoneAvailable === false && (
+                  <p className="text-sm text-red-500">{errors.phone?.[0]}</p>
+                )}
+                {phoneAvailable === true && (
+                  <p className="text-sm text-green-500">
+                    Phone number is available.
+                  </p>
+                )}
               </div>
               <div className="mb-4 flex space-x-4">
                 <div className="mb-4">
@@ -391,11 +513,18 @@ const Users = () => {
                   </label>
                   <input
                     type="password"
-                    id="password"
+                    placeholder="Password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) =>
+                      handlePasswordChange("password", e.target.value)
+                    }
                     className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.password[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="mb-4">
                   <label
@@ -406,11 +535,22 @@ const Users = () => {
                   </label>
                   <input
                     type="password"
-                    id="password_confirmation"
+                    placeholder="Confirm Password"
                     value={newConfirmPassword}
-                    onChange={(e) => setNewConfirmPassword(e.target.value)}
+                    onChange={(e) =>
+                      handlePasswordChange(
+                        "password_confirmation",
+                        e.target.value
+                      )
+                    }
                     className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+
+                  {errors.password_confirmation && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.password_confirmation[0]}
+                    </p>
+                  )}
                 </div>
               </div>
 

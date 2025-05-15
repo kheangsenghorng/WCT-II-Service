@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 
 const AdminLayout = ({ children }) => {
   const { id } = useParams();
-  console.log(id);
+
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
       {/* Navbar */}

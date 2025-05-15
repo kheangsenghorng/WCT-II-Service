@@ -9,6 +9,8 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react";
+import { useServicesStore } from "@/store/useServicesStore";
+import { useParams } from "next/navigation";
 
 export default function EditServiceModal({
   show,
@@ -29,6 +31,9 @@ export default function EditServiceModal({
   const [imagePreview, setImagePreview] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateService, loading, error, fetchServicesByOwner } =
+    useServicesStore();
+  const { id: ownerId } = useParams();
 
   useEffect(() => {
     if (service) {
@@ -42,8 +47,14 @@ export default function EditServiceModal({
   }, [service]);
 
   useEffect(() => {
+    if (ownerId) {
+      fetchServicesByOwner(ownerId);
+    }
+  }, [ownerId, fetchServicesByOwner]);
+
+  useEffect(() => {
     return () => {
-      if (imagePreview && typeof imagePreview === 'string') {
+      if (imagePreview && typeof imagePreview === "string") {
         URL.revokeObjectURL(imagePreview);
       }
     };
@@ -88,7 +99,10 @@ export default function EditServiceModal({
       return;
     }
 
-    if (isNaN(editedServiceBasePrice) || parseFloat(editedServiceBasePrice) <= 0) {
+    if (
+      isNaN(editedServiceBasePrice) ||
+      parseFloat(editedServiceBasePrice) <= 0
+    ) {
       setErrorMessage("Please enter a valid positive price.");
       return;
     }
@@ -105,9 +119,14 @@ export default function EditServiceModal({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(service.id, formData);
+      await updateService({
+        ownerId,
+        serviceId: service.id,
+        formData,
+      });
       resetForm();
       onClose();
+      fetchServicesByOwner(ownerId);
     } catch (err) {
       setErrorMessage(err.message || "Failed to update service.");
     } finally {
@@ -265,8 +284,8 @@ export default function EditServiceModal({
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <ImageIcon className="w-8 h-8 mb-3 text-gray-400" />
                   <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to upload</span> or drag
-                    and drop
+                    <span className="font-semibold">Click to upload</span> or
+                    drag and drop
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     PNG, JPG (MAX. 5MB)
@@ -282,7 +301,11 @@ export default function EditServiceModal({
               {imagePreview && (
                 <div className="relative">
                   <img
-                    src={typeof imagePreview === 'string' ? imagePreview : URL.createObjectURL(imagePreview)}
+                    src={
+                      typeof imagePreview === "string"
+                        ? imagePreview
+                        : URL.createObjectURL(imagePreview)
+                    }
                     alt="Preview"
                     className="h-32 w-32 object-cover rounded-lg"
                   />

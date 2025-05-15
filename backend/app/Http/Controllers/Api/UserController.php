@@ -225,6 +225,42 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function getUserUnderOwner($ownerId, $userId)
+    {
+        // Validate owner exists and is an owner
+        $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
+        if (!$owner) {
+            return response()->json(['message' => 'Invalid owner ID or user is not an owner.'], 404);
+        }
+
+        // If userId is provided, fetch specific user
+        if ($userId) {
+            $user = User::where('id', $userId)
+                        ->where('owner_id', $ownerId)
+                        ->where('role', 'staff')
+                        ->first();
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found or does not belong to this owner.'], 404);
+            }
+            $user->image_url = $user->image
+            ? asset('storage/' . $user->image)
+            : null;
+
+            return response()->json(['user' => $user], 200);
+        }
+
+        // Else return all staff under this owner
+        $users = User::where('owner_id', $ownerId)
+                    ->where('role', 'staff')
+                    ->get();
+
+                    
+
+        return response()->json(['users' => $users], 200);
+    }
+
+
     /**
      * Show a user by ID (admin or self).
      */

@@ -150,54 +150,6 @@ class ServiceController extends Controller
         return response()->json($service, 201);
     }
     
-    public function update(Request $request, $id, $serviceId)
-    {
-        $service = Service::find($serviceId);
-    
-        if (!$service) {
-            return response()->json(['message' => 'Service not found'], 404);
-        }
-    
-        // Optional: check ownership
-        if ($service->owner_id != $id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-    
-        $validated = $request->validate([
-            'name' => 'sometimes|string',
-            'description' => 'nullable|string',
-            'base_price' => 'sometimes|numeric',
-            'service_categories_id' => 'sometimes|exists:service_categories,id',
-            'type_id' => 'sometimes|exists:types,id',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-    
-        $existingImages = $service->images ?? [];
-    
-        if ($request->hasFile('images')) {
-            $newImages = $request->file('images');
-            $newImages = is_array($newImages) ? $newImages : [$newImages];
-    
-            foreach ($newImages as $image) {
-                if ($image->isValid()) {
-                    $path = $image->store('services', 'public');
-                    $existingImages[] = $path;
-                }
-            }
-        }
-    
-        $validated['images'] = $existingImages;
-    
-        $service->update($validated);
-
-        $service->load(['category', 'type', 'owner']);
-
-        return response()->json($service);
-    }
-    
-
-
-
     // public function update(Request $request, $id, $serviceId)
     // {
     //     $service = Service::find($serviceId);
@@ -206,7 +158,7 @@ class ServiceController extends Controller
     //         return response()->json(['message' => 'Service not found'], 404);
     //     }
     
-    //     // Ownership check
+    //     // Optional: check ownership
     //     if ($service->owner_id != $id) {
     //         return response()->json(['message' => 'Unauthorized.'], 403);
     //     }
@@ -220,45 +172,93 @@ class ServiceController extends Controller
     //         'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     //     ]);
     
-    //     // Retrieve existing images or initialize as an empty array
-    //     $existingImages = is_array($service->images) ? $service->images : [];
+    //     $existingImages = $service->images ?? [];
     
-    //     // Handle new image uploads
     //     if ($request->hasFile('images')) {
-    //         // Delete old images from storage (if any)
-    //         foreach ($existingImages as $oldImage) {
-    //             if (is_string($oldImage) && Storage::disk('public')->exists($oldImage)) {
-    //                 Storage::disk('public')->delete($oldImage);
-    //             }
-    //         }
-    
-    //         // Store new images
     //         $newImages = $request->file('images');
-    //         $newImages = is_array($newImages) ? $newImages : [$newImages]; // Ensure $newImages is an array
+    //         $newImages = is_array($newImages) ? $newImages : [$newImages];
     
-    //         $newImagesPaths = [];
     //         foreach ($newImages as $image) {
     //             if ($image->isValid()) {
     //                 $path = $image->store('services', 'public');
-    //                 $newImagesPaths[] = $path; // Store only the paths of the new images
+    //                 $existingImages[] = $path;
     //             }
     //         }
-    
-    //         // Replace the existing images with the new ones
-    //         $validated['images'] = $newImagesPaths;
-    //     } else {
-    //         // If no new images are uploaded, retain the existing images
-    //         $validated['images'] = $existingImages;
     //     }
     
-    //     // Update the service with the validated data
+    //     $validated['images'] = $existingImages;
+    
     //     $service->update($validated);
-    
-    //     // Reload relationships and return the updated service
+
     //     $service->load(['category', 'type', 'owner']);
-    
+
     //     return response()->json($service);
     // }
+    
+
+
+
+    public function update(Request $request, $id, $serviceId)
+    {
+        $service = Service::find($serviceId);
+    
+        if (!$service) {
+            return response()->json(['message' => 'Service not found'], 404);
+        }
+    
+        // Ownership check
+        if ($service->owner_id != $id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+    
+        $validated = $request->validate([
+            'name' => 'sometimes|string',
+            'description' => 'nullable|string',
+            'base_price' => 'sometimes|numeric',
+            'service_categories_id' => 'sometimes|exists:service_categories,id',
+            'type_id' => 'sometimes|exists:types,id',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+    
+        // Retrieve existing images or initialize as an empty array
+        $existingImages = is_array($service->images) ? $service->images : [];
+    
+        // Handle new image uploads
+        if ($request->hasFile('images')) {
+            // Delete old images from storage (if any)
+            foreach ($existingImages as $oldImage) {
+                if (is_string($oldImage) && Storage::disk('public')->exists($oldImage)) {
+                    Storage::disk('public')->delete($oldImage);
+                }
+            }
+    
+            // Store new images
+            $newImages = $request->file('images');
+            $newImages = is_array($newImages) ? $newImages : [$newImages]; // Ensure $newImages is an array
+    
+            $newImagesPaths = [];
+            foreach ($newImages as $image) {
+                if ($image->isValid()) {
+                    $path = $image->store('services', 'public');
+                    $newImagesPaths[] = $path; // Store only the paths of the new images
+                }
+            }
+    
+            // Replace the existing images with the new ones
+            $validated['images'] = $newImagesPaths;
+        } else {
+            // If no new images are uploaded, retain the existing images
+            $validated['images'] = $existingImages;
+        }
+    
+        // Update the service with the validated data
+        $service->update($validated);
+    
+        // Reload relationships and return the updated service
+        $service->load(['category', 'type', 'owner']);
+    
+        return response()->json($service);
+    }
     
     
     
