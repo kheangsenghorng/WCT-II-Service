@@ -6,7 +6,7 @@ export const useCategoryStore = create((set, get) => ({
   categories: [],
   loading: false,
   error: null,
-
+  loadingCategories: false,
   selectedCategory: null,
   setSelectedCategory: (category) => set({ selectedCategory: category }),
 
@@ -19,6 +19,23 @@ export const useCategoryStore = create((set, get) => ({
       set({ error: `Error fetching categories: ${err.message}` });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  fetchCategoriesOwner: async () => {
+    set({ loadingCategories: true, error: null });
+    try {
+      const res = await request("/categories", "GET");
+      // Since the Laravel controller returns a raw array, not { data: [...] }
+      set({ categories: res || [] });
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+      set({
+        error: err.response?.data?.message || err.message,
+        categories: [],
+      });
+    } finally {
+      set({ loadingCategories: false });
     }
   },
 

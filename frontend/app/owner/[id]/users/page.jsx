@@ -14,8 +14,14 @@ import { useParams } from "next/navigation";
 
 const Users = () => {
   const { id: ownerId } = useParams();
-  const { users, fetchUsersByOwner, createUserUnderOwner, loading, error } =
-    useUserStore();
+  const {
+    users,
+    fetchUsersByOwner,
+    createUserUnderOwner,
+    loading,
+    error,
+    deleteUser,
+  } = useUserStore();
 
   const [successMessage, setSuccessMessage] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -24,11 +30,10 @@ const Users = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [cancelDeleteUser, setCancelDeleteUser] = useState(false);
 
-
-
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Add user fields
   const [newFirstName, setNewFirstName] = useState("");
@@ -71,14 +76,29 @@ const Users = () => {
   };
 
   const handleDeleteUser = (userId) => {
-    setUserToDelete(userId);
-    setShowConfirmDelete(true);
+    setDeletingUserId(userId); // store the user to delete
+    setShowConfirmDelete(true); // show confirmation modal
   };
 
-  const confirmDeleteUser = () => {
-    // Replace with real delete logic
-    setSuccessMessage("User deleted successfully");
+  const confirmDeleteUser = async () => {
+    if (!deletingUserId) return;
+
+    try {
+      await deleteUser(ownerId, deletingUserId); // call your Zustand action or API
+      setSuccessMessage("User deleted successfully");
+      setShowConfirmDelete(false);
+      setDeletingUserId(null);
+      await fetchUsersByOwner(ownerId);
+      setErrorMessage(""); // clear any previous errors
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to delete user.");
+    }
+  };
+
+  const cancelDelete = () => {
     setShowConfirmDelete(false);
+    setDeletingUserId(null);
+    setErrorMessage("");
   };
 
   const confirmEditUser = () => {
@@ -99,9 +119,9 @@ const Users = () => {
     const formData = new FormData();
 
     // Append form fields to FormData
-    formData.append("email", newEmail);  // Correcting from userEmail to newEmail
+    formData.append("email", newEmail); // Correcting from userEmail to newEmail
     formData.append("first_name", newFirstName);
-    formData.append("last_name", newLastName);  // Fixed missing value for last_name
+    formData.append("last_name", newLastName); // Fixed missing value for last_name
     formData.append("phone", newPhone);
     formData.append("password", newPassword);
     formData.append("password_confirmation", newConfirmPassword);
@@ -131,13 +151,10 @@ const Users = () => {
     setShowAddUserModal(false);
   };
 
-
   const handleCancelDeleteUser = () => {
     setShowConfirmDelete(false);
     setUserToDelete(null);
   };
-  
-  
 
   return (
     <motion.div
@@ -266,37 +283,37 @@ const Users = () => {
               Add Staff
             </h2>
             <form>
-            <div className="mb-4 flex space-x-4">
-              <div className="mb-4 ">
-                <label
-                  htmlFor="first_name"
-                  className="block text-sm font-semibold text-gray-800 dark:text-white"
-                >
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  id="first_name"
-                  value={newFirstName}
-                  onChange={(e) => setNewFirstName(e.target.value)}
-                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="last_name"
-                  className="block text-sm font-semibold text-gray-800 dark:text-white"
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="last_name"
-                  value={newLastName}
-                  onChange={(e) => setNewLastName(e.target.value)}
-                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+              <div className="mb-4 flex space-x-4">
+                <div className="mb-4 ">
+                  <label
+                    htmlFor="first_name"
+                    className="block text-sm font-semibold text-gray-800 dark:text-white"
+                  >
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    value={newFirstName}
+                    onChange={(e) => setNewFirstName(e.target.value)}
+                    className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="last_name"
+                    className="block text-sm font-semibold text-gray-800 dark:text-white"
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    value={newLastName}
+                    onChange={(e) => setNewLastName(e.target.value)}
+                    className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
               <div className="mb-4">
                 <label
@@ -330,36 +347,36 @@ const Users = () => {
                 />
               </div>
               <div className="mb-4 flex space-x-4">
-              <div className="mb-4">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-semibold text-gray-800 dark:text-white"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="password_confirmation"
-                  className="block text-sm font-semibold text-gray-800 dark:text-white"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="password_confirmation"
-                  value={newConfirmPassword}
-                  onChange={(e) => setNewConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-semibold text-gray-800 dark:text-white"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="password_confirmation"
+                    className="block text-sm font-semibold text-gray-800 dark:text-white"
+                  >
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password_confirmation"
+                    value={newConfirmPassword}
+                    onChange={(e) => setNewConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
 
               {/* Image Upload */}
@@ -398,7 +415,7 @@ const Users = () => {
                   onClick={handleAddUser}
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
-                  Add 
+                  Add
                 </button>
               </div>
             </form>
@@ -406,14 +423,13 @@ const Users = () => {
         </motion.div>
       )}
 
-
-       {/* Delete Confirmation Modal */}
-       {showConfirmDelete && (
+      {/* Delete Confirmation Modal */}
+      {showConfirmDelete && (
         <motion.div
           variants={modalVariants}
           initial="hidden"
           animate="visible"
-          className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           <div className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg shadow-md p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold">Confirm Deletion</h3>
@@ -421,16 +437,16 @@ const Users = () => {
               Are you sure you want to delete this user? This action cannot be
               undone.
             </p>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex justify-end space-x-2">
               <button
-                onClick={handleCancelDeleteUser}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+                onClick={cancelDelete}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteUser}
-                className="bg-red-500 text-white px-4 py-2 rounded-md"
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
               >
                 Confirm
               </button>

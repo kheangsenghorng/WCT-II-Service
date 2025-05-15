@@ -1,11 +1,13 @@
 // store/useTypeStore.js
 import { create } from "zustand";
 import { request } from "@/util/request";
-import { useAuthStore } from "@/store/authStore";  // Import useAuthStore
+import { useAuthStore } from "@/store/authStore"; // Import useAuthStore
 
 export const useTypeStore = create((set) => ({
   userTypes: [],
+  types: [],
   loading: false,
+  loadingTypes: false,
   error: null,
   selectedUserType: null,
 
@@ -14,16 +16,16 @@ export const useTypeStore = create((set) => ({
     try {
       // Get the token inside the component's scope
       const token = useAuthStore.getState()?.getToken?.();
-      const res = await request("/admin/type", "GET", null, token);  // Pass token
+      const res = await request("/admin/type", "GET", null, token); // Pass token
 
       if (!res) {
         throw new Error("Invalid response from server (fetchAllUserTypes)");
       }
 
-      let types = Array.isArray(res) ? res : res?.data || [];  // Access res properly and simplify
+      let types = Array.isArray(res) ? res : res?.data || []; // Access res properly and simplify
 
       // Ensure each user type has a service_categories_id property
-      types = types.map(type => ({
+      types = types.map((type) => ({
         ...type,
         service_categories_id: type.service_categories_id || [], // Ensure this exists and is an array
         // Optionally add other default values if needed
@@ -38,29 +40,56 @@ export const useTypeStore = create((set) => ({
       set({ loading: false });
     }
   },
+  fetchTypes: async () => {
+    set({ loadingTypes: true, error: null });
+    try {
+      const res = await request("/type", "GET");
+      // Laravel returns a raw array
+      set({ types: res || [] });
+    } catch (err) {
+      console.error("Failed to fetch types:", err);
+      set({
+        error: err.response?.data?.message || err.message,
+        types: [],
+      });
+    } finally {
+      set({ loadingTypes: false });
+    }
+  },
 
   addUserType: async (name, serviceCategoriesId) => {
     set({ loading: true, error: null });
     try {
-        const token = useAuthStore.getState()?.getToken?.(); // Get Token
-        const res = await request("/admin/type", "POST", {
+      const token = useAuthStore.getState()?.getToken?.(); // Get Token
+      const res = await request(
+        "/admin/type",
+        "POST",
+        {
           name,
           service_categories_id: Number(serviceCategoriesId),
-        }, token); // pass token
+        },
+        token
+      ); // pass token
 
       if (!res) {
         throw new Error("Invalid response from server (addUserType)");
       }
 
       set((state) => ({
-        userTypes: [...state.userTypes, {
-          ...res,
-          service_categories_id: res.service_categories_id || [],
-        }],
+        userTypes: [
+          ...state.userTypes,
+          {
+            ...res,
+            service_categories_id: res.service_categories_id || [],
+          },
+        ],
       }));
     } catch (err) {
       set({
-        error: err.response?.data?.message || err.message || "Failed to add user type.",
+        error:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to add user type.",
       });
     } finally {
       set({ loading: false });
@@ -70,48 +99,58 @@ export const useTypeStore = create((set) => ({
   updateUserType: async (id, name, serviceCategoriesId) => {
     set({ loading: true, error: null });
     try {
-        const token = useAuthStore.getState()?.getToken?.(); // Get Token
-        const res = await request(`/admin/type/${id}`, "PUT", {
+      const token = useAuthStore.getState()?.getToken?.(); // Get Token
+      const res = await request(
+        `/admin/type/${id}`,
+        "PUT",
+        {
           name,
           service_categories_id: Number(serviceCategoriesId), // Ensure it's an array
-        }, token);
-        
-        if (!res) {
-          throw new Error("Invalid response from server (updateUserType)");
-        }
+        },
+        token
+      );
 
-        // Update user types in state
-        set((state) => ({
-          userTypes: state.userTypes.map((type) =>
-            type.id === id
-              ? {
-                  ...res,  // Update the type with the response from the server
-                  service_categories_id: res.service_categories_id || [],  // Ensure service_categories_id is always an array
-                }
-              : type
-          ),
-        }));
+      if (!res) {
+        throw new Error("Invalid response from server (updateUserType)");
+      }
+
+      // Update user types in state
+      set((state) => ({
+        userTypes: state.userTypes.map((type) =>
+          type.id === id
+            ? {
+                ...res, // Update the type with the response from the server
+                service_categories_id: res.service_categories_id || [], // Ensure service_categories_id is always an array
+              }
+            : type
+        ),
+      }));
     } catch (err) {
-        set({
-          error: err.response?.data?.message || err.message || "Failed to update user type.",
-        });
+      set({
+        error:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to update user type.",
+      });
     } finally {
-        set({ loading: false });
+      set({ loading: false });
     }
-},
-
+  },
 
   deleteUserType: async (id) => {
     set({ loading: true, error: null });
     try {
-        const token = useAuthStore.getState()?.getToken?.(); // Get Token
+      const token = useAuthStore.getState()?.getToken?.(); // Get Token
       await request(`/admin/type/${id}`, "DELETE", null, token); // pass token
       set((state) => ({
         userTypes: state.userTypes.filter((type) => type.id !== id),
       }));
     } catch (err) {
       set({
-        error: err.response?.data?.message || err.message || "Failed to delete user type.",
+        error:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to delete user type.",
       });
     } finally {
       set({ loading: false });

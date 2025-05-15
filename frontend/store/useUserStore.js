@@ -2,7 +2,6 @@
 import { create } from "zustand";
 import { request } from "@/util/request";
 
-
 export const useUserStore = create((set) => ({
   user: null,
   users: [],
@@ -59,6 +58,41 @@ export const useUserStore = create((set) => ({
       set({ error: message, loading: false });
     }
   },
+  updateUser: async (ownerId, userId, formData) => {
+    set({ loading: true, error: null });
+    formData.append("_method", "PUT");
+    try {
+      // Laravel expects PUT, but when sending FormData, use POST with _method=PUT spoofing
+      const data = await request(
+        `/owner/${ownerId}/user/${userId}`,
+        "POST",
+        formData
+      );
+
+      // Update user in local state
+      const updatedUser = data.user;
+      const users = get().users.map((u) => (u.id === userId ? updatedUser : u));
+      set({ users, loading: false });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+    }
+  },
+  deleteUser: async (ownerId, userId) => {
+    set({ loading: true, error: null });
+    try {
+      await request(`/owner/${ownerId}/user/${userId}`, "DELETE");
+      const users = get().users.filter((u) => u.id !== userId);
+      set({ users, loading: false });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+    }
+  },
 
   updateUser: async (id, formData) => {
     formData.append("_method", "PUT"); // Laravel needs this for method spoofing on POST
@@ -74,26 +108,24 @@ export const useUserStore = create((set) => ({
     }
   },
 
- fetchAdminUsers: async () => {
-  set({ loading: true, error: null });
+  fetchAdminUsers: async () => {
+    set({ loading: true, error: null });
 
-  try {
-    const res = await request("/admin/users", "GET");
-    set({
-      users: res,         // assuming res is an array of users
-      count: res.length,  // total number of users
-    });
-  } catch (err) {
-    console.error("Error fetching admin users:", err);
-    set({
-      error: err.response?.data?.message || "Failed to fetch admin users.",
-    });
-  } finally {
-    set({ loading: false });
-  }
-},
-
-  
+    try {
+      const res = await request("/admin/users", "GET");
+      set({
+        users: res, // assuming res is an array of users
+        count: res.length, // total number of users
+      });
+    } catch (err) {
+      console.error("Error fetching admin users:", err);
+      set({
+        error: err.response?.data?.message || "Failed to fetch admin users.",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
 
   clearUsers: () => set({ users: [] }),
 }));
