@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
@@ -62,12 +63,11 @@ Route::middleware('auth:api')->group(function () {
         
     });
     
-    Route::get('/', [ServiceController::class, 'index']);  
 
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
     Route::get('users/{id}', [UserController::class, 'show']); // Get user by id (admin only)
-//Booking
+  //Booking
     // Route::get('/booking/user/{userId}/service/{serviceId}', [BookingController::class, 'show']);
     // Route::post('/{serviceId}/bookings', [BookingController::class, 'store']);
 
@@ -78,7 +78,11 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [BookingController::class, 'update']); // PUT update booking by ID
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
     });
-});
+} );
+
+    Route::get('/', [ServiceController::class, 'index']);  
+
+Route::put('bookingtest/{id}', [BookingController::class, 'update']); // PUT update booking by ID
 //owner
 
 Route::middleware('auth:api')->group(function () {
@@ -115,19 +119,24 @@ Route::middleware('auth:api')->group(function () {
 //     Route::delete('/{serviceId}', [ServiceController::class, 'destroy']); // Delete service
 // });
 
-
 Route::middleware('auth:api')->prefix('owner')->group(function () {
+
+    // 📦 Service routes for owner (nested under owner's ID)
     Route::prefix('{id}/services')->group(function () {
-             // List services for owner
-             Route::get('/', [ServiceController::class, 'index']); // <== this must exist
-        Route::post('/', [ServiceController::class, 'store']);        // Create service for owner
-        Route::get('/{serviceId}', [ServiceController::class, 'show']);   // Show specific service
-        Route::put('/{serviceId}', [ServiceController::class, 'update']); // Update service
+        Route::post('/', [ServiceController::class, 'store']);              // Create service
+        Route::get('/{serviceId}', [ServiceController::class, 'show']);     // Show specific service
+        Route::put('/{serviceId}', [ServiceController::class, 'update']);   // Update service
         Route::delete('/{serviceId}', [ServiceController::class, 'destroy']); // Delete service
     });
 
-     // Booking routes nested under service
- 
+    // 🔔 Notification routes (not nested under services)
+    Route::prefix('/notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);          // All notifications (ordered by owners_id)
+        Route::get('/my/all', [NotificationController::class, 'myNotifications']); // Current user's notifications
+        Route::get('/my/{ownerId}', [NotificationController::class, 'getByOwnerId']); // Current user's notifications
+        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']); // Mark as read
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);     // Delete
+    });
 });
 
 

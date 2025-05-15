@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceController extends Controller
 {
@@ -28,39 +29,65 @@ class ServiceController extends Controller
     // }
     public function index(Request $request, $id)
     {
-        // Start by creating a query for all services with eager loading
-        $query = Service::with(['category', 'type', 'owner'])
-                    ->where('owner_id', $id); // 🔥 Add this line
+        // Eager load related models: category, type, and owner
+        $query = Service::with(['category', 'type', 'owner']);
     
-        // If 'category' parameter is provided, filter by service_categories_id
-        if ($request->has('category')) {
+        // Apply category filter if provided
+        if ($request->filled('category')) {
             $query->where('service_categories_id', $request->category);
         }
     
-        // If 'type' parameter is provided, filter by type_id
-        if ($request->has('type')) {
+        // Apply type filter if provided
+        if ($request->filled('type')) {
             $query->where('type_id', $request->type);
         }
     
-        // Execute the query and return the results as JSON
-        return response()->json($query->get());
+        // Get the filtered services
+        $services = $query->get();
+    
+        // Format service image URLs (assuming 'images' is a string or a single image path)
+        $services->map(function ($service) {
+            if (is_array($service->images)) {
+                $service->images = array_map(function ($img) {
+                    return asset('storage/' . $img);
+                }, $service->images);
+            }
+            return $service;
+        });
+        
+    
+        return response()->json($services);
     }
+    
 
 
 
     public function show($id, $serviceId)
-{
-    $service = Service::with(['category', 'type', 'owner'])
-        ->where('id', $serviceId)
-        ->where('owner_id', $id)
-        ->first();
-
-    if (!$service) {
-        return response()->json(['message' => 'Service not found or access denied'], 404);
+    {
+        $service = Service::with(['category', 'type', 'owner'])
+            ->where('id', $serviceId)
+            ->where('owner_id', $id)
+            ->first();
+    
+        if (!$service) {
+            return response()->json(['message' => 'Service not found or access denied'], 404);
+        }
+    
+        // Handle image formatting
+        if (is_array($service->images)) {
+            $service->images = array_map(function ($img) {
+                return asset('storage/' . $img);
+            }, $service->images);
+        } elseif (is_string($service->images)) {
+            // If it's a single image stored as string
+            $service->images = [asset('storage/' . $service->images)];
+        } else {
+            $service->images = [];
+        }
+    
+        return response()->json($service);
     }
-
-    return response()->json($service);
-}
+    
 
     public function store(Request $request, $id)
     {
@@ -97,6 +124,8 @@ class ServiceController extends Controller
         
         // Create the service record in the database
         $service = Service::create($validated);
+
+        
     
         // Return the created service as a response
         return response()->json($service, 201);
@@ -146,6 +175,74 @@ class ServiceController extends Controller
 
         return response()->json($service);
     }
+    
+
+
+
+    // public function update(Request $request, $id, $serviceId)
+    // {
+    //     $service = Service::find($serviceId);
+    
+    //     if (!$service) {
+    //         return response()->json(['message' => 'Service not found'], 404);
+    //     }
+    
+    //     // Ownership check
+    //     if ($service->owner_id != $id) {
+    //         return response()->json(['message' => 'Unauthorized.'], 403);
+    //     }
+    
+    //     $validated = $request->validate([
+    //         'name' => 'sometimes|string',
+    //         'description' => 'nullable|string',
+    //         'base_price' => 'sometimes|numeric',
+    //         'service_categories_id' => 'sometimes|exists:service_categories,id',
+    //         'type_id' => 'sometimes|exists:types,id',
+    //         'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    //     ]);
+    
+    //     // Retrieve existing images or initialize as an empty array
+    //     $existingImages = is_array($service->images) ? $service->images : [];
+    
+    //     // Handle new image uploads
+    //     if ($request->hasFile('images')) {
+    //         // Delete old images from storage (if any)
+    //         foreach ($existingImages as $oldImage) {
+    //             if (is_string($oldImage) && Storage::disk('public')->exists($oldImage)) {
+    //                 Storage::disk('public')->delete($oldImage);
+    //             }
+    //         }
+    
+    //         // Store new images
+    //         $newImages = $request->file('images');
+    //         $newImages = is_array($newImages) ? $newImages : [$newImages]; // Ensure $newImages is an array
+    
+    //         $newImagesPaths = [];
+    //         foreach ($newImages as $image) {
+    //             if ($image->isValid()) {
+    //                 $path = $image->store('services', 'public');
+    //                 $newImagesPaths[] = $path; // Store only the paths of the new images
+    //             }
+    //         }
+    
+    //         // Replace the existing images with the new ones
+    //         $validated['images'] = $newImagesPaths;
+    //     } else {
+    //         // If no new images are uploaded, retain the existing images
+    //         $validated['images'] = $existingImages;
+    //     }
+    
+    //     // Update the service with the validated data
+    //     $service->update($validated);
+    
+    //     // Reload relationships and return the updated service
+    //     $service->load(['category', 'type', 'owner']);
+    
+    //     return response()->json($service);
+    // }
+    
+    
+    
     
 
     public function destroy($id, $serviceId)
