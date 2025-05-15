@@ -63,7 +63,7 @@ Route::middleware('auth:api')->group(function () {
         
     });
     
-
+    Route::get('type', [TypeController::class, 'index']);  
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
     Route::get('users/{id}', [UserController::class, 'show']); // Get user by id (admin only)
@@ -80,7 +80,7 @@ Route::middleware('auth:api')->group(function () {
     });
 } );
 
-    Route::get('/', [ServiceController::class, 'index']);  
+
 
 Route::put('bookingtest/{id}', [BookingController::class, 'update']); // PUT update booking by ID
 //owner
@@ -91,11 +91,13 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/{id}', [UserController::class, 'storeUserUnderOwner']); // Create a new user (admin only)
         Route::get('users/{id}', [UserController::class, 'getUsersByOwner']); // Get user by id (admin only)
         Route::put('users/{id}', [UserController::class, 'update']); // Update user (admin only)
-        Route::delete('users/{id}', [UserController::class, 'destroy']); // Delete user (admin only)
+        Route::put('{ownerId}/user/{userId}', [UserController::class, 'updateUserUnderOwner']);
+        Route::delete('{ownerId}/user/{userId}', [UserController::class, 'deleteUserUnderOwner']);
+
        // Owner-specific service management
        
     });
-    
+      
 
 });
 
@@ -123,12 +125,13 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
 
     // 📦 Service routes for owner (nested under owner's ID)
     Route::prefix('{id}/services')->group(function () {
+       
         Route::post('/', [ServiceController::class, 'store']);              // Create service
         Route::get('/{serviceId}', [ServiceController::class, 'show']);     // Show specific service
         Route::put('/{serviceId}', [ServiceController::class, 'update']);   // Update service
         Route::delete('/{serviceId}', [ServiceController::class, 'destroy']); // Delete service
     });
-
+    Route::get('/{id}/services', [ServiceController::class, 'getByOwner']);
     // 🔔 Notification routes (not nested under services)
     Route::prefix('/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);          // All notifications (ordered by owners_id)
@@ -138,6 +141,8 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
         Route::delete('/{id}', [NotificationController::class, 'destroy']);     // Delete
     });
 });
+
+Route::get('/', [ServiceController::class, 'index']);  
 
 
 
