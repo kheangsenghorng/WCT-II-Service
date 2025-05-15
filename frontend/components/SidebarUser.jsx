@@ -103,7 +103,7 @@ const Sidebar = () => {
               {item.name === "Logout" ? (
                 <div
                   onClick={() => setShowLogoutPopup(true)}
-                  className={`flex items-center py-4 px-4 rounded-2xl font-medium transition-colors duration-200 cursor-pointer
+                  className={`flex items-center py-4 px-4 rounded-2xl font-medium text-sm transition-colors duration-200
                     ${
                       isActive
                         ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow"
@@ -118,12 +118,12 @@ const Sidebar = () => {
                   href={`/profile/${id}/${item.name
                     .toLowerCase()
                     .replace(/ /g, "-")}`}
-                  className={`flex items-center py-4 px-4 rounded-2xl font-medium transition-colors duration-200
-                    ${
-                      isActive
-                        ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
-                    }`}
+                    className={`flex items-center py-4 px-4 rounded-2xl font-medium text-sm transition-colors duration-200
+                      ${
+                        isActive
+                          ? "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold shadow"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                      }`}                    
                   onClick={() => setSelectedItem(item.name)}
                 >
                   <item.icon className="w-5 h-5 mr-2" />
@@ -135,7 +135,6 @@ const Sidebar = () => {
         })}
       </nav>
 
-      {/* Confirmation Popup */}
       {showLogoutPopup && (
         <motion.div
           className="fixed inset-0 flex justify-center items-center z-50 transition-opacity duration-300 ease-in-out opacity-100"
@@ -144,26 +143,33 @@ const Sidebar = () => {
           animate="visible"
           exit="exit"
         >
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96 max-w-xs flex flex-col">
+          <div className="bg-white p-8 rounded-xl shadow-lg w-96 max-w-xs flex flex-col">
             {/* Header with Icon */}
-            <div className="flex items-center mb-4">
-              <AlertTriangle className="h-6 w-6 mr-2 text-red-500" />
-              <h3 className="text-lg font-semibold dark:text-gray-100 text-center">
+            <div className="flex items-center mb-6">
+              <AlertTriangle className="h-6 w-6 mr-3 text-red-500" />
+              <h3 className="text-xl font-semibold dark:text-gray-100 text-center text-gray-800">
                 Confirm Logout
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
-              Are you sure you want to logout?
+
+            {/* Message */}
+            <p className="text-gray-700 dark:text-gray-400 mb-6 text-center">
+              Are you sure you want to logout? You will need to log in again to access your account.
             </p>
+
+            {/* Buttons */}
             <div className="flex justify-between items-center">
+              {/* Cancel Button */}
               <button
-                className="bg-transparent text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="bg-transparent text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 py-2 px-6 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors transform hover:scale-105"
                 onClick={() => setShowLogoutPopup(false)}
               >
                 Cancel
               </button>
+
+              {/* Logout Button */}
               <button
-                className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="bg-red-600 text-white py-2 px-6 rounded-md hover:bg-red-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 transform hover:scale-105"
                 onClick={handleLogout}
               >
                 Logout

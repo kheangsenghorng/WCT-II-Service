@@ -150,13 +150,13 @@ const Users = () => {
       animate="visible"
     >
       <h1 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">Users</h1>
-            <button
+            {/* <button
                 onClick={() => setShowAddUserModal(true)}
                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mb-4"
             >
                 <UserPlus className="h-5 w-5 mr-2" />
                 Add User
-            </button>
+            </button> */}
 
       {successMessage && (
         <motion.div
@@ -318,7 +318,7 @@ const Users = () => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="user">user</option>
-                <option value="admin">admin</option>
+                {/* <option value="admin">admin</option> */}
                 <option value="owner">owner</option>
               </select>
             </div>
@@ -344,86 +344,7 @@ const Users = () => {
         </motion.div>
       )}
 
-      {/* Add User Modal */}
-      {showAddUserModal && (
-        <motion.div
-          className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Add New User
-            </h3>
-            <div className="mb-4">
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-              <input
-                type="text"
-                id="firstName"
-                value={newFirstName}
-                onChange={(e) => setNewFirstName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-              <input
-                type="text"
-                id="lastName"
-                value={newLastName}
-                onChange={(e) => setNewLastName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-              <input
-                type="email"
-                id="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={newConfirmPassword}
-                onChange={(e) => setNewConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowAddUserModal(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddUser}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-              >
-                Add User
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      
     </motion.div>
   );
 };

@@ -44,7 +44,7 @@ const Sidebar = () => {
 
   const confirmLogout = () => {
     // Redirect or handle sign out
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (
@@ -58,8 +58,8 @@ const Sidebar = () => {
        
         <nav className="space-y-3 flex-1">
           {[
-            { href: `/owner/${id}/dashboard`, icon: Home, label: "Dashboard" },
-            { href: `/owner/${id}/users`, icon: Users, label: "Users" },
+            { href: `/owner/${id}/dashboard`, icon: Home, label: "Owner Dashboard" },
+            { href: `/owner/${id}/users`, icon: Users, label: "Staff" },
             { href: `/owner/${id}/services`, icon: FolderKanban, label: "Service" },
             { href: `/owner/${id}/company`, icon: Building2, label: "Company" },
           ].map(({ href, icon: Icon, label }, i) => {

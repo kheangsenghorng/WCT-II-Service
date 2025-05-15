@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, User, Phone, Mail, AlertTriangle, EditIcon } from "lucide-react"; // Import icons
 import { useUserStore } from "@/store/useUserStore";
+import { motion, AnimatePresence } from "framer-motion"; // Import framer-motion
 
 export default function SettingsPage() {
   const { user, updateUser, fetchUserById } = useUserStore();
@@ -16,16 +17,15 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState("/default-user.svg");
   const [avatarFile, setAvatarFile] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch user on mount
   useEffect(() => {
     if (id) {
       fetchUserById(id);
     }
   }, [id]);
 
-  // Sync user state when user is fetched
   useEffect(() => {
     if (user) {
       setFirstName(user.first_name || "");
@@ -53,8 +53,13 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = () => {
+    setShowConfirmModal(true);
+  };
+
+  const confirmUpdate = async () => {
     if (!user) return;
+
     const formData = new FormData();
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
@@ -65,49 +70,59 @@ export default function SettingsPage() {
 
     try {
       await updateUser(user.id, formData);
-      await fetchUserById(user.id); // Refresh store
+      await fetchUserById(user.id);
       router.push(`/profile/${user.id}/myprofile`);
     } catch (error) {
       console.error("Update failed:", error);
+    } finally {
+      setShowConfirmModal(false);
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.5, transition: { duration: 0.3 } },
+  };
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={() => router.back()}
-          className="text-gray-600 hover:text-black transition flex items-center gap-1"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-        <h1 className="text-3xl font-bold">Edit Profile</h1>
+    <motion.div
+      className="max-w-3xl mx-auto px-6 py-12 bg-white dark:bg-gray-800 shadow-lg rounded-lg"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="flex justify-start items-center mb-8">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">Edit Profile</h1>
       </div>
 
-      {/* Profile Image Upload */}
-      <div className="flex justify-center mb-8">
-        <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md">
+      <div className="flex justify-center mb-10">
+        <motion.div
+          className="relative w-40 h-40 rounded-full overflow-hidden shadow-lg group cursor-pointer"
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.2 }}
+        >
           <Image
             src={avatarPreview}
             alt="Avatar"
             fill
-            className="object-cover"
+            style={{ objectFit: "cover" }}
+            className="object-cover rounded-full"
           />
 
-          <button
+<button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition"
+            className="absolute bottom-0 right-15  bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition"
+            aria-label="Change Avatar"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M4 4a2 2 0 012-2h2a2 2 0 012 2H4zm10 0a2 2 0 00-2-2h-2a2 2 0 00-2 2h6zM2 8h16v10a2 2 0 01-2 2H4a2 2 0 01-2-2V8z" />
-            </svg>
+            <EditIcon className="w-5 h-5" />
           </button>
+       
           <input
             type="file"
             accept="image/*"
@@ -115,66 +130,123 @@ export default function SettingsPage() {
             onChange={handleImageChange}
             className="hidden"
           />
-        </div>
+
+
+
+        </motion.div>
+
+       
       </div>
 
-      {/* Name Fields */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            First Name
-          </label>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
-          />
+      {/* Form Fields */}
+      <div className="space-y-6">
+        {/* First Name and Last Name */}
+        <div className="flex gap-4">
+          <div className="w-1/2">
+            <label className=" text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+              <User className="h-5 w-5"/>
+              First Name
+            </label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full mt-2 px-4 py-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              placeholder="Enter your first name"
+            />
+          </div>
+
+          <div className="w-1/2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+             <User className="h-5 w-5"/>
+              Last Name
+            </label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full mt-2 px-4 py-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              placeholder="Enter your last name"
+            />
+          </div>
         </div>
+
+        {/* Phone Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Last Name
-          </label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className=" text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+            <Phone className="h-5 w-5"/>
             Phone Number
           </label>
           <input
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full mt-2 px-4 py-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+            placeholder="Enter your phone number"
           />
         </div>
+
+        {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className=" text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+           <Mail className="w-5 h-5"/>
             Email
           </label>
           <input
             type="text"
             value={user?.email || "User"}
             disabled
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full mt-2 px-4 py-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-gray-100"
           />
         </div>
       </div>
 
       {/* Save Button */}
-      <button
+      <motion.button
         onClick={handleUpdate}
-        className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        className="mt-8 w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md  transition"
+        whileHover={{ scale: 1.05 }}
       >
-        <Save className="w-4 h-4" />
-        Save Changes
-      </button>
-    </div>
+        <Save className="w-5 h-5" />
+        Update
+      </motion.button>
+
+      {/* Confirm Modal */}
+      <AnimatePresence>
+        {showConfirmModal && (
+          <motion.div
+            className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl w-full max-w-sm">
+              <div className="flex items-center mb-6">
+                            <AlertTriangle className="h-6 w-6 mr-3 text-red-500" />
+                            <h3 className="text-xl font-semibold dark:text-gray-100 text-center text-gray-800"></h3>
+                            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Confirm Update</h2>
+              </div>
+             
+              <p className="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to save these changes?</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmUpdate}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

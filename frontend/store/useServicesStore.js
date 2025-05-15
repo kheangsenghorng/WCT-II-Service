@@ -1,99 +1,109 @@
 import { create } from "zustand";
-import { request } from "@/util/request"; // Assuming this utility is already created
+import { request } from "@/util/request";
 
 export const useServicesStore = create((set) => ({
   services: [],
-  loading: false,
-  error: null,
   categories: [],
+  serviceTypes: [],
+  loadingServices: false,
+  loadingCategories: false,
+  loadingServiceTypes: false,
+  error: null,
 
-  // ✅ Fetch services for owner
   fetchServices: async (ownerId) => {
-    set({ loading: true, error: null });
+    set({ loadingServices: true, error: null });
     try {
+      // Use the dynamic owner ID directly in the URL path
       const response = await request(`/owner/${ownerId}/services`, "GET");
-      set({ services: response, loading: false });
-    } catch {
-      set({ error: "Failed to fetch services", loading: false });
+      set({ services: response.data || [] });
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      set({ error: err.response?.data?.message || err.message });
+      set({ services: [] });
+    } finally {
+      set({ loadingServices: false });
+    }
+  },
+  
+  
+
+  fetchCategories: async () => {
+    set({ loadingCategories: true });
+    try {
+      // Changed to non-admin route since owners need access
+      const res = await request("/categories", "GET");
+      set({ categories: res.data || [] });
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+      set({ error: err.response?.data?.message || err.message });
+      set({ categories: [] });
+    } finally {
+      set({ loadingCategories: false });
+    }
+  },
+  
+  fetchServiceTypes: async () => {
+    set({ loadingServiceTypes: true });
+    try {
+      // This still needs admin access - consider creating a public endpoint
+      const response = await request("/admin/type", "GET");
+      set({ serviceTypes: response.data?.types || [] });
+    } catch (err) {
+      console.error("Failed to fetch service types:", err);
+      set({ error: err.response?.data?.message || err.message });
+      set({ serviceTypes: [] });
+    } finally {
+      set({ loadingServiceTypes: false });
     }
   },
 
-  // ✅ Fetch a single service
-  fetchService: async (ownerId, serviceId) => {
-    set({ loading: true, error: null });
+  addService: async (ownerId, formData) => {
     try {
       const response = await request(
-        `/owner/${ownerId}/services/${serviceId}`,
-        "GET"
-      );
-      return response;
-    } catch {
-      set({ error: "Failed to fetch service", loading: false });
-    }
-  },
-
-  // ✅ Add a new service
-  addService: async (ownerId, serviceData) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await request(
-        `/owner/${ownerId}/services`,
-        "POST",
-        serviceData
+        `/owner/${ownerId}/services`, 
+        "POST", 
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
       set((state) => ({
-        services: [...state.services, response],
-        loading: false,
+        services: [...state.services, response.data],
       }));
-    } catch {
-      set({ error: "Failed to add service", loading: false });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
     }
   },
-
-  // ✅ Update a service
-  updateService: async (ownerId, serviceId, serviceData) => {
-    set({ loading: true, error: null });
+  
+  updateService: async (ownerId, serviceId, data) => {
     try {
       const response = await request(
-        `/owner/${ownerId}/services/${serviceId}`,
-        "PUT",
-        serviceData
+        `/owner/${ownerId}/services/${serviceId}`, 
+        "PUT", 
+        data
       );
       set((state) => ({
-        services: state.services.map((service) =>
-          service.id === serviceId ? response : service
+        services: state.services.map((s) =>
+          s.id === serviceId ? response.data : s
         ),
-        loading: false,
       }));
-    } catch {
-      set({ error: "Failed to update service", loading: false });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
     }
   },
-
-  // ✅ Delete a service
+  
   deleteService: async (ownerId, serviceId) => {
-    set({ loading: true, error: null });
     try {
       await request(`/owner/${ownerId}/services/${serviceId}`, "DELETE");
       set((state) => ({
         services: state.services.filter((s) => s.id !== serviceId),
-        loading: false,
       }));
-    } catch {
-      set({ error: "Failed to delete service", loading: false });
-    }
-  },
-
-  // ✅ Fetch categories (Admin route)
-  fetchCategories: async () => {
-    set({ loading: true, error: null });
-    try {
-      const response = await request("/admin/categories", "GET");
-      set({ categories: response });
     } catch (err) {
-      set({ error: `Error fetching categories: ${err.message}` });
-    } finally {
-      set({ loading: false });
+      throw err.response?.data || err;
     }
   },
 }));

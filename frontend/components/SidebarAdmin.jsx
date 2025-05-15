@@ -46,7 +46,7 @@ const Sidebar = () => {
 
   const confirmLogout = () => {
     // Redirect or handle sign out
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (
