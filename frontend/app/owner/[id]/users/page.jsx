@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import { useParams } from "next/navigation";
+import EditUserModal from "@/components/users/EditUserModal";
+
 
 const Users = () => {
   const { id: ownerId } = useParams();
@@ -32,7 +34,7 @@ const Users = () => {
   const [userToEdit, setUserToEdit] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   // Add user fields
@@ -74,6 +76,12 @@ const Users = () => {
     setEditedRole(user.role);
     setShowConfirmEdit(true);
   };
+
+  const handleEditUser = (user) => {
+    setUserToEdit(user);
+    setShowEditUserModal(true);
+  };
+  
 
   const handleDeleteUser = (userId) => {
     setDeletingUserId(userId); // store the user to delete
@@ -243,12 +251,13 @@ const Users = () => {
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3 whitespace-nowrap">
-                      <button
-                        onClick={() => handleEditRole(user)}
-                        className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
-                      >
-                        <Edit className="w-8" />
-                      </button>
+                    <button
+  onClick={() => handleEditUser(user)}
+  className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
+>
+  <Edit className="w-8" />
+</button>
+
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="text-red-500 font-bold py-2 rounded inline-flex items-center"
@@ -269,6 +278,32 @@ const Users = () => {
           </table>
         </div>
       )}
+
+
+{showEditUserModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6"
+    >
+      <EditUserModal
+        user={userToEdit}
+        onClose={() => setShowEditUserModal(false)}
+        onSave={(updatedUser) => {
+          // Here, you can call your update logic, e.g.:
+          // updateUser(updatedUser);
+          setSuccessMessage("User updated successfully");
+          setShowEditUserModal(false);
+          fetchUsersByOwner(ownerId);
+        }}
+      />
+    </motion.div>
+  </div>
+)}
+
 
       {/* Add User Modal */}
       {showAddUserModal && (
@@ -429,7 +464,7 @@ const Users = () => {
           variants={modalVariants}
           initial="hidden"
           animate="visible"
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
         >
           <div className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg shadow-md p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold">Confirm Deletion</h3>

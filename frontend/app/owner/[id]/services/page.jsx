@@ -2,47 +2,47 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Plus,
-  ImageIcon,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  Loader2,
-} from "lucide-react";
+import { Plus, ImageIcon, CheckCircle, AlertTriangle, Loader2, Edit, Trash2  } from "lucide-react";
 import { useServicesStore } from "@/store/useServicesStore";
 import { useCategoryStore } from "@/store/useCateroyStore";
 import { useTypeStore } from "@/store/useTypeStore";
 import { useParams } from "next/navigation";
+import AddServiceModal from "@/components/services/AddServiceModal";
+import EditServiceModal from "@/components/services/EditServiceModal";
+import DeleteConfirmationModal from "@/components/services/DeleteConfirmationModal";
 
 export default function ServicesPage() {
   const { id: ownerId } = useParams();
   const {
     services,
-    loadingServiceTypes,
+    loading: servicesLoading,
+    error: servicesError,
     fetchServicesByOwner,
-    fetchServices,
     createService,
-    creatingService,
-    createError,
+    updateService,
+    deleteService,
   } = useServicesStore();
 
-  const { categories, loadingCategories, error, fetchCategoriesOwner } =
-    useCategoryStore();
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    fetchCategoriesOwner,
+  } = useCategoryStore();
 
-  const { types, loadingTypes, error: typeError, fetchTypes } = useTypeStore();
+  const {
+    types,
+    loading: typesLoading,
+    error: typesError,
+    fetchTypes,
+  } = useTypeStore();
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newServiceName, setNewServiceName] = useState("");
-  const [newServiceDescription, setNewServiceDescription] = useState("");
-  const [newServiceCategoryId, setNewServiceCategoryId] = useState("");
-  const [newServiceBasePrice, setNewServiceBasePrice] = useState("");
-  const [newServiceType, setNewServiceType] = useState("");
-  const [newServiceImage, setNewServiceImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (ownerId) {
@@ -56,133 +56,49 @@ export default function ServicesPage() {
   }, [fetchCategoriesOwner, fetchTypes]);
 
   useEffect(() => {
+    const error = servicesError || categoriesError || typesError;
+    if (error) setErrorMessage(error);
+  }, [servicesError, categoriesError, typesError]);
+
+  useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
 
-  useEffect(() => {
-    return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-    };
-  }, [imagePreview]);
-
-  // const handleAddService = async () => {
-  //   if (
-  //     !newServiceName ||
-  //     !newServiceCategoryId ||
-  //     !newServiceBasePrice ||
-  //     !newServiceType ||
-  //     !newServiceImage
-  //   ) {
-  //     setErrorMessage("Please fill in all required fields.");
-  //     return;
-  //   }
-
-  //   if (isNaN(newServiceBasePrice) || parseFloat(newServiceBasePrice) <= 0) {
-  //     setErrorMessage("Please enter a valid positive price.");
-  //     return;
-  //   }
-
-  //   const formData = new FormData();
-  //   formData.append("name", newServiceName);
-  //   formData.append("description", newServiceDescription);
-  //   formData.append("service_categories_id", newServiceCategoryId);
-  //   formData.append("base_price", newServiceBasePrice);
-  //   formData.append("type_id", newServiceType);
-  //   formData.append("images", newServiceImage);
-
-  //   setIsSubmitting(true);
-  //   try {
-  //     await createService(ownerId, formData);
-  //     setSuccessMessage("Service added successfully!");
-  //     setErrorMessage(null);
-  //     resetForm();
-  //     setShowAddModal(false);
-  //     await fetchServices(ownerId);
-  //   } catch (err) {
-  //     setErrorMessage(err.message || "Failed to add service.");
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const isValidImage = file.type.startsWith("image/");
-      const isValidSize = file.size <= 5 * 1024 * 1024;
-
-      if (isValidImage && isValidSize) {
-        setNewServiceImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        setErrorMessage(null);
-      } else {
-        setErrorMessage("Please upload a valid image file (max 5MB).");
-        setImagePreview(null);
-      }
-    }
-  };
-  const resetForm = () => {
-    setNewServiceName("");
-    setNewServiceDescription("");
-    setNewServiceCategoryId("");
-    setNewServiceBasePrice("");
-    setNewServiceType("");
-    setNewServiceImage(null);
-    setImagePreview(null);
-  };
-
-  const handleAddService = async () => {
-    if (
-      !newServiceName ||
-      !newServiceCategoryId ||
-      !newServiceBasePrice ||
-      !newServiceType ||
-      !newServiceImage
-    ) {
-      setErrorMessage("Please fill in all required fields.");
-      return;
-    }
-
-    if (isNaN(newServiceBasePrice) || parseFloat(newServiceBasePrice) <= 0) {
-      setErrorMessage("Please enter a valid positive price.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", newServiceName);
-    formData.append("description", newServiceDescription);
-    formData.append("service_categories_id", newServiceCategoryId);
-    formData.append("base_price", newServiceBasePrice);
-    formData.append("type_id", newServiceType);
-    formData.append("images", newServiceImage);
-
-    setIsSubmitting(true);
+  const handleAddService = async (formData) => {
     try {
       await createService(ownerId, formData);
       setSuccessMessage("Service added successfully!");
       setErrorMessage(null);
-      resetForm();
-      setShowAddModal(false);
-      await fetchServicesByOwner(ownerId); // Refresh the list
+      fetchServicesByOwner(ownerId);
     } catch (err) {
       setErrorMessage(err.message || "Failed to add service.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
+  const handleEditService = async (serviceId, formData) => {
+    try {
+      await updateService(serviceId, formData);
+      setSuccessMessage("Service updated successfully!");
+      setErrorMessage(null);
+      fetchServicesByOwner(ownerId);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to update service.");
+    }
   };
 
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  const handleDeleteService = async () => {
+    try {
+      await deleteService(selectedService.id);
+      setSuccessMessage("Service deleted successfully!");
+      setErrorMessage(null);
+      setShowDeleteModal(false);
+      fetchServicesByOwner(ownerId);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to delete service.");
+    }
   };
 
   return (
@@ -226,278 +142,130 @@ export default function ServicesPage() {
           )}
 
           {/* Services Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Description
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Image
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {Array.isArray(services) &&
-                    services.map((service, index) => {
-                      const category = categories?.find(
-                        (cat) =>
-                          cat.category_id === service.service_categories_id
-                      );
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border dark:border-gray-700">
+  {servicesLoading ? (
+    <div className="p-6 text-center text-gray-500">
+      <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+    </div>
+  ) : (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
+          <tr>
+            {["Name", "Description", "Price", "Category", "Type", "Image", "Actions"].map((header) => (
+              <th
+                key={header}
+                className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase"
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          {services.map((service, index) => {
+            const category = categories.find(cat => cat.id === service.service_categories_id);
+            const type = types.find(t => t.id === service.type_id);
 
-                      return (
-                        <tr
-                          key={index}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {service.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300 max-w-xs truncate">
-                            {service.description}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            ${service.base_price}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {service?.category?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {service?.type?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                            {service.images ? (
-                              <img
-                                src={service.images?.[0] || "pic.png"}
-                                alt={service.name}
-                                className="h-10 w-10 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                                <ImageIcon className="h-5 w-5 text-gray-400" />
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            return (
+              <tr
+                key={service.id}
+                className={`${
+                  index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
+                } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {service.name}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                  <div className="truncate" title={service.description}>
+                    {service.description}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                  ${service.base_price}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                  {category?.name || "Unknown"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                  {type?.name || "Unknown"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                  {service.images?.[0] ? (
+                    <img
+                      src={service.images[0]}
+                      alt={service.name}
+                      className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
+                      <ImageIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedService(service);
+                        setShowEditModal(true);
+                      }}
+                      className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
+                      >
+                        <Edit className="w-8" />
+                        </button>
+                    <button
+                      onClick={() => {
+                        setSelectedService(service);
+                        setShowDeleteModal(true);
+                      }}
+                      className="text-red-500 font-bold py-2 rounded inline-flex items-center"
+                      >
+                        <Trash2 className="w-8" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+
         </div>
 
-        {/* Add Service Modal */}
-        {showAddModal && (
-          <motion.div
-            className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 p-4"
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-          >
-            <motion.div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md"
-              variants={modalVariants}
-            >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Add New Service
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    resetForm();
-                  }}
-                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
+        {/* Modals */}
+        <AddServiceModal
+          show={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddService}
+          categories={categories}
+          types={types}
+          loadingCategories={categoriesLoading}
+          loadingTypes={typesLoading}
+        />
 
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Service Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newServiceName}
-                    onChange={(e) => setNewServiceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter service name"
-                  />
-                </div>
+        <EditServiceModal
+          show={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          service={selectedService}
+          onSubmit={handleEditService}
+          categories={categories}
+          types={types}
+          loadingCategories={categoriesLoading}
+          loadingTypes={typesLoading}
+        />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={newServiceDescription}
-                    onChange={(e) => setNewServiceDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                    rows={3}
-                    placeholder="Enter service description"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Category *
-                    </label>
-                    <select
-                      value={newServiceCategoryId}
-                      onChange={(e) =>
-                        setNewServiceCategoryId(Number(e.target.value))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                      disabled={loadingCategories}
-                    >
-                      <option value="">Select a category</option>
-                      {categories.map((cat, index) => (
-                        <option key={index} value={cat.id}>
-                          {" "}
-                          {/* Use `id` instead of `category_id` */}
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                    {loadingCategories && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Loading categories...
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Service Type *
-                    </label>
-                    <select
-                      value={newServiceType}
-                      onChange={(e) => setNewServiceType(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                      disabled={loadingServiceTypes}
-                    >
-                      <option value="">Select a type</option>
-                      {types.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                    {loadingServiceTypes && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Loading types...
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Base Price *
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">$</span>
-                    </div>
-                    <input
-                      type="number"
-                      value={newServiceBasePrice}
-                      onChange={(e) => setNewServiceBasePrice(e.target.value)}
-                      className="block w-full pl-7 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Service Image *
-                  </label>
-                  <div className="mt-1 flex items-center gap-4">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <ImageIcon className="w-8 h-8 mb-3 text-gray-400" />
-                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold">Click to upload</span>{" "}
-                          or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          PNG, JPG (MAX. 5MB)
-                        </p>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                    {imagePreview && (
-                      <div className="relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="h-32 w-32 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewServiceImage(null);
-                            setImagePreview(null);
-                          }}
-                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 -mt-2 -mr-2"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    resetForm();
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddService}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Add Service
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        <DeleteConfirmationModal
+          show={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteService}
+          itemName={selectedService?.name || "this service"}
+          isDeleting={servicesLoading}
+        />
       </main>
     </div>
   );
