@@ -121,10 +121,6 @@ class UserController extends Controller
             'message' => 'User created under owner successfully.'
         ], 201);
     }
-    
-    
-    
-
     public function getUsersByOwner($ownerId)
 {
     $authUser = auth()->user();
@@ -148,12 +144,86 @@ class UserController extends Controller
         'users' => $users,
         'count' => $users->count()
     ]);
-}
+    }
+    public function updateUserUnderOwner(Request $request, $ownerId, $userId)
+    {
+        $authUser = auth()->user();
 
-    
+        // ✅ Ensure the owner exists and is valid
+        $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
+        if (!$owner) {
+            return response()->json(['message' => 'Invalid owner ID or user is not an owner.'], 404);
+        }
 
+        // ✅ Ensure the user exists and is under this owner
+        $user = User::where('id', $userId)
+                    ->where('owner_id', $ownerId)
+                    ->where('role', 'staff') // assuming you only want to update staff
+                    ->first();
 
-    
+        if (!$user) {
+            return response()->json(['message' => 'User not found or does not belong to this owner.'], 404);
+        }
+
+        // ✅ Validate request data
+        $data = $request->validate([
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name'  => 'sometimes|required|string|max:255',
+            'email'      => 'sometimes|required|email|max:255|unique:users,email,' . $userId,
+            'phone'      => 'sometimes|required|string|max:20|unique:users,phone,' . $userId,
+            'password'   => 'sometimes|nullable|string|min:8|confirmed',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // ✅ Handle optional password update
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']); // don't overwrite existing password with null
+        }
+
+        // ✅ Handle optional image upload
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('users', 'public');
+        }
+
+        // ✅ Apply updates
+        $user->update($data);
+
+        return response()->json([
+            'user' => $user,
+            'message' => 'User under owner updated successfully.'
+        ], 200);
+    }
+
+    public function deleteUserUnderOwner($ownerId, $userId)
+    {
+        // Get authenticated user if needed
+        $authUser = auth()->user();
+
+        // Validate owner exists and is an owner
+        $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
+        if (!$owner) {
+            return response()->json(['message' => 'Invalid owner ID or user is not an owner.'], 404);
+        }
+
+        // Find the user under this owner with role staff
+        $user = User::where('id', $userId)
+                    ->where('owner_id', $ownerId)
+                    ->where('role', 'staff')
+                    ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found or does not belong to this owner.'], 404);
+        }
+
+        // Delete user
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User deleted successfully.'
+        ], 200);
+    }
 
     /**
      * Show a user by ID (admin or self).

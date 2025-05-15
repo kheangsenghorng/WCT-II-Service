@@ -27,7 +27,7 @@ class ServiceController extends Controller
     //     // Execute the query and return the results as JSON
     //     return response()->json($query->get());
     // }
-    public function index(Request $request, $id)
+    public function index(Request $request)
     {
         // Eager load related models: category, type, and owner
         $query = Service::with(['category', 'type', 'owner']);
@@ -58,6 +58,25 @@ class ServiceController extends Controller
     
         return response()->json($services);
     }
+
+    public function getByOwner($ownerId)
+{
+    $services = Service::with(['category', 'type', 'owner'])
+        ->where('owner_id', $ownerId)
+        ->get();
+
+    $services->map(function ($service) {
+        if (is_array($service->images)) {
+            $service->images = array_map(fn($img) => asset('storage/' . $img), $service->images);
+        } elseif (is_string($service->images)) {
+            $service->images = [asset('storage/' . $service->images)];
+        }
+        return $service;
+    });
+
+    return response()->json($services);
+}
+
     
 
 
