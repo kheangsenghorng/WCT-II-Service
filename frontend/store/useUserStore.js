@@ -5,6 +5,7 @@ import { request } from "@/util/request";
 export const useUserStore = create((set) => ({
   user: null,
   users: [],
+  staff: null,
   error: null,
   count: 0,
   loading: false,
@@ -58,10 +59,11 @@ export const useUserStore = create((set) => ({
       set({ error: message, loading: false });
     }
   },
-  updateUser: async (ownerId, userId, formData) => {
+  updateUserOwner: async (ownerId, userId, formData) => {
     set({ loading: true, error: null });
-    formData.append("_method", "PUT");
+
     try {
+      formData.append("_method", "PUT");
       // Laravel expects PUT, but when sending FormData, use POST with _method=PUT spoofing
       const data = await request(
         `/owner/${ownerId}/user/${userId}`,
@@ -126,6 +128,22 @@ export const useUserStore = create((set) => ({
       set({ loading: false });
     }
   },
+  // Fetch a specific staff by owner and user ID
+  fetchSingleStaff: async (ownerId, userId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await request(`/owner/${ownerId}/users/${userId}`, "GET");
+      set({ staff: res.user, loading: false }); // ✅ make sure it's `res.data.user`
+    } catch (error) {
+      set({
+        error:
+          error?.response?.data?.message || "Failed to fetch staff member.",
+        loading: false,
+      });
+    }
+  },
+
+  clearStaff: () => set({ staff: [], singleStaff: null, error: null }),
 
   clearUsers: () => set({ users: [] }),
 }));

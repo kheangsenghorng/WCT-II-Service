@@ -71,32 +71,35 @@ export const useServicesStore = create((set) => ({
     }
   },
 
-  // updateService: async (ownerId, serviceId, data) => {
-  //   try {
-  //     const response = await request(
-  //       `/owner/${ownerId}/services/${serviceId}`,
-  //       "PUT",
-  //       data
-  //     );
-  //     set((state) => ({
-  //       services: state.services.map((s) =>
-  //         s.id === serviceId ? response.data : s
-  //       ),
-  //     }));
-  //     return response.data;
-  //   } catch (err) {
-  //     throw err.response?.data || err;
-  //   }
-  // },
+  updateService: async ({ ownerId, serviceId, formData }) => {
+    set({ loading: true, error: null });
 
-  // deleteService: async (ownerId, serviceId) => {
-  //   try {
-  //     await request(`/owner/${ownerId}/services/${serviceId}`, "DELETE");
-  //     set((state) => ({
-  //       services: state.services.filter((s) => s.id !== serviceId),
-  //     }));
-  //   } catch (err) {
-  //     throw err.response?.data || err;
-  //   }
-  // },
+    try {
+      formData.append("_method", "PUT"); // Laravel expects this for method spoofing
+      const updated = await request(
+        `/owner/${ownerId}/services/${serviceId}`,
+        "POST",
+        formData
+      );
+      set({ service: updated, loading: false });
+      return updated;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Update failed",
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  deleteService: async (ownerId, serviceId) => {
+    try {
+      await request(`/owner/${ownerId}/services/${serviceId}`, "DELETE");
+      set((state) => ({
+        services: state.services.filter((s) => s.id !== serviceId),
+      }));
+    } catch (err) {
+      throw err.response?.data || err;
+    }
+  },
 }));

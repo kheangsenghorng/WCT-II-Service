@@ -6,48 +6,51 @@ import { motion } from "framer-motion";
 import { useUserStore } from "@/store/useUserStore";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 
-const EditUser = () => {
-  const { id: userId } = useParams();
+const EditUser = ({ userId }) => {
+  const { id: ownerId } = useParams(); // owner ID from the route
   const router = useRouter();
+
   const {
-    getUserById,
-    updateUser,
+    staff,
+    fetchSingleStaff,
+    updateUserOwner,
+    fetchUsersByOwner,
     loading,
     error,
   } = useUserStore();
 
-  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     phone: "",
+    email: "",
+    role: "",
   });
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Fetch user on mount
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(`/api/users/${userId}`);
-        if (!response.ok) throw new Error("User not found");
-        const userData = await response.json();
-        setUser(userData);
-        setFormData({
-          first_name: userData.first_name || "",
-          last_name: userData.last_name || "",
-          phone: userData.phone || "",
-          email: userData.email || "",
-          role: userData.role || "",
-        });
-        if (userData.image) setImagePreview(userData.image);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    if (userId) fetchUser();
-  }, [userId]);
-  
+    if (ownerId && userId) {
+      fetchSingleStaff(ownerId, userId);
+      fetchUsersByOwner(ownerId)
+    }
+  }, [ownerId, userId, fetchSingleStaff]);
+
+  // Populate formData when user is fetched
+  useEffect(() => {
+    if (staff) {
+      setFormData({
+        first_name: staff.first_name || "",
+        last_name: staff.last_name || "",
+        phone: staff.phone || "",
+        email: staff.email || "",
+        role: staff.role || "",
+      });
+      setImagePreview(staff.image_url || null);
+    }
+  }, [staff]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -64,16 +67,19 @@ const EditUser = () => {
 
   const handleSubmit = async () => {
     const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) =>
-      data.append(key, value)
-    );
-    if (selectedImage) data.append("image", selectedImage);
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+    if (selectedImage) {
+      data.append("image", selectedImage);
+    }
 
     try {
-      await updateUser(userId, data);
+      await updateUserOwner(ownerId, userId, data); // ✅ use passed-in prop
       setSuccessMessage("User updated successfully.");
+      await fetchUsersByOwner(ownerId);
       setTimeout(() => {
-        router.push("/dashboard/users"); // Or wherever your user list lives
+        router.push("/dashboard/users");
       }, 1500);
     } catch (err) {
       console.error("Update failed:", err);
@@ -106,7 +112,7 @@ const EditUser = () => {
         </motion.div>
       )}
 
-      {!loading && user && (
+      {!loading && staff && (
         <form onSubmit={(e) => e.preventDefault()}>
           <div className="grid grid-cols-2 gap-4">
             <div>

@@ -95,6 +95,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('{ownerId}/user/{userId}', [UserController::class, 'deleteUserUnderOwner']);
 
        // Owner-specific service management
+       Route::get('/{ownerId}/users/{userId}', [UserController::class, 'getUserUnderOwner']);
        
     });
       

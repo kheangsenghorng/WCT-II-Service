@@ -8,7 +8,7 @@ import { useUserStore } from "@/store/useUserStore";
 
 const Navbar = () => {
   const { id } = useParams();
-  console.log(id);
+
 
   const { fetchUserById, user, error, loading } = useUserStore();
   const [isClient, setIsClient] = useState(false);

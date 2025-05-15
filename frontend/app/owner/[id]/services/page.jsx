@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, ImageIcon, CheckCircle, AlertTriangle, Loader2, Edit, Trash2  } from "lucide-react";
+import {
+  Plus,
+  ImageIcon,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import { useServicesStore } from "@/store/useServicesStore";
 import { useCategoryStore } from "@/store/useCateroyStore";
 import { useTypeStore } from "@/store/useTypeStore";
@@ -91,7 +99,7 @@ export default function ServicesPage() {
 
   const handleDeleteService = async () => {
     try {
-      await deleteService(selectedService.id);
+      await deleteService(ownerId, selectedService.id);
       setSuccessMessage("Service deleted successfully!");
       setErrorMessage(null);
       setShowDeleteModal(false);
@@ -143,98 +151,110 @@ export default function ServicesPage() {
 
           {/* Services Table */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border dark:border-gray-700">
-  {servicesLoading ? (
-    <div className="p-6 text-center text-gray-500">
-      <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-    </div>
-  ) : (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
-          <tr>
-            {["Name", "Description", "Price", "Category", "Type", "Image", "Actions"].map((header) => (
-              <th
-                key={header}
-                className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase"
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-          {services.map((service, index) => {
-            const category = categories.find(cat => cat.id === service.service_categories_id);
-            const type = types.find(t => t.id === service.type_id);
+            {servicesLoading ? (
+              <div className="p-6 text-center text-gray-500">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                      {[
+                        "Name",
+                        "Description",
+                        "Price",
+                        "Category",
+                        "Type",
+                        "Image",
+                        "Actions",
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {services.map((service, index) => {
+                      const category = categories.find(
+                        (cat) => cat.id === service.service_categories_id
+                      );
+                      const type = types.find((t) => t.id === service.type_id);
 
-            return (
-              <tr
-                key={service.id}
-                className={`${
-                  index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
-                } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                  {service.name}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                  <div className="truncate" title={service.description}>
-                    {service.description}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                  ${service.base_price}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                  {category?.name || "Unknown"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                  {type?.name || "Unknown"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                  {service.images?.[0] ? (
-                    <img
-                      src={service.images[0]}
-                      alt={service.name}
-                      className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
-                      <ImageIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setSelectedService(service);
-                        setShowEditModal(true);
-                      }}
-                      className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
-                      >
-                        <Edit className="w-8" />
-                        </button>
-                    <button
-                      onClick={() => {
-                        setSelectedService(service);
-                        setShowDeleteModal(true);
-                      }}
-                      className="text-red-500 font-bold py-2 rounded inline-flex items-center"
-                      >
-                        <Trash2 className="w-8" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  )}
-</div>
-
+                      return (
+                        <tr
+                          key={service.id}
+                          className={`${
+                            index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
+                          } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            {service.name}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                            <div
+                              className="truncate"
+                              title={service.description}
+                            >
+                              {service.description}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                            ${service.base_price}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                            {category?.name || "Unknown"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                            {type?.name || "Unknown"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                            {service.images?.[0] ? (
+                              <img
+                                src={service.images[0]}
+                                alt={service.name}
+                                className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
+                                <ImageIcon className="h-5 w-5 text-gray-400" />
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => {
+                                  setSelectedService(service);
+                                  setShowEditModal(true);
+                                }}
+                                className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
+                              >
+                                <Edit className="w-8" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedService(service);
+                                  setShowDeleteModal(true);
+                                }}
+                                className="text-red-500 font-bold py-2 rounded inline-flex items-center"
+                              >
+                                <Trash2 className="w-8" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Modals */}
@@ -263,7 +283,7 @@ export default function ServicesPage() {
           show={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteService}
-          itemName={selectedService?.name || "this service"}
+          itemName={selectedService?.id || "this service"}
           isDeleting={servicesLoading}
         />
       </main>
