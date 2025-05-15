@@ -207,19 +207,19 @@ class UserController extends Controller
         }
     
         // If a new image is provided, handle the image upload
-        if ($request->hasFile('image')) {
-            // Delete the old image if it exists
-            if ($user->image) {
-                Storage::disk('public')->delete($user->image);
+            if ($request->hasFile('image')) {
+                // Delete the old image if it exists
+                if ($user->image) {
+                    Storage::disk('public')->delete($user->image);
+                }
+        
+                // Store the new image
+                $data['image'] = $request->file('image')->store('users', 'public');
             }
-    
-            // Store the new image
-            $data['image'] = $request->file('image')->store('users', 'public');
-        }
-    
-        // Find the user to update and apply the changes
-        $userToUpdate = User::findOrFail($id);
-        $userToUpdate->update($data);
+        
+            // Find the user to update and apply the changes
+            $userToUpdate = User::findOrFail($id);
+            $userToUpdate->update($data);
     
         return response()->json($userToUpdate);
     }

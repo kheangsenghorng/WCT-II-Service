@@ -1,49 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import { request } from "@/util/request"; // Import the utility function
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-const AddCategory = () => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [fies, setFile] = useState(null);
-  const [error, setError] = useState("");
+export default function BookingTestPage() {
+  const bookingId = 18; // Change as needed
+  const [status, setStatus] = useState("pending");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    if (fies) formData.append("image", fies);
-
+  // Update Booking Status
+  const updateBooking = async () => {
     try {
-      const response = await request("/admin/categories", "POST", formData);
-      console.log("Category created:", response);
+      setLoading(true);
+      const response = await axios.put(
+        `http://localhost:8000/api/bookingtest/${bookingId}`,
+        { status }
+      );
+      console.log("Booking updated:", response.data);
+      alert("Booking updated and notifications sent.");
     } catch (error) {
-      setError(error.response?.data?.message || "Error creating category");
-      console.error("Error:", error);
+      console.error(
+        "Error updating booking:",
+        error.response?.data || error.message
+      );
+      alert(
+        "Update failed: " + (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Category Name"
-      />
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description"
-      />
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-      {error && <p>{error}</p>}
-      <button type="submit">Create Category</button>
-    </form>
-  );
-};
+  // Poll booking status every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      axios
+        .get(`http://localhost:8000/api/bookings/${bookingId}`)
+        .then((res) => {
+          setStatus(res.data.status);
+        })
+        .catch((err) => {
+          console.error("Error fetching booking status:", err.message);
+        });
+    }, 10000); // Poll every 10 seconds
 
-export default AddCategory;
+    return () => clearInterval(interval); // Cleanup
+  }, [bookingId]);
+
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-bold mb-4">Update Booking Status</h1>
+
+      <div className="mb-4">
+        <label className="block mb-1 font-medium">Current Status:</label>
+        <span className="inline-block px-3 py-1 bg-gray-200 rounded">
+          {status}
+        </span>
+      </div>
+
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        className="border p-2 mb-4 block"
+      >
+        <option value="pending">Pending</option>
+        <option value="paid">Paid</option>
+        <option value="cancel">Cancel</option>
+      </select>
+
+      <button
+        onClick={updateBooking}
+        disabled={loading}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        {loading ? "Updating..." : "Update Booking"}
+      </button>
+    </div>
+  );
+}

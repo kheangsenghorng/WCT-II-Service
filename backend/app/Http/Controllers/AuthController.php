@@ -113,5 +113,43 @@ class AuthController extends Controller
             'available' => !$exists, // If phone doesn't exist, it's available
         ]);
     }
+        public function logout(Request $request)
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+
+            return response()->json([
+                'message' => 'User successfully logged out.'
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'error' => 'Failed to logout, please try again.'
+            ], 500);
+        }
+    }
+
+    public function refresh()
+    {
+        try {
+            $newToken = JWTAuth::parseToken()->refresh();
+
+            return response()->json([
+                'token' => $newToken,
+                'message' => 'Token refreshed successfully.'
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'error' => 'Token refresh failed.',
+            ], 401);
+        }
+    }
+
+    public function me()
+{
+    return response()->json([
+        'user' => auth()->user()
+    ]);
+}
+
 
 }
