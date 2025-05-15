@@ -1,29 +1,22 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-       
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->renameColumn('owners_id', 'owner_id');
-        });
+        if (Schema::hasColumn('notifications', 'owners_id') && !Schema::hasColumn('notifications', 'owner_id')) {
+            DB::statement("ALTER TABLE notifications CHANGE owners_id owner_id BIGINT UNSIGNED NULL");
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->renameColumn('owner_id', 'owners_id');
-        });
+        if (Schema::hasColumn('notifications', 'owner_id') && !Schema::hasColumn('notifications', 'owners_id')) {
+            DB::statement("ALTER TABLE notifications CHANGE owner_id owners_id BIGINT UNSIGNED NULL");
+        }
     }
 };
