@@ -119,6 +119,7 @@ Route::middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->prefix('owner')->group(function () {
     Route::prefix('{id}/services')->group(function () {
              // List services for owner
+             Route::get('/', [ServiceController::class, 'index']); // <== this must exist
         Route::post('/', [ServiceController::class, 'store']);        // Create service for owner
         Route::get('/{serviceId}', [ServiceController::class, 'show']);   // Show specific service
         Route::put('/{serviceId}', [ServiceController::class, 'update']); // Update service

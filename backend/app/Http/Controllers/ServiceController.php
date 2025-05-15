@@ -26,10 +26,11 @@ class ServiceController extends Controller
     //     // Execute the query and return the results as JSON
     //     return response()->json($query->get());
     // }
-    public function index(Request $request)
+    public function index(Request $request, $id)
     {
         // Start by creating a query for all services with eager loading
-        $query = Service::with(['category', 'type', 'owner']);
+        $query = Service::with(['category', 'type', 'owner'])
+                    ->where('owner_id', $id); // 🔥 Add this line
     
         // If 'category' parameter is provided, filter by service_categories_id
         if ($request->has('category')) {

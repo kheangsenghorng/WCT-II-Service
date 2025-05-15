@@ -25,6 +25,10 @@ const Users = () => {
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [cancelDeleteUser, setCancelDeleteUser] = useState(false);
+
+
+
 
   // Add user fields
   const [newFirstName, setNewFirstName] = useState("");
@@ -127,6 +131,14 @@ const Users = () => {
     setShowAddUserModal(false);
   };
 
+
+  const handleCancelDeleteUser = () => {
+    setShowConfirmDelete(false);
+    setUserToDelete(null);
+  };
+  
+  
+
   return (
     <motion.div
       className="container"
@@ -135,7 +147,7 @@ const Users = () => {
       animate="visible"
     >
       <h1 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">
-        Users
+        Staff
       </h1>
 
       <button
@@ -143,7 +155,7 @@ const Users = () => {
         className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mb-4"
       >
         <UserPlus className="h-5 w-5 mr-2" />
-        Add User
+        Add Staff
       </button>
 
       {successMessage && (
@@ -182,6 +194,7 @@ const Users = () => {
                 <th className="py-3 px-6 text-left text-nowrap">First Name</th>
                 <th className="py-3 px-6 text-left text-nowrap">Last Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
+                <th className="py-3 px-6 text-left">Phone</th>
                 <th className="py-3 px-6 text-left">Role</th>
                 <th className="py-3 px-6 text-left text-nowrap">Created At</th>
                 <th className="py-3 px-6 text-left">Actions</th>
@@ -207,6 +220,7 @@ const Users = () => {
                     <td className="py-3 px-6">{user.first_name}</td>
                     <td className="py-3 px-6">{user.last_name}</td>
                     <td className="py-3 px-6">{user.email}</td>
+                    <td className="py-3 px-6">{user.phone}</td>
                     <td className="py-3 px-6 capitalize">{user.role}</td>
                     <td className="py-3 px-6">
                       {new Date(user.created_at).toLocaleDateString()}
@@ -249,10 +263,11 @@ const Users = () => {
         >
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg mx-auto w-full">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
-              Add User
+              Add Staff
             </h2>
             <form>
-              <div className="mb-4">
+            <div className="mb-4 flex space-x-4">
+              <div className="mb-4 ">
                 <label
                   htmlFor="first_name"
                   className="block text-sm font-semibold text-gray-800 dark:text-white"
@@ -282,6 +297,7 @@ const Users = () => {
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+              </div>
               <div className="mb-4">
                 <label
                   htmlFor="email"
@@ -297,6 +313,7 @@ const Users = () => {
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+
               <div className="mb-4">
                 <label
                   htmlFor="phone"
@@ -312,6 +329,7 @@ const Users = () => {
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+              <div className="mb-4 flex space-x-4">
               <div className="mb-4">
                 <label
                   htmlFor="password"
@@ -341,6 +359,7 @@ const Users = () => {
                   onChange={(e) => setNewConfirmPassword(e.target.value)}
                   className="w-full px-4 py-2 text-gray-800 dark:text-white dark:bg-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+              </div>
               </div>
 
               {/* Image Upload */}
@@ -379,10 +398,43 @@ const Users = () => {
                   onClick={handleAddUser}
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
-                  Add User
+                  Add 
                 </button>
               </div>
             </form>
+          </div>
+        </motion.div>
+      )}
+
+
+       {/* Delete Confirmation Modal */}
+       {showConfirmDelete && (
+        <motion.div
+          variants={modalVariants}
+          initial="hidden"
+          animate="visible"
+          className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg shadow-md p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold">Confirm Deletion</h3>
+            <p className="mt-4">
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleCancelDeleteUser}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                className="bg-red-500 text-white px-4 py-2 rounded-md"
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

@@ -18,7 +18,6 @@ import { useUserStore } from "@/store/useUserStore";
 const ProfilePage = () => {
   const { id } = useParams();
   const router = useRouter();
-
   const { user, fetchUserById, loading, error } = useUserStore();
   const [showImageModal, setShowImageModal] = useState(false);
 
@@ -28,7 +27,6 @@ const ProfilePage = () => {
 
   const handleOpenImageModal = () => setShowImageModal(true);
   const handleCloseImageModal = () => setShowImageModal(false);
-
   const stopPropagation = (e) => e.stopPropagation();
 
   const containerVariants = {
@@ -52,7 +50,6 @@ const ProfilePage = () => {
   if (error) {
     return (
       <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md" />
         <p className="mt-4 text-red-600 font-medium text-xl">Error: {error}</p>
       </div>
     );
@@ -61,20 +58,20 @@ const ProfilePage = () => {
   if (!user) return <div className="text-center py-10">User not found.</div>;
 
   return (
-    <div className="flex justify-center px-4 md:px-0 py-10 ">
+    <div className="flex justify-center px-4 md:px-0 py-10">
       <motion.div
-        className="w-full max-w-4xl dark:bg-gray-800 p-8 md:p-12 flex flex-col md:flex-row gap-10"
+        className="w-full max-w-4xl bg-white dark:bg-gray-800 p-8 md:p-12 flex flex-col-reverse md:flex-row items-center md:items-start gap-10 rounded-xl shadow-md"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Avatar Section */}
         <div
-          className="relative w-46 h-46 md:w-48 md:h-48 rounded-full overflow-hidden group shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-105 cursor-pointer"
+          className="relative w-44 h-44 md:w-56 md:h-56 rounded-full overflow-hidden group ring-4 ring-white dark:ring-gray-700 shadow-xl hover:scale-105 transition duration-300 cursor-pointer"
           onClick={handleOpenImageModal}
         >
           <Image
-            src={user.image || "/default-user.svg"}
+            src={user?.image || "/default-user.svg"}
             alt={`${user.first_name} ${user.last_name}'s avatar`}
             fill
             style={{ objectFit: "cover" }}
@@ -86,40 +83,41 @@ const ProfilePage = () => {
         </div>
 
         {/* User Info */}
-        <div className="flex-1 md:ml-6 flex flex-col ">
-          <div className="flex items-start justify-between mb-6 flex-col md:flex-row md:items-center">
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-white tracking-tight mb-2 md:mb-0">
+        <div className="flex-1 flex flex-col w-full">
+          <div className="flex justify-between items-start flex-col md:flex-row md:items-center mb-6">
+            <h1 className="text-4xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {user.first_name} {user.last_name}
             </h1>
-
             <button
               onClick={() => router.push(`/profile/${id}/settings`)}
-              className="inline-flex items-center gap-2 text-sm font-medium dark:bg-gray-700 text-gray-800 py-2 px-4 rounded-xl transition duration-200"
+              className="mt-4 md:mt-0 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-xl shadow-md transition duration-300"
               aria-label="Edit Profile"
             >
-              <EditIcon className="w-8 h-8" />
+              <EditIcon className="w-5 h-5" />
+              Edit Profile
             </button>
           </div>
 
-          {/* Contact Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-gray-700 dark:text-gray-300 text-sm">
-            <div className="flex items-center gap-2">
-              <Mail className="w-8 h-8 text-blue-500" />
-              <span className="text-xl">{user.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-8 h-8 text-blue-500" />
-              <span className="text-xl">{user.location || "N/A"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="w-8 h-8 text-blue-500" />
-              <span className="text-xl">{user.phone || "N/A"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-8 h-8 text-blue-500" />
-              <span className="text-xl">
-                {user.hotelsBooked ?? 0} Hotels Booked
-              </span>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 shadow-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-800 dark:text-gray-200">
+              <div className="flex items-center gap-3">
+                <Mail className="w-6 h-6 text-blue-500" />
+                <span className="text-lg font-medium break-words">{user.email}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-6 h-6 text-blue-500" />
+                <span className="text-lg font-medium">{user.location || "N/A"}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-6 h-6 text-blue-500" />
+                <span className="text-lg font-medium">{user.phone || "N/A"}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Calendar className="w-6 h-6 text-blue-500" />
+                <span className="text-lg font-medium">
+                  {user.hotelsBooked ?? 0} Hotels Booked
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -128,31 +126,38 @@ const ProfilePage = () => {
       {/* Image Modal */}
       {showImageModal && (
         <motion.div
-          className="fixed inset-0 z-50 flex justify-center items-center backdrop-blur-sm bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleCloseImageModal}
         >
-          <div
-            className="relative w-full max-w-2xl max-h-[80vh] p-4"
-            onClick={stopPropagation}
+          <motion.div
+            className="relative w-full max-w-md mx-auto p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl"
+            initial={{ scale: 0.95 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.95 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Image
-              src={user.avatarUrl || "/default-user.svg"}
-              alt="Full Size Avatar"
-              fill
-              style={{ objectFit: "contain" }}
-              className="rounded-lg"
-            />
+            <div className="relative w-80 h-80 mx-auto rounded-full overflow-hidden shadow-lg">
+              <Image
+                src={user?.image || "/default-user.svg"}
+                alt="Full Size Avatar"
+                fill
+                className="object-cover rounded-full"
+                priority
+              />
+            </div>
+
+            {/* Close Button */}
             <button
-              className="absolute top-4 right-4 text-white bg-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-800"
+              className="absolute top-4 right-4 text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center transition"
               onClick={handleCloseImageModal}
               aria-label="Close modal"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </div>

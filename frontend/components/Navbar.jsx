@@ -28,9 +28,9 @@ const Navbar = ({ id }) => {
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Logo" width={40} height={40} />
+          <Image src="/logo.png" alt="Logo" width={35} height={35} />
           <div>
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-xl font-bold text-gray-800">
               Services<span className="text-green-600 px-2">Me</span>
             </p>
             <p className="text-xs text-gray-500">Services Provider</p>
@@ -38,7 +38,7 @@ const Navbar = ({ id }) => {
         </Link>
 
         {/* Navigation Links */}
-        <div className="hidden md:flex space-x-14 text-xl">
+        <div className="hidden md:flex space-x-12 text-xl font-medium">
           <Link href={`/user/${id}/home`} className="text-gray-600 hover:text-green-500">Home</Link>
           <Link href={`/about-us`} className="text-gray-600 hover:text-green-500">About us</Link>
           <Link href="/services" className="text-gray-600 hover:text-green-500">Service</Link>
@@ -55,7 +55,7 @@ const Navbar = ({ id }) => {
           ) : user ? (
             <Link
               href={`/profile/${user.id}/myprofile`}
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer "
             >
               <Avatar>
                 <AvatarImage

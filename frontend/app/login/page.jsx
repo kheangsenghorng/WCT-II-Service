@@ -68,7 +68,7 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl relative">
+     <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-4xl relative border border-gray-100">
         {/* Loading Overlay */}
         {loading && (
           <div className="absolute inset-0 bg-opacity-80 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
@@ -93,7 +93,7 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <div className="w-full md:w-1/2 p-8">
+          <div className="w-full md:w-1/2 p-10 md:p-12 lg:p-16 bg-white">
             <div className="max-w-md mx-auto">
               <h1 className="text-2xl font-semibold text-center text-gray-800 mb-2">
                 Login
@@ -121,7 +121,7 @@ export default function LoginForm() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
 
@@ -138,7 +138,7 @@ export default function LoginForm() {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     />
                     <button
                       type="button"
@@ -172,7 +172,7 @@ export default function LoginForm() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition duration-200 disabled:opacity-50 flex items-center justify-center"
+                  className="w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 focus:ring-2 focus:ring-offset-2 focus:ring-green-400 text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center"
                 >
                   {loading ? (
                     <>
@@ -193,16 +193,16 @@ export default function LoginForm() {
                   </Link>
                 </div>
 
-                <div className="relative flex items-center justify-center">
-                  <div className="border-t border-gray-300 w-full"></div>
-                  <div className="text-gray-500 text-sm bg-white px-4 absolute">
-                    Or
-                  </div>
-                </div>
+                <div className="flex items-center gap-4 my-6">
+  <hr className="flex-grow border-gray-300" />
+  <span className="text-sm text-gray-400">OR</span>
+  <hr className="flex-grow border-gray-300" />
+</div>
+
 
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md transition duration-200"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-50 hover:bg-blue-100 text-blue-800 font-medium rounded-lg border border-blue-200 transition"
                 >
                   <Facebook size={20} className="text-blue-600" />
                   Continue with Facebook
@@ -210,7 +210,7 @@ export default function LoginForm() {
 
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-gray-800 font-medium rounded-md transition duration-200"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-50 hover:bg-blue-100 text-blue-800 font-medium rounded-lg border border-blue-200 transition"
                 >
                   <GoogleIcon />
                   Continue with Google
