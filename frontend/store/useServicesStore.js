@@ -20,6 +20,20 @@ export const useServicesStore = create((set) => ({
         loading: false,
       });
     }
+  },  
+
+
+  fetchAllServices: async () => {
+    set({ loading: true, error: null });
+    try {
+      const data = await request(`/services`, "GET"); // <-- Make sure this API returns all services
+      set({ services: data, loading: false });
+    } catch (error) {
+      set({
+        error: error.message || "Failed to load services",
+        loading: false,
+      });
+    }
   },
 
   // fetchCategories: async () => {
@@ -51,6 +65,8 @@ export const useServicesStore = create((set) => ({
   //     set({ loadingServiceTypes: false });
   //   }
   // },
+
+
   createService: async (ownerId, formData) => {
     set({ creatingService: true, createError: null });
 

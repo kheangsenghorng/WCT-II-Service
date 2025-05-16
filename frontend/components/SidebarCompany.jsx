@@ -4,7 +4,7 @@ import {
   Home,
   Users,
   FolderKanban,
-  Building2,
+  Calendar ,
   LogOut,
 } from "lucide-react";
 import { useState, useEffect } from "react"; //Import useEffect
@@ -61,7 +61,7 @@ const Sidebar = () => {
             { href: `/owner/${id}/dashboard`, icon: Home, label: "Owner Dashboard" },
             { href: `/owner/${id}/users`, icon: Users, label: "Staff" },
             { href: `/owner/${id}/services`, icon: FolderKanban, label: "Service" },
-            { href: `/owner/${id}/company`, icon: Building2, label: "Company" },
+            { href: `/owner/${id}/company`, icon: Calendar , label: "Booking" },
           ].map(({ href, icon: Icon, label }, i) => {
             const isActive = pathname === href; // Check if the current path matches the link's href
 

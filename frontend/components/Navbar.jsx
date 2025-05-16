@@ -38,7 +38,7 @@ const Navbar = ({ id }) => {
         </Link>
 
         {/* Navigation Links */}
-        <div className="hidden md:flex space-x-12 text-xl font-medium">
+        <div className="hidden md:flex space-x-14 text-xl">
           <Link href={`/user/${id}/home`} className="text-gray-600 hover:text-green-500">Home</Link>
           <Link href={`/about-us`} className="text-gray-600 hover:text-green-500">About us</Link>
           <Link href="/services" className="text-gray-600 hover:text-green-500">Service</Link>
