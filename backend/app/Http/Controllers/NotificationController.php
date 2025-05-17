@@ -23,18 +23,31 @@ class NotificationController extends Controller
     }
 
     public function getByOwnerId($ownerId)
-{
-    if (auth()->id() !== (int) $ownerId && !auth()->user()->is_admin) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+    {
+        if (auth()->id() !== (int) $ownerId && !auth()->user()->is_admin) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    
+        $notifications = Notification::with('user')
+            ->where('owner_id', $ownerId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($notification) {
+                if ($notification->user && $notification->user->image) {
+                    $image = $notification->user->image;
+                    // Only apply asset() if not already a full URL
+                    if (!preg_match('/^https?:\/\//', $image)) {
+                        $notification->user->image = asset('storage/' . $image);
+                    }
+                }
+                return $notification;
+            });
+    
+        return response()->json($notifications);
     }
-
-    $notifications = Notification::where('owner_id', $ownerId)
-                                 ->orderBy('created_at', 'desc')
-                                 ->get();
-
-    return response()->json($notifications);
-}
-
+    
+    
+    
 
     // (Optional) Mark a notification as read
     public function markAsRead($id)

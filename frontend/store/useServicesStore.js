@@ -8,6 +8,8 @@ export const useServicesStore = create((set) => ({
   creatingService: false,
   createError: null,
   createdService: null,
+  service: null,
+  setService: (data) => set({ service: data }),
 
   fetchServicesByOwner: async (ownerId) => {
     set({ loading: true, error: null });
@@ -20,8 +22,7 @@ export const useServicesStore = create((set) => ({
         loading: false,
       });
     }
-  },  
-
+  },
 
   fetchAllServices: async () => {
     set({ loading: true, error: null });
@@ -65,7 +66,6 @@ export const useServicesStore = create((set) => ({
   //     set({ loadingServiceTypes: false });
   //   }
   // },
-
 
   createService: async (ownerId, formData) => {
     set({ creatingService: true, createError: null });
@@ -116,6 +116,31 @@ export const useServicesStore = create((set) => ({
       }));
     } catch (err) {
       throw err.response?.data || err;
+    }
+  },
+
+  deleteServiceImage: async (serviceId, imagePath) => {
+    try {
+      const response = await request(
+        `/owner/services/${serviceId}/image`,
+        "DELETE",
+        {
+          image_path: imagePath,
+        }
+      );
+
+      // Update state after successful deletion (optional)
+      set((state) => ({
+        service: {
+          ...state.service,
+          images: response.images, // update images array
+        },
+      }));
+
+      return response;
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      throw error;
     }
   },
 }));

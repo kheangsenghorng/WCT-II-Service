@@ -34,30 +34,42 @@ export const useAuthStore = create(
       },
 
       logout: async () => {
-        set({ loading: true, error: null });
-
         try {
-          await request("/auth/logout", "POST");
-
-          set({ user: null, token: null });
+          await request("/logout", "POST");
         } catch (err) {
-          console.error("Logout error:", err);
-          set({
-            error: err.response?.data?.message || "Logout failed.",
-          });
+          console.warn("Logout request failed:", err);
         } finally {
-          set({ loading: false });
+          set({ user: null, token: null });
         }
       },
 
-      getToken: () => {
-        return get().token;
+      getToken: () => get().token,
+
+      fetchUser: async () => {
+        try {
+          const res = await request("/me", "GET");
+          set({ user: res.user });
+        } catch (err) {
+          console.error("Failed to fetch user:", err);
+          get().logout();
+        }
+      },
+
+      refreshToken: async () => {
+        try {
+          const res = await request("/refresh", "POST");
+          set({ token: res.token });
+          return res.token;
+        } catch (err) {
+          console.error("Token refresh failed:", err);
+          get().logout();
+        }
       },
     }),
     {
       name: "auth-storage",
       storage: createJSONStorage(() => sessionStorage), // or localStorage
-      partialize: (state) => ({ user: state.user, token: state.token }),
+      partialize: (state) => ({ token: state.token, user: state.user }),
     }
   )
 );

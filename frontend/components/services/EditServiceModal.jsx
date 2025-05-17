@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  ImageIcon,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  Loader2,
-} from "lucide-react";
+import { ImageIcon, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { useServicesStore } from "@/store/useServicesStore";
 import { useParams } from "next/navigation";
 
@@ -21,20 +15,31 @@ export default function EditServiceModal({
   types,
   loadingCategories,
   loadingTypes,
+  onCategoryChange,
 }) {
   const [editedServiceName, setEditedServiceName] = useState("");
   const [editedServiceDescription, setEditedServiceDescription] = useState("");
   const [editedServiceCategoryId, setEditedServiceCategoryId] = useState("");
   const [editedServiceBasePrice, setEditedServiceBasePrice] = useState("");
   const [editedServiceType, setEditedServiceType] = useState("");
-  const [editedServiceImage, setEditedServiceImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+
+  // For multiple images:
+  const [editedServiceImages, setEditedServiceImages] = useState([]); // files selected
+  const [imagePreviews, setImagePreviews] = useState([]); // URLs for previews
+
   const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { updateService, loading, error, fetchServicesByOwner } =
-    useServicesStore();
+
+  const {
+    updateService,
+    loading,
+    error,
+    fetchServicesByOwner,
+    deleteServiceImage,
+  } = useServicesStore();
   const { id: ownerId } = useParams();
 
+  // Initialize form fields when service changes
   useEffect(() => {
     if (service) {
       setEditedServiceName(service.name || "");
@@ -42,7 +47,16 @@ export default function EditServiceModal({
       setEditedServiceCategoryId(service.service_categories_id || "");
       setEditedServiceBasePrice(service.base_price || "");
       setEditedServiceType(service.type_id || "");
-      setImagePreview(service.images?.[0] || null);
+
+      // For images, load existing URLs from service.images array:
+      if (service.images && Array.isArray(service.images)) {
+        setImagePreviews(service.images); // URLs from backend
+      } else {
+        setImagePreviews([]);
+      }
+
+      setEditedServiceImages([]); // reset chosen files
+      setErrorMessage(null);
     }
   }, [service]);
 
@@ -52,29 +66,78 @@ export default function EditServiceModal({
     }
   }, [ownerId, fetchServicesByOwner]);
 
+  // Cleanup preview URLs when component unmounts or previews change (for object URLs)
   useEffect(() => {
     return () => {
-      if (imagePreview && typeof imagePreview === "string") {
-        URL.revokeObjectURL(imagePreview);
-      }
+      imagePreviews.forEach((preview) => {
+        if (typeof preview !== "string") {
+          URL.revokeObjectURL(preview);
+        }
+      });
     };
-  }, [imagePreview]);
+  }, [imagePreviews]);
 
+  // Handle new file selection (multiple files)
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const isValidImage = file.type.startsWith("image/");
-      const isValidSize = file.size <= 5 * 1024 * 1024;
+    const files = Array.from(e.target.files);
 
-      if (isValidImage && isValidSize) {
-        setEditedServiceImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        setErrorMessage(null);
-      } else {
-        setErrorMessage("Please upload a valid image file (max 5MB).");
-        setImagePreview(null);
-      }
+    // Validate each file (image type & size <=5MB)
+    const validFiles = files.filter((file) => {
+      const isValidImage = file.type.startsWith("image/");
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      return isValidImage && isValidSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      setErrorMessage(
+        "Some files were invalid or larger than 5MB and were ignored."
+      );
+    } else {
+      setErrorMessage(null);
     }
+
+    // Create preview URLs for new valid files
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+
+    // Append new files and previews to existing state
+    setEditedServiceImages((prev) => [...prev, ...validFiles]);
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  // Remove image by index (either existing URL or newly added file)
+  const removeImageAtIndex = async (index) => {
+    const previewToRemove = imagePreviews[index];
+
+    if (
+      typeof previewToRemove === "string" &&
+      service?.images.includes(previewToRemove)
+    ) {
+      // It's an existing image from the backend
+      try {
+        await deleteServiceImage(service.id, previewToRemove);
+      } catch (error) {
+        console.error("Failed to delete image from server:", error);
+        setErrorMessage("Failed to delete image from server.");
+        return;
+      }
+    } else {
+      // It's a newly added image (local file)
+      const newImagesStartIndex =
+        imagePreviews.length - editedServiceImages.length;
+      const fileIndex = index - newImagesStartIndex;
+
+      if (fileIndex >= 0) {
+        setEditedServiceImages((prev) =>
+          prev.filter((_, i) => i !== fileIndex)
+        );
+      }
+
+      // Revoke object URL for memory cleanup
+      URL.revokeObjectURL(previewToRemove);
+    }
+
+    // Remove preview from list
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const resetForm = () => {
@@ -83,8 +146,8 @@ export default function EditServiceModal({
     setEditedServiceCategoryId("");
     setEditedServiceBasePrice("");
     setEditedServiceType("");
-    setEditedServiceImage(null);
-    setImagePreview(null);
+    setEditedServiceImages([]);
+    setImagePreviews([]);
     setErrorMessage(null);
   };
 
@@ -113,9 +176,11 @@ export default function EditServiceModal({
     formData.append("service_categories_id", editedServiceCategoryId);
     formData.append("base_price", editedServiceBasePrice);
     formData.append("type_id", editedServiceType);
-    if (editedServiceImage) {
-      formData.append("images", editedServiceImage);
-    }
+
+    // Append each file with key "images[]"
+    editedServiceImages.forEach((file) => {
+      formData.append("images[]", file);
+    });
 
     setIsSubmitting(true);
     try {
@@ -155,7 +220,7 @@ export default function EditServiceModal({
       exit="hidden"
     >
       <motion.div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
         variants={modalVariants}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -181,6 +246,7 @@ export default function EditServiceModal({
             </div>
           )}
 
+          {/* Service Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Service Name *
@@ -194,6 +260,7 @@ export default function EditServiceModal({
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description
@@ -202,146 +269,135 @@ export default function EditServiceModal({
               value={editedServiceDescription}
               onChange={(e) => setEditedServiceDescription(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-              rows={3}
               placeholder="Enter service description"
+              rows={3}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Category *
-              </label>
+          {/* Category */}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Category *
+            </label>
+            {loadingCategories ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="animate-spin" />
+                Loading categories...
+              </div>
+            ) : (
               <select
                 value={editedServiceCategoryId}
-                onChange={(e) => setEditedServiceCategoryId(e.target.value)}
+                onChange={(e) => {
+                  setEditedServiceCategoryId(e.target.value);
+                  if (onCategoryChange) onCategoryChange(e.target.value);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                disabled={loadingCategories}
               >
-                <option value="">Select a category</option>
+                <option value="">Select category</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
                 ))}
               </select>
-              {loadingCategories && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Loading categories...
-                </p>
-              )}
-            </div>
+            )}
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Service Type *
-              </label>
+          {/* Base Price */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Base Price (USD) *
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={editedServiceBasePrice}
+              onChange={(e) => setEditedServiceBasePrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Enter base price"
+            />
+          </div>
+
+          {/* Type */}
+          {/* Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Type *
+            </label>
+            {loadingTypes ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="animate-spin" />
+                Loading types...
+              </div>
+            ) : (
               <select
                 value={editedServiceType}
                 onChange={(e) => setEditedServiceType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                disabled={loadingTypes}
               >
-                <option value="">Select a type</option>
+                <option value="">Select type</option>
                 {types.map((type) => (
                   <option key={type.id} value={type.id}>
                     {type.name}
                   </option>
                 ))}
               </select>
-              {loadingTypes && (
-                <p className="mt-1 text-xs text-gray-500">Loading types...</p>
-              )}
-            </div>
+            )}
           </div>
-
+          {/* Images Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Base Price *
+              Upload Images
             </label>
-            <div className="relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={editedServiceBasePrice}
-                onChange={(e) => setEditedServiceBasePrice(e.target.value)}
-                className="block w-full pl-7 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-sm text-gray-900 dark:text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+            />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Service Image
-            </label>
-            <div className="mt-1 flex items-center gap-4">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <ImageIcon className="w-8 h-8 mb-3 text-gray-400" />
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to upload</span> or
-                    drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    PNG, JPG (MAX. 5MB)
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
-              {imagePreview && (
-                <div className="relative">
+            {/* Preview images */}
+            <div className="mt-3 flex flex-wrap gap-3">
+              {imagePreviews.map((preview, index) => (
+                <div
+                  key={index}
+                  className="relative w-24 h-24 rounded-md overflow-hidden border border-gray-300 dark:border-gray-600"
+                >
                   <img
-                    src={
-                      typeof imagePreview === "string"
-                        ? imagePreview
-                        : URL.createObjectURL(imagePreview)
-                    }
-                    alt="Preview"
-                    className="h-32 w-32 object-cover rounded-lg"
+                    src={typeof preview === "string" ? preview : preview}
+                    alt={`Preview ${index + 1}`}
+                    className="object-cover w-full h-full"
                   />
                   <button
+                    onClick={() => removeImageAtIndex(index)}
                     type="button"
-                    onClick={() => {
-                      setEditedServiceImage(null);
-                      setImagePreview(null);
-                    }}
-                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 -mt-2 -mr-2"
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
+                    title="Remove image"
                   >
-                    <XCircle className="h-4 w-4" />
+                    <XCircle className="w-5 h-5" />
                   </button>
                 </div>
-              )}
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => {
-              onClose();
-              resetForm();
-            }}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
+          {/* Submit button */}
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            disabled={loading || isSubmitting}
+            className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Update Service
+            {isSubmitting ? (
+              <>
+                <Loader2 className="inline animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              "Update Service"
+            )}
           </button>
         </div>
       </motion.div>

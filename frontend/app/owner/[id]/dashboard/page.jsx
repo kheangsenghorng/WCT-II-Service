@@ -5,24 +5,33 @@ import {
   ArrowUp as ArrowUpIcon,
   ArrowDown as ArrowDownIcon,
   MoreVertical as MoreVerticalIcon,
-} from "lucide-react"; // Import lucide-react icons
+} from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
-import Calendar from "../../../../components/Calander"; // Import Calendar component
+import Calendar from "../../../../components/Calander";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
+
 const HomePage = () => {
   const { id: ownerId } = useParams();
-
   const { fetchUsersByOwner, loading, error, count } = useUserStore();
 
-  // Sample Data
+  const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
+
+  // Fetch users on mount or when ownerId changes
+  useEffect(() => {
+    if (ownerId) {
+      fetchUsersByOwner(ownerId);
+    }
+  }, [ownerId]);
+
+  // Stats data (derived from store)
   const [stats, setStats] = useState([
     {
       id: "user",
       label: "Total User",
-      value: count,
+      value: 0,
       change: 25,
       isPositive: true,
     },
@@ -49,15 +58,15 @@ const HomePage = () => {
     },
   ]);
 
-  const [chartOrder, setChartOrder] = useState(["marketing", "sales"]); // Initial chart order
-
+  // Update stats when count changes
   useEffect(() => {
-    if (ownerId) fetchUsersByOwner(ownerId);
-  }, [ownerId]);
+    setStats((prev) =>
+      prev.map((stat) =>
+        stat.id === "user" ? { ...stat, value: count || 0 } : stat
+      )
+    );
+  }, [count]);
 
-  console.log(count);
-
-  // Animation Variants for Stats Cards
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
@@ -66,21 +75,17 @@ const HomePage = () => {
 
   const handleDragEndStats = (result) => {
     if (!result.destination) return;
-
-    const items = Array.from(stats);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
+    const items = [...stats];
+    const [movedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, movedItem);
     setStats(items);
   };
 
   const handleDragEndCharts = (result) => {
     if (!result.destination) return;
-
-    const items = Array.from(chartOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
+    const items = [...chartOrder];
+    const [movedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, movedItem);
     setChartOrder(items);
   };
 
@@ -98,14 +103,14 @@ const HomePage = () => {
           </button>
         </header>
 
-        {/* Draggable Stats Cards */}
+        {/* Stats Cards */}
         <DragDropContext onDragEnd={handleDragEndStats}>
           <Droppable droppableId="stats" direction="horizontal" type="STAT">
             {(provided) => (
               <div
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-                {...provided.droppableProps}
                 ref={provided.innerRef}
+                {...provided.droppableProps}
               >
                 {stats.map((stat, index) => (
                   <Draggable key={stat.id} draggableId={stat.id} index={index}>
@@ -114,8 +119,8 @@ const HomePage = () => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 cursor-move transition-shadow duration-200"
-                        variants={itemVariants} // Apply animation variants
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 cursor-move"
+                        variants={itemVariants}
                         initial="hidden"
                         animate="visible"
                         whileHover="hover"
@@ -124,31 +129,27 @@ const HomePage = () => {
                           <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">
                             {stat.label}
                           </h2>
-                          <button className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200">
-                            <MoreVerticalIcon className="h-5 w-5" />
-                          </button>
+                          <MoreVerticalIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </div>
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <p className="text-3xl font-bold text-gray-800 dark:text-white">
-                              {stat.value}
-                            </p>
-                            <div className="flex items-center text-sm">
-                              {stat.isPositive ? (
-                                <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
-                              ) : (
-                                <ArrowDownIcon className="h-4 w-4 text-red-500 mr-1" />
-                              )}
-                              <span
-                                className={
-                                  stat.isPositive
-                                    ? "text-green-500"
-                                    : "text-red-500"
-                                }
-                              >
-                                {Math.abs(stat.change)}%
-                              </span>
-                            </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-3xl font-bold text-gray-800 dark:text-white">
+                            {stat.value}
+                          </p>
+                          <div className="flex items-center text-sm">
+                            {stat.isPositive ? (
+                              <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                            ) : (
+                              <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                            )}
+                            <span
+                              className={`${
+                                stat.isPositive
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              {Math.abs(stat.change)}%
+                            </span>
                           </div>
                         </div>
                       </motion.div>
@@ -161,14 +162,14 @@ const HomePage = () => {
           </Droppable>
         </DragDropContext>
 
-        {/* Marketing and Sales Reports */}
+        {/* Chart Components */}
         <DragDropContext onDragEnd={handleDragEndCharts}>
           <Droppable droppableId="charts" direction="horizontal" type="CHART">
             {(provided) => (
               <div
                 className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-                {...provided.droppableProps}
                 ref={provided.innerRef}
+                {...provided.droppableProps}
               >
                 {chartOrder.map((chart, index) => (
                   <Draggable key={chart} draggableId={chart} index={index}>
@@ -181,22 +182,14 @@ const HomePage = () => {
                       >
                         {chart === "marketing" && (
                           <>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex justify-between mb-4">
                               <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
                                 Marketing Report
                               </h2>
-                              <div className="flex items-center">
-                                <span className="mr-2 text-gray-500 dark:text-gray-400 text-sm">
-                                  Order
-                                </span>
-                                <span className="mr-4 text-gray-500 dark:text-gray-400 text-sm">
-                                  Sells
-                                </span>
-                                <select className="border rounded-md p-1 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700">
-                                  <option>This Month</option>
-                                  <option>Last Month</option>
-                                </select>
-                              </div>
+                              <select className="border rounded-md p-1 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700">
+                                <option>This Month</option>
+                                <option>Last Month</option>
+                              </select>
                             </div>
                             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-400 dark:text-gray-500">
                               Marketing Chart Placeholder
@@ -205,7 +198,7 @@ const HomePage = () => {
                         )}
                         {chart === "sales" && (
                           <>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex justify-between mb-4">
                               <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
                                 Sales Report
                               </h2>
@@ -218,26 +211,23 @@ const HomePage = () => {
                               Sales Doughnut Chart Placeholder
                             </div>
                             <div className="flex justify-around mt-4 text-sm text-gray-600 dark:text-gray-400">
-                              <span className="inline-flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-yellow-400 mr-1"></span>{" "}
-                                Online Shop
-                              </span>
-                              <span className="inline-flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-orange-500 mr-1"></span>{" "}
-                                Acquisition
-                              </span>
-                              <span className="inline-flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>{" "}
-                                Investing
-                              </span>
-                              <span className="inline-flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>{" "}
-                                Subscription
-                              </span>
-                              <span className="inline-flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>{" "}
-                                Purchase
-                              </span>
+                              {[
+                                ["bg-yellow-400", "Online Shop"],
+                                ["bg-orange-500", "Acquisition"],
+                                ["bg-red-500", "Investing"],
+                                ["bg-blue-500", "Subscription"],
+                                ["bg-purple-500", "Purchase"],
+                              ].map(([color, label]) => (
+                                <span
+                                  key={label}
+                                  className="inline-flex items-center"
+                                >
+                                  <span
+                                    className={`w-2 h-2 rounded-full mr-1 ${color}`}
+                                  ></span>
+                                  {label}
+                                </span>
+                              ))}
                             </div>
                           </>
                         )}
@@ -251,6 +241,7 @@ const HomePage = () => {
           </Droppable>
         </DragDropContext>
 
+        {/* Calendar Section */}
         <div className="py-10">
           <Calendar />
         </div>

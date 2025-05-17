@@ -10,6 +10,8 @@ import NotificationsPanel from "./NotificationsPanel";
 
 const Navbar = () => {
   const { id } = useParams();
+  console.log(id);
+  
   const { fetchUserById, user } = useUserStore();
   const [isClient, setIsClient] = useState(false);
 
@@ -17,7 +19,6 @@ const Navbar = () => {
   const toggleNotifications = () => setShowNotifications((prev) => !prev);
 
   const notificationCount = 3; // Replace with actual count from store or API
-
 
   useEffect(() => {
     setIsClient(true);
@@ -66,16 +67,16 @@ const Navbar = () => {
             <HelpCircle className="h-6 w-6" />
           </button>
           <button
-  onClick={toggleNotifications}
-  className="relative text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200 focus:outline-none cursor-pointer"
->
-  <Bell className="h-6 w-6" />
-  {notificationCount > 0 && (
-    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-      {notificationCount}
-    </span>
-  )}
-</button>
+            onClick={toggleNotifications}
+            className="relative text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200 focus:outline-none cursor-pointer"
+          >
+            <Bell className="h-6 w-6" />
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                {notificationCount}
+              </span>
+            )}
+          </button>
 
           {isClient && (
             <div className="flex items-center">
@@ -110,7 +111,7 @@ const Navbar = () => {
               exit={{ opacity: 0 }}
               onClick={toggleNotifications}
             />
-            <NotificationsPanel onClose={toggleNotifications} />
+            <NotificationsPanel id={id} onClose={toggleNotifications} />
           </>
         )}
       </AnimatePresence>

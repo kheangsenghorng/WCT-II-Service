@@ -17,6 +17,14 @@ class TypeController extends Controller
         return response()->json(Type::with('serviceCategory')->get());
     }
 
+
+    public function showcategoryId(Request $request)
+    {
+        $categoryId = $request->query('categoryId');
+        $types = Type::where('service_categories_id', $categoryId)->get();
+        return response()->json($types);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
