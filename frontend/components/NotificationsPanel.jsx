@@ -1,55 +1,79 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Search, CheckCircle2 } from "lucide-react";
 import clsx from "clsx";
+import { useParams } from "next/navigation";
+import { useNotificationStore } from "@/store/notificationStore";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
-const NotificationItem = ({ icon, title, time, isToday }) => (
-  <div className="flex items-center justify-between py-3 px-4 hover:bg-gray-100 transition-colors duration-200">
-    <div className="flex items-center">
-      <span className="mr-3">{icon}</span>
-      <div>
-        <div className="font-medium">{title}</div>
-        <div className="text-sm text-gray-500">
-          {isToday ? time : `${time} ago`}
-        </div>
+// NotificationItem with user image & details
+const NotificationItem = ({ notification }) => {
+  const { user, message, created_at, is_read } = notification;
+
+  return (
+    <div
+      className={clsx(
+        "flex items-start gap-3 rounded-lg p-4 mb-3 border transition-shadow shadow-sm",
+        is_read
+          ? "bg-white border-gray-200 hover:shadow-md"
+          : "bg-blue-50 border-blue-200 hover:shadow-lg"
+      )}
+    >
+      {/* User avatar */}
+      <img
+        src={user?.image || "/default-avatar.png"}
+        alt={`${user?.first_name} ${user?.last_name}`}
+        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+      />
+
+      {/* Message and user name */}
+      <div className="flex-1">
+        <p className={clsx("font-medium", !is_read && "text-blue-900")}>
+          {message}
+        </p>
+        <p className="text-sm text-gray-500">{dayjs(created_at).fromNow()}</p>
+        <p className="text-xs text-gray-400 mt-1">
+          From: {user?.first_name} {user?.last_name}
+        </p>
       </div>
     </div>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="lucide lucide-arrow-right"
-    >
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
-  </div>
-);
+  );
+};
 
+// Badge component for counts
 const Badge = ({ label, count, color }) => (
   <span
     className={clsx(
       "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-      `bg-${color}-100`,
-      `text-${color}-800`
+      `bg-${color}-100 text-${color}-800`
     )}
   >
     {label}
-    <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-current"></span>
+    <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-current" />
     {count}
   </span>
 );
 
 const NotificationsPanel = ({ onClose }) => {
+  const { id } = useParams();
+
+  const { notifications, fetchMyNotifications, loading, markAsRead } =
+    useNotificationStore();
+
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (id) fetchMyNotifications(id);
+  }, [id]);
+
+  // Filter notifications by search term
+  const filteredNotifications = notifications?.filter((n) =>
+    n?.message?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -62,34 +86,38 @@ const NotificationsPanel = ({ onClose }) => {
         onClick={onClose}
       />
 
-      {/* Panel */}
+      {/* Sliding Panel */}
       <motion.div
-        className="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 z-50 shadow-xl overflow-y-auto"
+        className="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 z-50 shadow-2xl overflow-y-auto"
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-semibold">Notifications</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+            className="text-gray-500 hover:text-gray-800"
+            aria-label="Close notifications panel"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Mark all as read */}
-        <div className="flex items-center justify-end px-4 pt-2">
-          <button className="flex items-center text-sm text-blue-600 hover:underline">
+        {/* <div className="flex items-center justify-end px-4 pt-2">
+          <button
+            className="flex items-center text-sm text-blue-600 hover:underline"
+            onClick={() => markAsRead(id)}
+          >
             Mark all as read
-            <CheckCircle2 className="ml-1 h-4 w-4 text-gray-500" />
+            <CheckCircle2 className="ml-1 h-4 w-4 text-blue-500" />
           </button>
-        </div>
+        </div> */}
 
-        {/* Search */}
+        {/* Search Input */}
         <div className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -104,51 +132,40 @@ const NotificationsPanel = ({ onClose }) => {
         </div>
 
         {/* Badges */}
-        <div className="flex items-center justify-start p-4 space-x-2">
-          <Badge label="All" count={5} color="orange" />
-          <Badge label="Urgent" count={1} color="red" />
-          <Badge label="Normal" count={2} color="gray" />
-          <Badge label="Resolved" count={2} color="green" />
-        </div>
-
-        {/* Today */}
-        <div className="p-4">
-          <h3 className="text-gray-500 text-sm mb-2">Today</h3>
-          <NotificationItem
-            icon={<span className="text-red-500">🔥</span>}
-            title="Scania R450 (NG001) engine overheating."
-            time="5mins"
-            isToday={true}
+        <div className="flex items-center px-4 pb-2 space-x-2">
+          <Badge
+            label="All"
+            count={notifications?.length || 0}
+            color="orange"
           />
-          <NotificationItem
-            icon={<span className="text-orange-500">🚧</span>}
-            title="Ngozi Uchenna is delayed at checkpoint."
-            time="09:45 AM"
-            isToday={true}
+          <Badge
+            label="Unread"
+            count={notifications?.filter((n) => n.is_read === 0).length}
+            color="blue"
           />
-          <NotificationItem
-            icon={<span className="text-orange-500">🛠️</span>}
-            title="Volvo FH16 scheduled for maintenance today."
-            time="09:30 AM"
-            isToday={true}
+          <Badge
+            label="Read"
+            count={notifications?.filter((n) => n.is_read === 1).length}
+            color="gray"
           />
         </div>
 
-        {/* Yesterday */}
+        {/* Notifications List */}
         <div className="p-4">
-          <h3 className="text-gray-500 text-sm mb-2">Yesterday</h3>
-          <NotificationItem
-            icon={<span className="text-green-500">✅</span>}
-            title="Kenworth T680 delivery completed (Route A)."
-            time="1 day"
-            isToday={false}
-          />
-          <NotificationItem
-            icon={<span className="text-green-500">✅</span>}
-            title="Volvo FH16 scheduled maintenance completed."
-            time="22 hrs"
-            isToday={false}
-          />
+          {loading ? (
+            <div className="text-center text-gray-500">Loading...</div>
+          ) : filteredNotifications?.length === 0 ? (
+            <div className="text-center text-gray-500">
+              No notifications found.
+            </div>
+          ) : (
+            filteredNotifications.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+              />
+            ))
+          )}
         </div>
 
         {/* Footer */}

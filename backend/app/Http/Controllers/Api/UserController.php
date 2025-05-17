@@ -19,7 +19,7 @@ class UserController extends Controller
     /**
      * Display all users (admin only).
      */
-    public function index()
+    public function index()     
     {
         $user = auth()->user();
     

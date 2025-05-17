@@ -156,6 +156,23 @@ export const useTypeStore = create((set) => ({
       set({ loading: false });
     }
   },
+  fetchTypesByCategory: async (categoryId) => {
+    set({ loading: true, error: null });
+
+    try {
+      const data = await request(
+        `/service-types?categoryId=${categoryId}`,
+        "GET"
+      );
+      set({ types: data, loading: false });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to fetch types",
+        loading: false,
+      });
+    }
+  },
+  // clearTypes: () => set({ types: [], error: null }),
 
   clearUserTypes: () => set({ userTypes: [], selectedUserType: null }),
 }));

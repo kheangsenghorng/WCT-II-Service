@@ -14,7 +14,6 @@ const OwnerLayout = ({ children }) => {
       {/* Top Navigation */}
       <Navbar id={id} />
 
-
       {/* Content with Sidebar and Main */}
       <div className="flex flex-1 px-4 md:px-10 py-5 space-x-6">
         {/* Sidebar */}
