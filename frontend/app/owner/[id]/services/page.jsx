@@ -1,32 +1,34 @@
+// app/admin/[id]/services/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus,
   ImageIcon,
   CheckCircle,
   AlertTriangle,
   Loader2,
   Edit,
   Trash2,
+  Plus
 } from "lucide-react";
 import { useServicesStore } from "@/store/useServicesStore";
 import { useCategoryStore } from "@/store/useCateroyStore";
 import { useTypeStore } from "@/store/useTypeStore";
-import { useParams } from "next/navigation";
-import AddServiceModal from "@/components/services/AddServiceModal";
+import { useParams, useRouter } from "next/navigation"; // Import useRouter
 import EditServiceModal from "@/components/services/EditServiceModal";
 import DeleteConfirmationModal from "@/components/services/DeleteConfirmationModal";
 
+
 export default function ServicesPage() {
+  const router = useRouter();  // Initialize router
   const { id: ownerId } = useParams();
   const {
     services,
     loading: servicesLoading,
     error: servicesError,
     fetchServicesByOwner,
-    createService,
     updateService,
     deleteService,
   } = useServicesStore();
@@ -46,7 +48,6 @@ export default function ServicesPage() {
     fetchTypesByCategory,
   } = useTypeStore();
 
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -86,17 +87,6 @@ export default function ServicesPage() {
     }
   }, [services]);
 
-  const handleAddService = async (formData) => {
-    try {
-      await createService(ownerId, formData);
-      setSuccessMessage("Service added successfully!");
-      setErrorMessage(null);
-      fetchServicesByOwner(ownerId);
-    } catch (err) {
-      setErrorMessage(err.message || "Failed to add service.");
-    }
-  };
-
   const handleEditService = async (serviceId, formData) => {
     try {
       await updateService(serviceId, formData);
@@ -134,7 +124,7 @@ export default function ServicesPage() {
             <button
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
               onClick={() => {
-                setShowAddModal(true);
+                router.push(`/owner/${ownerId}/services/add`);  // Navigate to add service page
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
@@ -212,123 +202,108 @@ export default function ServicesPage() {
                         </th>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {services.map((service, index) => {
-                      const category = safeCategories.find(
-                        (cat) => cat.id === service.service_categories_id
-                      );
-                      const type = safeTypes.find(
-                        (t) => t.id === service.type_id
-                      );
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {services.map((service, index) => {
+                            const category = safeCategories.find(
+                                (cat) => cat.id === service.service_categories_id
+                            );
+                            const type = safeTypes.find(
+                                (t) => t.id === service.type_id
+                            );
 
-                      return (
-                        <tr
-                          key={service.id}
-                          className={`${
-                            index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
-                          } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {index + 1}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {service.name}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                            <div
-                              className="truncate"
-                              title={service.description}
-                            >
-                              {service.description}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            ${service.base_price}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {category?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {type?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {service.images?.[0] ? (
-                              <img
-                                src={service.images[0]}
-                                alt={service.name}
-                                className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
-                                <ImageIcon className="h-5 w-5 text-gray-400" />
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <div className="flex gap-3">
-                              <button
-                                onClick={() => {
-                                  setSelectedService(service);
-                                  setShowEditModal(true);
-                                }}
-                                className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
-                              >
-                                <Edit className="w-8" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedService(service);
-                                  setShowDeleteModal(true);
-                                }}
-                                className="text-red-500 font-bold py-2 rounded inline-flex items-center"
-                              >
-                                <Trash2 className="w-8" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
+                            return (
+                                <tr
+                                    key={service.id}
+                                    className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
+                                        } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        {index + 1}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        {service.name}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                                        <div
+                                            className="truncate"
+                                            title={service.description}
+                                        >
+                                            {service.description}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                        ${service.base_price}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                        {category?.name || "Unknown"}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                        {type?.name || "Unknown"}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                        {service.images?.[0] ? (
+                                            <img
+                                                src={service.images[0]}
+                                                alt={service.name}
+                                                className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                                            />
+                                        ) : (
+                                            <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
+                                                <ImageIcon className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="flex gap-3">
+ <Link
+   href={`/owner/${ownerId}/services/${service.id}/edit`}
+   className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
+ >
+   <Edit className="w-8" />
+ </Link>
+ <button
+   onClick={() => {
+     setSelectedService(service);
+     setShowDeleteModal(true);
+   }}
+   className="text-red-500 font-bold py-2 rounded inline-flex items-center"
+ >
+   <Trash2 className="w-8" />
+ </button>
+</div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
                 </table>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Modals */}
-        <AddServiceModal
-          show={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddService}
-          categories={categories}
-          types={types}
-          loadingCategories={categoriesLoading}
-          loadingTypes={typesLoading}
-          onCategoryChange={(categoryId) => fetchTypesByCategory(categoryId)}
-        />
-
-        <EditServiceModal
-          show={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          service={selectedService}
-          onSubmit={handleEditService}
-          categories={categories}
-          types={types}
-          loadingCategories={categoriesLoading}
-          loadingTypes={typesLoading}
-          onCategoryChange={(categoryId) => fetchTypesByCategory(categoryId)}
-        />
-
-        <DeleteConfirmationModal
-          show={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteService}
-          itemName={selectedService?.name || "this service"}
-          isDeleting={servicesLoading}
-        />
-      </main>
+            </div>
+        )}
+      </div>
     </div>
-  );
+
+    {/* Edit Service Modal */}
+    <EditServiceModal
+      show={showEditModal}
+      onClose={() => setShowEditModal(false)}
+      service={selectedService}
+      onSubmit={handleEditService}
+      categories={categories}
+      types={types}
+      loadingCategories={categoriesLoading}
+      loadingTypes={typesLoading}
+      onCategoryChange={(categoryId) => fetchTypesByCategory(categoryId)}
+    />
+
+    <DeleteConfirmationModal
+      show={showDeleteModal}
+      onClose={() => setShowDeleteModal(false)}
+      onConfirm={handleDeleteService}
+      itemName={selectedService?.name || "this service"}
+      isDeleting={servicesLoading}
+    />
+  </main>
+</div>
+);
 }
