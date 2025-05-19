@@ -2,10 +2,8 @@
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import HeroSection from "@/components/HeroSection";
-import WelcomeSection from "@/components/WelcomeSection";
-// import ServicesSection from "@/components/ServicesSection";
 import { useParams } from "next/navigation";
+// import ServicesSection from "@/components/ServicesSection";
 import { useEffect } from "react";
 import { useUserStore } from "@/store/useUserStore";
 
@@ -26,13 +24,9 @@ export default function Home() {
   }, [id, fetchUserById]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar id={id} />
-        {/* Your content here */}
-        <HeroSection />
-        <WelcomeSection />
-        {/* <ServicesSection /> */}
-
+    <div>
+      <Navbar />
+      {/* <ServicesSection /> */}
       <Footer />
     </div>
   );

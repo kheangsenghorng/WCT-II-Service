@@ -69,34 +69,51 @@ export const useServicesStore = create((set) => ({
 
   createService: async (ownerId, formData) => {
     set({ creatingService: true, createError: null });
-
+  
     try {
       const res = await request(`/owner/${ownerId}/services`, "POST", formData);
-
+  
       set({ createdService: res });
       return res;
     } catch (err) {
-      console.error("Failed to create service:", err);
-      set({
-        createError: err.response?.data?.message || err.message,
-        createdService: null,
-      });
+      console.error("Full error response:", err.response);
+      console.error("Error message:", err.message);
+  
+      let errorMessage = "Failed to add service."; // Default message
+  
+      if (err.response) {
+        // Server responded with an error status
+        errorMessage = `Failed to add service: Status ${err.response.status}`;
+  
+        if (err.response.data && err.response.data.message) {
+          errorMessage += `, Message: ${err.response.data.message}`; // Append server's message
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        errorMessage = "Failed to add service: No response from server.";
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        errorMessage = `Failed to add service: ${err.message}`;
+      }
+  
+      set({ createError: errorMessage, createdService: null }); // Update the state with the detailed message
       throw err;
     } finally {
       set({ creatingService: false });
     }
   },
 
-  updateService: async ({ ownerId, serviceId, formData }) => {
+  updateService: async (ownerId, serviceId, formData) => {
     set({ loading: true, error: null });
-
     try {
-      formData.append("_method", "PUT"); // Laravel expects this for method spoofing
+      formData.append("_method", "PUT"); // If your backend requires this override
+  
       const updated = await request(
         `/owner/${ownerId}/services/${serviceId}`,
-        "POST",
+        "POST", // POST with _method=PUT hack
         formData
       );
+  
       set({ service: updated, loading: false });
       return updated;
     } catch (error) {
@@ -107,6 +124,7 @@ export const useServicesStore = create((set) => ({
       throw error;
     }
   },
+  
 
   deleteService: async (ownerId, serviceId) => {
     try {
