@@ -9,14 +9,15 @@ export const useServicesStore = create((set) => ({
   creatingService: false,
   createError: null,
   createdService: null,
-  service: null,
+  serviceCount: 0,
   setService: (data) => set({ service: data }),
 
   fetchServicesByOwner: async (ownerId) => {
+    
     set({ loading: true, error: null });
     try {
       const data = await request(`/owner/${ownerId}/services`, "GET");
-      set({ services: data, loading: false });
+      set({ services: data, serviceCount: data.length, loading: false });
     } catch (error) {
       set({
         error: error.message || "Failed to load services",
@@ -28,8 +29,12 @@ export const useServicesStore = create((set) => ({
   fetchAllServices: async () => {
     set({ loading: true, error: null });
     try {
-      const data = await request(`/services`, "GET"); // <-- Make sure this API returns all services
-      set({ services: data, loading: false });
+      const data = await request(`/services`, "GET");  // <-- Changed to generic all services endpoint
+      set({
+        services: data,
+        serviceCount: data.length,
+        loading: false,
+      });
     } catch (error) {
       set({
         error: error.message || "Failed to load services",

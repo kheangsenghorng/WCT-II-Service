@@ -17,27 +17,28 @@ import { useEffect } from "react";
 import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
-  const params = useParams();
+  const params = useParams() || {};
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { fetchUserById } = useUserStore();
-
+  const fetchUserById = useUserStore((state) => state.fetchUserById);
   useEffect(() => {
     const storedId = localStorage.getItem("userId");
-
+  
     if (!storedId && id) {
       localStorage.setItem("userId", id);
       fetchUserById(id);
-    } else if (storedId) {
+    } else if (storedId && storedId !== id) {
       fetchUserById(storedId);
     }
   }, [id, fetchUserById]);
+  
 
   return (
     <div>
       <Navbar />
       <HeroSection />
       <WelcomeSection />
-      <ServicesSection />
+<ServicesSection id={id} />
+
       <HightQuility/>
       <BlogSection/>
       <ExpertTeamSection/>
