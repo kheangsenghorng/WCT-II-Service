@@ -12,19 +12,90 @@ import Calendar from "../../../../components/Calander";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
+import { useUserBooking } from "@/store/useUserBooking";
+import { useServicesStore } from "@/store/useServicesStore";
+import { Bar, Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(BarElement, ArcElement, CategoryScale, LinearScale, Tooltip, Legend);
+
 
 const HomePage = () => {
   const { id: ownerId } = useParams();
   const { fetchUsersByOwner, loading, error, count } = useUserStore();
+  const { fetchServicesByOwner, serviceCount } = useServicesStore();
+  const { fetchBookings, bookingCount } = useUserBooking();
+
 
   const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
+
+
+  const barData = {
+    labels: ["Users", "Services", "Bookings"],
+    datasets: [
+      {
+        label: "Total",
+        data: [count || 0, serviceCount || 0, bookingCount || 0],
+        backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
+        borderRadius: 6,
+      },
+    ],
+  };
+
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: "top" },
+    },
+  };
+  
+  // Doughnut for sales segments
+  const doughnutData = {
+    labels: ["Online Shop", "Acquisition", "Investing", "Subscription", "Purchase"],
+    datasets: [
+      {
+        label: "Sales",
+        data: [10, 5, 3, 7, 2], // Example values
+        backgroundColor: [
+          "#facc15", // yellow
+          "#f97316", // orange
+          "#ef4444", // red
+          "#3b82f6", // blue
+          "#a855f7", // purple
+        ],
+      },
+    ],
+  };
+
+  const doughnutOptions = {
+    cutout: "70%",
+    plugins: {
+      legend: {
+        position: "right",
+        labels: {
+          color: "#9ca3af", // gray-400
+        },
+      },
+    },
+  };
 
   // Fetch users on mount or when ownerId changes
   useEffect(() => {
     if (ownerId) {
       fetchUsersByOwner(ownerId);
+      fetchServicesByOwner(ownerId); // 👈 New
+      fetchBookings(ownerId);
     }
   }, [ownerId]);
+  
 
   // Stats data (derived from store)
   const [stats, setStats] = useState([
@@ -36,11 +107,18 @@ const HomePage = () => {
       isPositive: true,
     },
     {
-      id: "company",
-      label: "Total Company",
-      value: "1,700",
-      change: -11,
-      isPositive: false,
+      id: "service",
+      label: "Total Services",
+      value: 0,
+      change: 18,
+      isPositive: true,
+    },
+    {
+      id: "booking",
+      label: "Total Bookings",
+      value: 0,
+      change: 15,
+      isPositive: true,
     },
     {
       id: "customer",
@@ -49,23 +127,21 @@ const HomePage = () => {
       change: 20,
       isPositive: true,
     },
-    {
-      id: "order",
-      label: "Total Order Customer",
-      value: "2,530",
-      change: 17,
-      isPositive: true,
-    },
   ]);
+  
 
   // Update stats when count changes
   useEffect(() => {
     setStats((prev) =>
-      prev.map((stat) =>
-        stat.id === "user" ? { ...stat, value: count || 0 } : stat
-      )
+      prev.map((stat) => {
+        if (stat.id === "user") return { ...stat, value: count || 0 };
+        if (stat.id === "service") return { ...stat, value: serviceCount || 0 };
+        if (stat.id === "booking") return { ...stat, value: bookingCount || 0 };
+        return stat;
+      })
     );
-  }, [count]);
+  }, [count, serviceCount, bookingCount]);
+  
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -184,16 +260,17 @@ const HomePage = () => {
                           <>
                             <div className="flex justify-between mb-4">
                               <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
-                                Marketing Report
+                                Total Report
                               </h2>
                               <select className="border rounded-md p-1 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700">
                                 <option>This Month</option>
                                 <option>Last Month</option>
                               </select>
                             </div>
-                            <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-400 dark:text-gray-500">
-                              Marketing Chart Placeholder
-                            </div>
+                            <div className="h-64">
+  <Bar data={barData} options={barOptions} />
+</div>
+
                           </>
                         )}
                         {chart === "sales" && (
@@ -207,9 +284,10 @@ const HomePage = () => {
                                 <option>Last Month</option>
                               </select>
                             </div>
-                            <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-400 dark:text-gray-500">
-                              Sales Doughnut Chart Placeholder
-                            </div>
+                            <div className="h-64">
+  <Doughnut data={doughnutData} options={doughnutOptions} />
+</div>
+
                             <div className="flex justify-around mt-4 text-sm text-gray-600 dark:text-gray-400">
                               {[
                                 ["bg-yellow-400", "Online Shop"],

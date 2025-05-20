@@ -1,18 +1,17 @@
 import React from "react";
-import Image from "next/image";
+import Image from 'next/image'
 import Link from "next/link";
 
 const HeroSection = () => {
   return (
     <section className="relative  overflow-hidden">
       <div className="absolute inset-0">
-        <Image
-          src="/hero.png" // Replace with your hero image path
-          alt="Cleaning Team"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-90"
-        />
+      <Image
+  src="/hero.png"
+  alt="Hero image"
+  fill
+  style={{ objectFit: 'cover' }}
+/>
       </div>
 
       <div className="relative container mx-auto py-24 px-4 md:px-8 lg:px-12 xl:px-16 z-10">

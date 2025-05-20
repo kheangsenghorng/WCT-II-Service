@@ -10,6 +10,8 @@ use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BlogController;
+
 
 
 Route::get('/user', function (Request $request) {
@@ -59,6 +61,15 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/{id}', [TypeController::class, 'update']); // Update user (admin only)
             Route::delete('/{id}', [TypeController::class, 'destroy']); // Delete user (admin only)
     
+        });
+
+          // Blog Routes
+          Route::prefix('blogs')->group(function () {
+            Route::get('/', [BlogController::class, 'index']);          // Get all blogs
+            Route::post('/', [BlogController::class, 'store']);         // Create a new blog
+            Route::get('/{id}', [BlogController::class, 'show']);       // Get blog by id
+            Route::put('/{id}', [BlogController::class, 'update']);     // Update blog by id
+            Route::delete('/{id}', [BlogController::class, 'destroy']); // Delete blog by id
         });
         
     });
