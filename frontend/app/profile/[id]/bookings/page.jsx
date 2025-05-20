@@ -1,24 +1,26 @@
 "use client";
 
 import React, { useEffect } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useUserBooking } from "@/store/useUserBooking"; // Adjust the import path as necessary
+import { useParams } from "next/navigation";
+import { useUserBooking } from "@/store/useUserBooking";
 
 const BookingsPage = () => {
   const { id } = useParams();
-  const router = useRouter();
   const { bookings, loading, error, fetchBookings, cancelBooking } = useUserBooking();
 
-  // Fetch bookings when the component mounts
   useEffect(() => {
-    fetchBookings(); // This will trigger the fetchBookings function
-  }, [fetchBookings]);
+    fetchBookings();
+  }, []); // No need to add fetchBookings in deps unless it's memoized
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.5, staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants = {
@@ -31,7 +33,9 @@ const BookingsPage = () => {
       {loading && (
         <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent shadow-md" />
-          <p className="mt-4 text-green-600 dark:text-green-400 font-medium text-xl">Loading...</p>
+          <p className="mt-4 text-green-600 dark:text-green-400 font-medium text-xl">
+            Loading...
+          </p>
         </div>
       )}
 
@@ -42,8 +46,12 @@ const BookingsPage = () => {
         animate="visible"
       >
         <section className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">My Bookings</h1>
-          <p className="text-gray-600 dark:text-gray-400">View and manage your service bookings.</p>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+            My Bookings
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            View and manage your service bookings.
+          </p>
         </section>
 
         {error && (
@@ -61,16 +69,33 @@ const BookingsPage = () => {
                 variants={itemVariants}
               >
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-300 mb-2">
-                  {booking.serviceName}
+                  {booking.serviceName || booking.service?.name || "Unnamed Service"}
                 </h3>
+
                 <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span>{new Date(booking.date).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(booking.created_at).toLocaleDateString()}
+                  </span>
                 </div>
+
                 <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
                   <Clock className="w-4 h-4 mr-2" />
-                  <span>{booking.time}</span>
+                  <span>{booking.scheduled_time || "Not scheduled"}</span>
                 </div>
+
+                {booking.service?.images?.[0] && (
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
+                    <Image
+                      src={booking.service.images[0]}
+                      alt="Service image"
+                      width={100}
+                      height={100}
+                      className="rounded-md object-cover"
+                    />
+                  </div>
+                )}
+
                 <div className="flex items-center text-gray-600 dark:text-gray-400">
                   {booking.status === "Confirmed" ? (
                     <>
@@ -84,6 +109,7 @@ const BookingsPage = () => {
                     </>
                   )}
                 </div>
+
                 <div className="mt-4 flex justify-end">
                   <button
                     onClick={() => cancelBooking(booking.id)}
@@ -96,7 +122,9 @@ const BookingsPage = () => {
             ))}
           </div>
         ) : !loading && !error ? (
-          <div className="text-center text-gray-500 dark:text-gray-300">No bookings found.</div>
+          <div className="text-center text-gray-500 dark:text-gray-300">
+            No bookings found.
+          </div>
         ) : null}
       </motion.div>
     </div>

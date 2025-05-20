@@ -14,7 +14,9 @@ export const useUserBooking = create((set) => ({
       const response = await request("/users/bookings", "GET"); // Replace with your API endpoint
       set({ bookings: response.data }); // Assuming the response contains the bookings in `data`
     } catch (err) {
-      set({ error: err.response?.data?.message || "Failed to fetch bookings." });
+      set({
+        error: err.response?.data?.message || "Failed to fetch bookings.",
+      });
     } finally {
       set({ loading: false });
     }
@@ -28,7 +30,20 @@ export const useUserBooking = create((set) => ({
         bookings: state.bookings.filter((booking) => booking.id !== bookingId),
       }));
     } catch (err) {
-      set({ error: err.response?.data?.message || "Failed to cancel booking." });
+      set({
+        error: err.response?.data?.message || "Failed to cancel booking.",
+      });
+    }
+  },
+
+  fetchBookings: async () => {
+    set({ loading: true, error: null });
+
+    try {
+      const data = await request("/bookings", "GET"); // Uses your helper with token + base_url
+      set({ bookings: data, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch bookings", loading: false });
     }
   },
 }));

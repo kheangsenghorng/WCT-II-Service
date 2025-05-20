@@ -18,10 +18,13 @@ export default function EditServicePage() {
   const router = useRouter();
   const { id: ownerId, serviceId } = useParams();
 
+  console.log(ownerId, serviceId);
+
   const {
-    services,
-    fetchServicesByOwner,
+    service,
+    fetchService,
     updateService,
+    deleteServiceImage,
     loading: servicesLoading,
     error: servicesError,
   } = useServicesStore();
@@ -51,37 +54,38 @@ export default function EditServicePage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [isLoadingService, setIsLoadingService] = useState(true);
 
-
   useEffect(() => {
     fetchCategoriesOwner();
     fetchTypes();
   }, [fetchCategoriesOwner, fetchTypes]);
 
   useEffect(() => {
-    if (ownerId) {
-      fetchServicesByOwner(ownerId);
+    if (ownerId && serviceId) {
+      fetchService(ownerId, serviceId);
     }
-  }, [ownerId, fetchServicesByOwner]);
+  }, [ownerId, serviceId, fetchService]);
+
+  console.log(service);
 
   useEffect(() => {
     if (servicesLoading) return;
 
-    const serviceToEdit = services.find(
-      (s) => String(s.id) === String(serviceId)
-    );
-
-    if (serviceToEdit) {
-      setNewServiceName(serviceToEdit.name || "");
-      setNewServiceDescription(serviceToEdit.description || "");
-      setNewServiceCategoryId(serviceToEdit.service_categories_id || "");
-      setNewServiceBasePrice(String(serviceToEdit.base_price) || "");
-      setNewServiceType(serviceToEdit.type_id || "");
+    if (service) {
+      setNewServiceName(service.name || "");
+      setNewServiceDescription(service.description || "");
+      setNewServiceCategoryId(service.service_categories_id || "");
+      setNewServiceBasePrice(String(service.base_price) || "");
+      setNewServiceType(service.type_id || "");
       setIsLoadingService(false);
+      if (service.images && Array.isArray(service.images)) {
+        setImagePreviews(service.images); // URLs from backend
+      } else {
+        setImagePreviews([]);
+      }
     } else {
-      setErrorMessage("Service not found.");
       setIsLoadingService(false);
     }
-  }, [services, serviceId, servicesLoading]);
+  }, [service, serviceId, servicesLoading]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -143,27 +147,28 @@ export default function EditServicePage() {
       return;
     }
 
-    if (isNaN(parseFloat(newServiceBasePrice)) || parseFloat(newServiceBasePrice) <= 0) {
+    if (
+      isNaN(parseFloat(newServiceBasePrice)) ||
+      parseFloat(newServiceBasePrice) <= 0
+    ) {
       setErrorMessage("Please enter a valid positive price.");
       return;
     }
 
     const formData = new FormData();
-formData.append("name", newServiceName);
-formData.append("description", newServiceDescription);
-formData.append("service_categories_id", newServiceCategoryId);
-formData.append("base_price", newServiceBasePrice);
-formData.append("type_id", newServiceType);
+    formData.append("name", newServiceName);
+    formData.append("description", newServiceDescription);
+    formData.append("service_categories_id", newServiceCategoryId);
+    formData.append("base_price", newServiceBasePrice);
+    formData.append("type_id", newServiceType);
 
+    newServiceImages.forEach((file) => {
+      formData.append("images[]", file);
+    });
 
-
-newServiceImages.forEach((file) => {
-  formData.append("images[]", file);
-});
-
-setIsSubmitting(true);
-try {
-    await updateService(ownerId, serviceId, formData);
+    setIsSubmitting(true);
+    try {
+      await updateService(ownerId, serviceId, formData);
 
       resetForm();
       setSuccessMessage("Service updated successfully!");
@@ -171,7 +176,8 @@ try {
     } catch (err) {
       if (err.response) {
         setErrorMessage(
-          err.message || `Failed to update service: status code ${err.response.status}`
+          err.message ||
+            `Failed to update service: status code ${err.response.status}`
         );
       } else {
         setErrorMessage(err.message || "Failed to update service.");
@@ -181,7 +187,41 @@ try {
     }
   };
 
+  // Remove image by index (either existing URL or newly added file)
+  const removeImageAtIndex = async (index) => {
+    const previewToRemove = imagePreviews[index];
 
+    if (
+      typeof previewToRemove === "string" &&
+      service?.images.includes(previewToRemove)
+    ) {
+      // It's an existing image from the backend
+      try {
+        await deleteServiceImage(service.id, previewToRemove);
+      } catch (error) {
+        console.error("Failed to delete image from server:", error);
+        setErrorMessage("Failed to delete image from server.");
+        return;
+      }
+    } else {
+      // It's a newly added image (local file)
+      const newImagesStartIndex =
+        imagePreviews.length - editedServiceImages.length;
+      const fileIndex = index - newImagesStartIndex;
+
+      if (fileIndex >= 0) {
+        setEditedServiceImages((prev) =>
+          prev.filter((_, i) => i !== fileIndex)
+        );
+      }
+
+      // Revoke object URL for memory cleanup
+      URL.revokeObjectURL(previewToRemove);
+    }
+
+    // Remove preview from list
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const goBack = () => {
     resetForm();
@@ -205,11 +245,11 @@ try {
 
   return (
     <motion.div
-    className="container mx-auto p-4 md:p-8"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1, transition: { duration: 0.5 } }}
-    exit={{ opacity: 0 }}
-  >
+      className="container mx-auto p-4 md:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.5 } }}
+      exit={{ opacity: 0 }}
+    >
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
@@ -369,29 +409,30 @@ try {
               />
             </label>
 
-            {/* Previews */}
-            {imagePreviews.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index}`}
-                      className="h-24 w-24 object-cover rounded-lg"
-                    />
-                    <button
-                      onClick={() => removeImage(index)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 -mt-2 -mr-2"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="mt-3 flex flex-wrap gap-3">
+              {imagePreviews.map((preview, index) => (
+                <div
+                  key={index}
+                  className="relative w-24 h-24 rounded-md overflow-hidden border border-gray-300 dark:border-gray-600"
+                >
+                  <img
+                    src={typeof preview === "string" ? preview : preview}
+                    alt={`Preview ${index + 1}`}
+                    className="object-cover w-full h-full"
+                  />
+                  <button
+                    onClick={() => removeImageAtIndex(index)}
+                    type="button"
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
+                    title="Remove image"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-         
 
         <div className="flex justify-end gap-3 mt-8">
           <button
