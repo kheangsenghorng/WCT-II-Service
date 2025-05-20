@@ -56,15 +56,22 @@ const Sidebar = () => {
         animate="visible"
         variants={sidebarVariants}
       >
-       
         <nav className="space-y-3 flex-1">
           {[
-            { href: `/admin/${id}/dashboard`, icon: Home, label: "Admin Dashboard" },
+            {
+              href: `/admin/${id}/dashboard`,
+              icon: Home,
+              label: "Admin Dashboard",
+            },
             { href: `/admin/${id}/users`, icon: Users, label: "Users" },
-            { href: `/admin/${id}/category`, icon: FolderKanban, label: "Category" },
+            {
+              href: `/admin/${id}/category`,
+              icon: FolderKanban,
+              label: "Category",
+            },
             { href: `/admin/${id}/type`, icon: FolderKanban, label: "Type" },
             { href: `/admin/${id}/company`, icon: Building2, label: "Company" },
-            { href: `/admin/${id}/type`,  icon: Tags , label: "Type" },
+            { href: `/admin/${id}/type`, icon: Tags, label: "Type" },
           ].map(({ href, icon: Icon, label }, i) => {
             const isActive = pathname === href; // Check if the current path matches the link's href
 
@@ -125,7 +132,9 @@ const Sidebar = () => {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             >
-              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Confirm Logout</h2>
+              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">
+                Confirm Logout
+              </h2>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                 Are you sure you want to log out?
               </p>

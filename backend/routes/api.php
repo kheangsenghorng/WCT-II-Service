@@ -134,8 +134,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
 
     });
     Route::get('/{id}/services', [ServiceController::class, 'getByOwner']);
-    Route::delete('/services/{serviceId}/image', [ServiceController::class, 'deleteImage']);
-
+    Route::delete('/services/{serviceId}/image', [ServiceController::class, 'deleteImage']);  
     // 🔔 Notification routes (not nested under services)
     Route::prefix('/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);          // All notifications (ordered by owners_id)
@@ -147,6 +146,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
 });
 
 Route::get('/', [ServiceController::class, 'index']);  
+Route::get('/services', [ServiceController::class, 'index']);
 
 // routes/api.php
 Route::get('/service-types', [TypeController::class, 'showcategoryId']);

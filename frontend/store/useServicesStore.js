@@ -3,6 +3,7 @@ import { request } from "@/util/request";
 
 export const useServicesStore = create((set) => ({
   services: [],
+  service: null,
   loading: false,
   error: null,
   creatingService: false,
@@ -69,22 +70,22 @@ export const useServicesStore = create((set) => ({
 
   createService: async (ownerId, formData) => {
     set({ creatingService: true, createError: null });
-  
+
     try {
       const res = await request(`/owner/${ownerId}/services`, "POST", formData);
-  
+
       set({ createdService: res });
       return res;
     } catch (err) {
       console.error("Full error response:", err.response);
       console.error("Error message:", err.message);
-  
+
       let errorMessage = "Failed to add service."; // Default message
-  
+
       if (err.response) {
         // Server responded with an error status
         errorMessage = `Failed to add service: Status ${err.response.status}`;
-  
+
         if (err.response.data && err.response.data.message) {
           errorMessage += `, Message: ${err.response.data.message}`; // Append server's message
         }
@@ -95,7 +96,7 @@ export const useServicesStore = create((set) => ({
         // Something happened in setting up the request that triggered an Error
         errorMessage = `Failed to add service: ${err.message}`;
       }
-  
+
       set({ createError: errorMessage, createdService: null }); // Update the state with the detailed message
       throw err;
     } finally {
@@ -107,13 +108,13 @@ export const useServicesStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       formData.append("_method", "PUT"); // If your backend requires this override
-  
+
       const updated = await request(
         `/owner/${ownerId}/services/${serviceId}`,
         "POST", // POST with _method=PUT hack
         formData
       );
-  
+
       set({ service: updated, loading: false });
       return updated;
     } catch (error) {
@@ -124,7 +125,6 @@ export const useServicesStore = create((set) => ({
       throw error;
     }
   },
-  
 
   deleteService: async (ownerId, serviceId) => {
     try {
@@ -159,6 +159,24 @@ export const useServicesStore = create((set) => ({
     } catch (error) {
       console.error("Failed to delete image:", error);
       throw error;
+    }
+  },
+
+  fetchService: async (ownerId, serviceId) => {
+    set({ loading: true, error: null });
+
+    try {
+      const data = await request(
+        `/owner/${ownerId}/services/${serviceId}`,
+        "GET"
+      );
+      
+      set({ service: data, loading: false });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to fetch service",
+        loading: false,
+      });
     }
   },
 }));

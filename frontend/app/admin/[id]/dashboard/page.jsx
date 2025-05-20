@@ -10,38 +10,41 @@ import Calendar from "../../../../components/Calander";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/useUserStore";
+import { useRouter } from "next/navigation"; // Next.js 13+ client router
 
 const HomePage = () => {
-  const {
-    fetchAdminUsers,
-    users,
-    count,
-    error,
-    loading,
-  } = useUserStore();
-  
+  const router = useRouter();
+  const { fetchAdminUsers, users, count, error, loading } = useUserStore();
 
   const [stats, setStats] = useState([]);
   const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
 
   useEffect(() => {
     const fetchStats = async () => {
-      await fetchAdminUsers();
-      setStats([
-        {
-          id: "total-users",
-          label: "Total Users",
-          value: count,
-          change: 4.2,
-          isPositive: true,
-        },
-      ]);
-    };
-  
-    fetchStats();
-  }, [fetchAdminUsers, count]);
-  
+      try {
+        await fetchAdminUsers();
 
+        setStats([
+          {
+            id: "total-users",
+            label: "Total Users",
+            value: count,
+            change: 4.2,
+            isPositive: true,
+          },
+        ]);
+      } catch (error) {
+        // Check if error is AxiosError and status 401
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          router.push("/login");
+        } else {
+          console.error(error);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [fetchAdminUsers, count, router]);
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
@@ -68,7 +71,9 @@ const HomePage = () => {
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Home</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Home
+          </h1>
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
             <QuestionMarkCircleIcon className="w-5 h-5 mr-2" />
             Support
