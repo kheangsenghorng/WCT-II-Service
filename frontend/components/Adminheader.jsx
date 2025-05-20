@@ -7,23 +7,31 @@ import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
 import NotificationsPanel from "./NotificationsPanel";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const Navbar = () => {
   const { id } = useParams();
   console.log(id);
-  
+  const { notifications, fetchMyNotifications, loading } =
+    useNotificationStore();
+
   const { fetchUserById, user } = useUserStore();
   const [isClient, setIsClient] = useState(false);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const toggleNotifications = () => setShowNotifications((prev) => !prev);
 
-  const notificationCount = 3; // Replace with actual count from store or API
+  const notificationCount =
+    notifications?.filter((n) => n.is_read === 0).length || 0;
 
   useEffect(() => {
     setIsClient(true);
     fetchUserById(id);
   }, [fetchUserById, id]);
+
+  useEffect(() => {
+    if (id) fetchMyNotifications(id);
+  }, [id, fetchMyNotifications]);
 
   return (
     <>

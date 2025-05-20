@@ -21,7 +21,7 @@ export const useNotificationStore = create((set) => ({
 
   markAsRead: async (id) => {
     try {
-      await request(`/notifications/${id}/mark-as-read`, "PATCH");
+      await request(`/owner/notifications/${id}/read`, "PATCH");
       set((state) => ({
         notifications: state.notifications.map((n) =>
           n.id === id ? { ...n, is_read: true } : n

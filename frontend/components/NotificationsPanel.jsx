@@ -2,49 +2,62 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, Search, CheckCircle2 } from "lucide-react";
+import { X, Search } from "lucide-react";
 import clsx from "clsx";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useNotificationStore } from "@/store/notificationStore";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+
 dayjs.extend(relativeTime);
 
-// NotificationItem with user image & details
+// Single notification item
 const NotificationItem = ({ notification }) => {
-  const { user, message, created_at, is_read } = notification;
+  const { id } = useParams();
+  const { markAsRead, loading } = useNotificationStore();
+  const { user, message, created_at, is_read, service } = notification;
+
+  const handleClick = () => {
+    if (!is_read) {
+      markAsRead(notification.id);
+    }
+  };
 
   return (
-    <div
-      className={clsx(
-        "flex items-start gap-3 rounded-lg p-4 mb-3 border transition-shadow shadow-sm",
-        is_read
-          ? "bg-white border-gray-200 hover:shadow-md"
-          : "bg-blue-50 border-blue-200 hover:shadow-lg"
-      )}
+    <Link
+      href={`/owner/${id}/booking/${service?.id}/${user?.id}`}
+      className="block"
+      onClick={handleClick}
     >
-      {/* User avatar */}
-      <img
-        src={user?.image || "/default-avatar.png"}
-        alt={`${user?.first_name} ${user?.last_name}`}
-        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-      />
-
-      {/* Message and user name */}
-      <div className="flex-1">
-        <p className={clsx("font-medium", !is_read && "text-blue-900")}>
-          {message}
-        </p>
-        <p className="text-sm text-gray-500">{dayjs(created_at).fromNow()}</p>
-        <p className="text-xs text-gray-400 mt-1">
-          From: {user?.first_name} {user?.last_name}
-        </p>
+      <div
+        className={clsx(
+          "flex items-start gap-3 rounded-lg p-4 mb-3 border transition-shadow shadow-sm",
+          is_read
+            ? "bg-white border-gray-200 hover:shadow-md"
+            : "bg-blue-50 border-blue-200 hover:shadow-lg"
+        )}
+      >
+        <img
+          src={user?.image || "/default-avatar.png"}
+          alt={`${user?.first_name || "Unknown"} ${user?.last_name || ""}`}
+          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+        />
+        <div className="flex-1">
+          <p className={clsx("font-medium", !is_read && "text-blue-900")}>
+            {message}
+          </p>
+          <p className="text-sm text-gray-500">{dayjs(created_at).fromNow()}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            From: {user?.first_name || "Unknown"} {user?.last_name || ""}
+          </p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
-// Badge component for counts
+// Badge display
 const Badge = ({ label, count, color }) => (
   <span
     className={clsx(
@@ -60,17 +73,17 @@ const Badge = ({ label, count, color }) => (
 
 const NotificationsPanel = ({ onClose }) => {
   const { id } = useParams();
-
-  const { notifications, fetchMyNotifications, loading, markAsRead } =
+  const { notifications, fetchMyNotifications, markAsRead, loading } =
     useNotificationStore();
 
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (id) fetchMyNotifications(id);
-  }, [id]);
+    if (id) {
+      fetchMyNotifications(id);
+    }
+  }, [id, fetchMyNotifications]);
 
-  // Filter notifications by search term
   const filteredNotifications = notifications?.filter((n) =>
     n?.message?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -86,7 +99,7 @@ const NotificationsPanel = ({ onClose }) => {
         onClick={onClose}
       />
 
-      {/* Sliding Panel */}
+      {/* Slide-in Panel */}
       <motion.div
         className="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 z-50 shadow-2xl overflow-y-auto"
         initial={{ x: "100%" }}
@@ -105,17 +118,6 @@ const NotificationsPanel = ({ onClose }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Mark all as read */}
-        {/* <div className="flex items-center justify-end px-4 pt-2">
-          <button
-            className="flex items-center text-sm text-blue-600 hover:underline"
-            onClick={() => markAsRead(id)}
-          >
-            Mark all as read
-            <CheckCircle2 className="ml-1 h-4 w-4 text-blue-500" />
-          </button>
-        </div> */}
 
         {/* Search Input */}
         <div className="p-4">
@@ -170,9 +172,9 @@ const NotificationsPanel = ({ onClose }) => {
 
         {/* Footer */}
         <div className="p-4 border-t text-center">
-          <a href="#" className="text-blue-500 hover:underline">
+          <Link href="/notifications" className="text-blue-500 hover:underline">
             View all notifications
-          </a>
+          </Link>
         </div>
       </motion.div>
     </>

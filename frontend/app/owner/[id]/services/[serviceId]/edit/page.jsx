@@ -18,8 +18,6 @@ export default function EditServicePage() {
   const router = useRouter();
   const { id: ownerId, serviceId } = useParams();
 
-  console.log(ownerId, serviceId);
-
   const {
     service,
     fetchService,
@@ -53,6 +51,7 @@ export default function EditServicePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isLoadingService, setIsLoadingService] = useState(true);
+  const [editedServiceImages, setEditedServiceImages] = useState([]); // files selected
 
   useEffect(() => {
     fetchCategoriesOwner();
@@ -64,8 +63,6 @@ export default function EditServicePage() {
       fetchService(ownerId, serviceId);
     }
   }, [ownerId, serviceId, fetchService]);
-
-  console.log(service);
 
   useEffect(() => {
     if (servicesLoading) return;
@@ -112,15 +109,15 @@ export default function EditServicePage() {
     setImagePreviews((prev) => [...prev, ...previews]);
   };
 
-  const removeImage = (index) => {
-    const updatedImages = [...newServiceImages];
-    const updatedPreviews = [...imagePreviews];
-    updatedImages.splice(index, 1);
-    URL.revokeObjectURL(updatedPreviews[index]);
-    updatedPreviews.splice(index, 1);
-    setNewServiceImages(updatedImages);
-    setImagePreviews(updatedPreviews);
-  };
+  // const removeImage = (index) => {
+  //   const updatedImages = [...newServiceImages];
+  //   const updatedPreviews = [...imagePreviews];
+  //   updatedImages.splice(index, 1);
+  //   URL.revokeObjectURL(updatedPreviews[index]);
+  //   updatedPreviews.splice(index, 1);
+  //   setNewServiceImages(updatedImages);
+  //   setImagePreviews(updatedPreviews);
+  // };
 
   const resetForm = () => {
     setNewServiceName("");
@@ -198,6 +195,7 @@ export default function EditServicePage() {
       // It's an existing image from the backend
       try {
         await deleteServiceImage(service.id, previewToRemove);
+        await fetchService(ownerId, serviceId);
       } catch (error) {
         console.error("Failed to delete image from server:", error);
         setErrorMessage("Failed to delete image from server.");
@@ -206,16 +204,15 @@ export default function EditServicePage() {
     } else {
       // It's a newly added image (local file)
       const newImagesStartIndex =
-        imagePreviews.length - editedServiceImages.length;
+        imagePreviews.length - newServiceImages.length;
       const fileIndex = index - newImagesStartIndex;
 
       if (fileIndex >= 0) {
-        setEditedServiceImages((prev) =>
-          prev.filter((_, i) => i !== fileIndex)
-        );
+        setNewServiceImages((prev) => prev.filter((_, i) => i !== fileIndex));
       }
 
       // Revoke object URL for memory cleanup
+
       URL.revokeObjectURL(previewToRemove);
     }
 
