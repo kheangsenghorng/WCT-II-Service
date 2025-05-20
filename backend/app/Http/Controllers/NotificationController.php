@@ -21,33 +21,47 @@ class NotificationController extends Controller
                                      ->get();
         return response()->json($notifications);
     }
-
     public function getByOwnerId($ownerId)
     {
         if (auth()->id() !== (int) $ownerId && !auth()->user()->is_admin) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
     
-        $notifications = Notification::with('user')
+        $notifications = Notification::with(['user', 'service'])
             ->where('owner_id', $ownerId)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($notification) {
+                // Process user image
                 if ($notification->user && $notification->user->image) {
                     $image = $notification->user->image;
-                    // Only apply asset() if not already a full URL
                     if (!preg_match('/^https?:\/\//', $image)) {
                         $notification->user->image = asset('storage/' . $image);
                     }
                 }
+    
+                // Process service images (assuming images is an array or JSON field)
+                if ($notification->service) {
+                    // If single image
+                    if (isset($notification->service->image) && !preg_match('/^https?:\/\//', $notification->service->image)) {
+                        $notification->service->image = asset('storage/' . $notification->service->image);
+                    }
+    
+                    // If multiple images
+                    if (is_array($notification->service->images)) {
+                        $notification->service->images = array_map(function ($img) {
+                            return asset('storage/' . $img);
+                        }, $notification->service->images);
+                    }
+                }
+    
                 return $notification;
             });
     
         return response()->json($notifications);
     }
     
-    
-    
+
 
     // (Optional) Mark a notification as read
     public function markAsRead($id)

@@ -14,12 +14,17 @@ class Notification extends Model
         'type',
         'message',
         'is_read',
+        'service_id',
         'scheduled_at',
     ];
 
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
     }
 
     public function user()

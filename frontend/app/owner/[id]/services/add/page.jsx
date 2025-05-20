@@ -24,8 +24,12 @@ export default function AddServicePage() {
     loading: categoriesLoading,
     fetchCategoriesOwner,
   } = useCategoryStore();
-  const { types, loading: typesLoading, fetchTypes, fetchTypesByCategory } =
-    useTypeStore();
+  const {
+    types,
+    loading: typesLoading,
+    fetchTypes,
+    fetchTypesByCategory,
+  } = useTypeStore();
 
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceDescription, setNewServiceDescription] = useState("");
@@ -98,28 +102,36 @@ export default function AddServicePage() {
   };
 
   const handleSubmit = async () => {
-    if (!newServiceName || !newServiceCategoryId || !newServiceBasePrice || !newServiceType) {
+    if (
+      !newServiceName ||
+      !newServiceCategoryId ||
+      !newServiceBasePrice ||
+      !newServiceType
+    ) {
       setErrorMessage("Please fill in all required fields.");
       return;
     }
-  
-    if (isNaN(parseFloat(newServiceBasePrice)) || parseFloat(newServiceBasePrice) <= 0) {
+
+    if (
+      isNaN(parseFloat(newServiceBasePrice)) ||
+      parseFloat(newServiceBasePrice) <= 0
+    ) {
       setErrorMessage("Please enter a valid positive price.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("name", newServiceName);
     formData.append("description", newServiceDescription || "");
     formData.append("service_categories_id", newServiceCategoryId);
     formData.append("base_price", newServiceBasePrice.toString());
     formData.append("type_id", newServiceType);
-  
+
     // Try images key without brackets
     newServiceImages.forEach((file) => {
-      formData.append("images", file);
+      formData.append("images[]", file);
     });
-  
+
     setIsSubmitting(true);
     try {
       await createService(ownerId, formData);
@@ -131,9 +143,9 @@ export default function AddServicePage() {
       if (err.response) {
         setErrorMessage(
           err.message ||
-            `Failed to add service. Status Code: ${err.response.status}, Response: ${JSON.stringify(
-              err.response.data
-            )}`
+            `Failed to add service. Status Code: ${
+              err.response.status
+            }, Response: ${JSON.stringify(err.response.data)}`
         );
       } else {
         setErrorMessage(err.message || "Failed to add service.");
@@ -142,7 +154,6 @@ export default function AddServicePage() {
       setIsSubmitting(false);
     }
   };
-  
 
   const goBack = () => {
     resetForm();

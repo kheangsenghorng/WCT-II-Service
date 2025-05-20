@@ -61,7 +61,7 @@ const Sidebar = () => {
             { href: `/owner/${id}/dashboard`, icon: Home, label: "Owner Dashboard" },
             { href: `/owner/${id}/users`, icon: Users, label: "Staff" },
             { href: `/owner/${id}/services`, icon: FolderKanban, label: "Service" },
-            { href: `/owner/${id}/company`, icon: Calendar , label: "Booking" },
+            { href: `/owner/${id}/booking`, icon: Calendar , label: "Booking" },
           ].map(({ href, icon: Icon, label }, i) => {
             const isActive = pathname === href; // Check if the current path matches the link's href
 

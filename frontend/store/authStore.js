@@ -17,17 +17,31 @@ export const useAuthStore = create(
         try {
           const res = await request("/login", "POST", { email, password });
 
-          set({
-            user: res.user,
-            token: res.token,
-          });
+          const { user, token } = res || {};
 
-          return res;
+          if (!user || !token) {
+            throw new Error("Invalid credentials or missing data.");
+          }
+
+          set({ user, token });
+          return { user, token };
         } catch (err) {
           console.error("Login error:", err);
-          set({
-            error: err.response?.data?.message || "Login failed.",
-          });
+
+          let errorMessage = "Login failed. Please try again.";
+
+          if (err?.response?.status === 401) {
+            errorMessage = "Invalid email or password.";
+          } else if (err?.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+
+          set({ error: errorMessage });
+
+          // Send a clean error to the component
+          throw new Error(errorMessage);
         } finally {
           set({ loading: false });
         }

@@ -122,6 +122,7 @@ public function store(Request $request, $serviceId)
             'type' => 'booking',
             'message' => 'A new booking has been created.',
             'is_read' => false,
+            'service_id' => $serviceId,
             'scheduled_at' => $validated['scheduled_date'] . ' ' . $validated['scheduled_time'],
         ]);
 
