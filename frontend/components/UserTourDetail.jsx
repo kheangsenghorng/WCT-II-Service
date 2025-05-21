@@ -34,7 +34,7 @@ export default function UserTourHistory() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">User Tour History</h2>
         <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">
-          Total Seats Booked: <strong>{totalSeats}</strong> &nbsp; 
+          Total Booking: <strong>{totalSeats}</strong> &nbsp; 
           Total Price: <strong>${totalPrice}</strong>
         </div>
       </div>
