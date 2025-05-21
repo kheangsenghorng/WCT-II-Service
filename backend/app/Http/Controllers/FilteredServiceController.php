@@ -63,4 +63,62 @@ class FilteredServiceController extends Controller
 
         return response()->json($bookings);
     }
+
+
+//     public function show($userId, $serviceId)
+// {
+//     $booking = Booking::with('user', 'service')
+//         ->where('user_id', $userId)
+//         ->where('service_id', $serviceId)
+//         ->firstOrFail();
+
+//     // Ensure user image URL is complete
+//     if ($booking->user && $booking->user->image) {
+//         $booking->user->image = asset('storage/' . ltrim($booking->user->image, '/'));
+//     }
+
+//     // Ensure service images are all full URLs
+//     if ($booking->service && is_array($booking->service->images)) {
+//         $booking->service->images = array_map(function ($image) {
+//             return asset('storage/' . ltrim($image, '/'));
+//         }, $booking->service->images);
+//     }
+
+//     return response()->json([
+//         'booking' => $booking,
+//     ]);
+// }
+
+public function show($userId, $serviceId)
+{
+    $bookings = Booking::with('user', 'service')
+        ->where('user_id', $userId)
+        ->where('service_id', $serviceId)
+        ->get();
+
+    // Process each booking to format images
+    $bookings->transform(function ($booking) {
+        // Format user image URL only if not already a full URL
+        if ($booking->user && $booking->user->image && !preg_match('/^https?:\/\//', $booking->user->image)) {
+            $booking->user->image = asset('storage/' . ltrim($booking->user->image, '/'));
+        }
+
+        // Format service images URLs only if not already full URLs
+        if ($booking->service && is_array($booking->service->images)) {
+            $booking->service->images = array_map(function ($image) {
+                return preg_match('/^https?:\/\//', $image)
+                    ? $image
+                    : asset('storage/' . ltrim($image, '/'));
+            }, $booking->service->images);
+        }
+
+        return $booking;
+    });
+
+    return response()->json([
+        'bookings' => $bookings,
+    ]);
+}
+
+
 }

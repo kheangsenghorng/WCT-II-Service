@@ -11,12 +11,14 @@ class Notification extends Model
     protected $fillable = [
         'owner_id',
         'user_id',
+        'booking_id', // ✅ Add this
         'type',
         'message',
         'is_read',
         'service_id',
         'scheduled_at',
     ];
+    
 
     public function owner()
     {

@@ -115,14 +115,15 @@ public function store(Request $request, $serviceId)
         $booking = Booking::create($validated);
         $booking->load('user', 'service');
 
-        // ✅ Create notification with service owner's ID
+        // ✅ Create notification with booking_id
         Notification::create([
-            'owner_id' => $ownerId,
-            'user_id' => $validated['user_id'],
-            'type' => 'booking',
-            'message' => 'A new booking has been created.',
-            'is_read' => false,
-            'service_id' => $serviceId,
+            'owner_id'     => $ownerId,
+            'user_id'      => $validated['user_id'],
+            'booking_id'   => $booking->id, // ✅ Add booking_id
+            'type'         => 'booking',
+            'message'      => 'A new booking has been created.',
+            'is_read'      => false,
+            'service_id'   => $serviceId,
             'scheduled_at' => $validated['scheduled_date'] . ' ' . $validated['scheduled_time'],
         ]);
 
@@ -142,6 +143,7 @@ public function store(Request $request, $serviceId)
         ], 500);
     }
 }
+
 
     
     /**
