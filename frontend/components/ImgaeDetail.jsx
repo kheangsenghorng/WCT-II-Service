@@ -14,7 +14,7 @@ export default function Gallery() {
   };
 
   return (
-    <div className="container bg-white rounded-xl mx-auto p-4 w-[600px]">
+    <div className="container  rounded-xl mx-auto p-4 w-[600px]">
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Main Image */}
@@ -22,7 +22,7 @@ export default function Gallery() {
           <img
             src="1.jpg"
             alt="Main Photo"
-            className="w-full h-96 object-cover rounded-lg shadow-lg"
+            className="w-full h-102 object-cover rounded-lg shadow-lg"
           />
         </div>
 
@@ -31,7 +31,7 @@ export default function Gallery() {
           <img
             src="2.jpg"
             alt="Photo 1"
-            className="w-full h-48 object-cover rounded-lg shadow-md"
+            className="w-full h-50 object-cover rounded-lg shadow-md"
           />
           <img
             src="3.jpg"
