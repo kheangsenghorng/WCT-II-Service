@@ -14,10 +14,12 @@ class Blog extends Model
     ];
     
     public function getImagesAttribute($images)
-    {
-        if (is_array($images)) {
-            return array_map(fn($img) => asset('storage/' . ltrim($img, '/')), $images);
-        }
-        return [];
-    }    
+{
+    if (is_array($images)) {
+        return array_map(fn($img) => url('storage/' . ltrim($img, '/')), $images);
+    }
+    return [];
 }
+
+    
+}  

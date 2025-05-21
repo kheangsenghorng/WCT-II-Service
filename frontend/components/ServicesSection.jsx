@@ -101,7 +101,7 @@ const ServicesSection = () => {
               
                   {/* Details button */}
                   <Link
-                    href={`/services/${service.id}`}
+                    href={`/user/${service.id}/details`}
                     className="inline-flex items-center self-start bg-green-600 text-white py-2 px-5 rounded-lg hover:bg-green-700 transition-colors duration-300 font-semibold shadow-md hover:shadow-lg"
                   >
                     Details

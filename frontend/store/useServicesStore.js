@@ -169,13 +169,8 @@ export const useServicesStore = create((set) => ({
 
   fetchService: async (ownerId, serviceId) => {
     set({ loading: true, error: null });
-
     try {
-      const data = await request(
-        `/owner/${ownerId}/services/${serviceId}`,
-        "GET"
-      );
-      
+      const data = await request(`/owner/${ownerId}/services/${serviceId}`, "GET");
       set({ service: data, loading: false });
     } catch (error) {
       set({
@@ -183,5 +178,7 @@ export const useServicesStore = create((set) => ({
         loading: false,
       });
     }
-  },
+  }
+  
+  
 }));
