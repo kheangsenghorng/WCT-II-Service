@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Search, HelpCircle, Bell } from "lucide-react";
+import { Search, HelpCircle, Bell, ChevronDown, LogOut } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,18 +11,19 @@ import { useNotificationStore } from "@/store/notificationStore";
 
 const Navbar = () => {
   const { id } = useParams();
-  console.log(id);
-  const { notifications, fetchMyNotifications, loading } =
-    useNotificationStore();
-
+  const { notifications, fetchMyNotifications } = useNotificationStore();
   const { fetchUserById, user } = useUserStore();
-  const [isClient, setIsClient] = useState(false);
 
+  const [isClient, setIsClient] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
   const toggleNotifications = () => setShowNotifications((prev) => !prev);
 
   const notificationCount =
     notifications?.filter((n) => n.is_read === 0).length || 0;
+
+  const dropdownRef = useRef();
 
   useEffect(() => {
     setIsClient(true);
@@ -33,26 +34,27 @@ const Navbar = () => {
     if (id) fetchMyNotifications(id);
   }, [id, fetchMyNotifications]);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <>
       <nav className="bg-white dark:bg-gray-800 shadow-md py-3 px-6 flex items-center justify-between transition-colors duration-300">
         {/* Left Side: Logo */}
         <div className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="CleaningPro Logo"
-            width={40}
-            height={40}
-            className="mr-2"
-          />
+          <Image src="/logo.png" alt="CleaningPro Logo" width={40} height={40} className="mr-2" />
           <div>
             <p className="text-2xl font-bold text-gray-800 dark:text-white">
-              Cleaning
-              <span className="text-2xl text-green-600 px-1">Pro</span>
+              Cleaning<span className="text-2xl text-green-600 px-1">Pro</span>
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Cleaning Services Provider
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Cleaning Services Provider</p>
           </div>
         </div>
 
@@ -87,22 +89,81 @@ const Navbar = () => {
           </button>
 
           {isClient && (
-            <div className="flex items-center">
-              <Image
-                src={user?.image || "/default-user.svg"}
-                alt={user?.last_name || "USER"}
-                width={30}
-                height={30}
-                className="rounded-full mr-2"
-              />
-              <div>
-                <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
-                  {user?.first_name} {user?.last_name}
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {user?.email}
-                </p>
-              </div>
+            <div className="relative inline-block text-left" ref={dropdownRef}>
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <Image
+                  src={user?.image || "/default-user.svg"}
+                  alt={user?.last_name || "USER"}
+                  width={30}
+                  height={30}
+                  className="rounded-full"
+                />
+                <div className="text-left">
+                  <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
+                    {user?.first_name} {user?.last_name}
+                  </h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+                </div>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+
+              {isOpen && (
+                <div className="absolute right-0 mt-2 w-[350px] h-[300px] origin-top-right rounded-md bg-gray-100 shadow-sm border ring-black ring-opacity-5 z-50">
+                  <div className="px-4 py-3 flex justify-between items-center">
+                   <a href="">
+                    <div className="flex  justify-between">
+                     <img
+                      src="/Hero.png"
+                      alt="profile"
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                    <div className="text-left ms-3">
+                      <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
+                        {user?.first_name} {user?.last_name}
+                      </h1>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+                    </div>
+                   </div>
+                   </a>
+                    <button
+                      type="button"
+                      onClick={() => setIsOpen(false)}
+                      className="text-gray-500 bg-gray-100 rounded-full w-[30px] h-[30px] hover:bg-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="border-t border-gray-200" />
+                  <ul className="py-1 text-sm text-gray-700">
+                    <li>
+                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Customize Services</a>
+                    </li>
+                    <div className="border-t border-gray-200" />
+                    <li>
+                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Settings</a>
+                    </li>
+                  </ul>
+                  <div className="border-t border-gray-200" />
+                  <ul className="py-1 text-sm text-gray-700">
+                    <li>
+                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Help & FAQ</a>
+                    </li>
+                    <div className="border-t border-gray-200" />
+                    <li>
+                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Terms & Policies</a>
+                    </li>
+                  </ul>
+                  <div className="border-t border-gray-200" />
+                  <div className="py-1">
+                    <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-white">
+                      <LogOut className="mr-2 inline-block h-4 w-4" /> Log out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
