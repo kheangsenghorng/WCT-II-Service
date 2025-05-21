@@ -55,11 +55,21 @@ export const useBlogStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const token = useAuthStore.getState()?.getToken?.();
-      const res = await request(`/admin/blogs/${id}`, "PUT", formData, token, true);
+      const response = await request(
+        `/admin/blogs/${id}`,
+        "PUT",
+        formData,
+        token,
+        true // Assumes multipart/form-data
+      );
+  
       set((state) => ({
-        blogs: state.blogs.map((b) => (b.id === id ? res : b)),
+        blogs: state.blogs.map((blog) =>
+          blog.id === id ? response : blog
+        ),
       }));
     } catch (err) {
+      console.error("Blog update failed:", err);
       set({
         error:
           err?.response?.data?.message ||
