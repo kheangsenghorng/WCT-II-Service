@@ -92,7 +92,6 @@ Route::middleware('auth:api')->group(function () {
 } );
 
 
-
 Route::put('bookingtest/{id}', [BookingController::class, 'update']); // PUT update booking by ID
 //owner
 

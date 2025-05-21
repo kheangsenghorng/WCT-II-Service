@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -62,7 +63,7 @@ class AuthController extends Controller
                     return response()->json(['error' => 'Invalid credentials'], 401);
                 }
         
-                $user = auth()->user();
+                $user = Auth::user();
         
                 return response()->json([
                     'token' => $token,  
@@ -147,7 +148,7 @@ class AuthController extends Controller
     public function me()
 {
     return response()->json([
-        'user' => auth()->user()
+        'user' => Auth::user()
     ]);
 }
 

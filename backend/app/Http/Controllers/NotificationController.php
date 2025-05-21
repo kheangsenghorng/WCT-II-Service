@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -16,14 +17,14 @@ class NotificationController extends Controller
     // Get only authenticated user's notifications
     public function myNotifications()
     {
-        $notifications = Notification::where('owner_id', auth()->id())
+        $notifications = Notification::where('owner_id', Auth::id())
                                      ->orderBy('created_at', 'desc')
                                      ->get();
         return response()->json($notifications);
     }
     public function getByOwnerId($ownerId)
     {
-        if (auth()->id() !== (int) $ownerId && !auth()->user()->is_admin) {
+        if (Auth::id() !== (int) $ownerId && !Auth::user()->is_admin) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
     

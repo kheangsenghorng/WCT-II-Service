@@ -18,10 +18,11 @@ return new class extends Migration
             $table->string('images')->nullable(); // Path to blog image
             $table->foreignId('admin_id')
                   ->nullable()
-                  ->constrained('admins')
+                  ->constrained('users') // <-- Fix here
                   ->onDelete('set null');
             $table->timestamps();
         });
+        
     }
 
     /**

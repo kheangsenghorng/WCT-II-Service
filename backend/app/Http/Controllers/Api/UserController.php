@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -21,7 +22,7 @@ class UserController extends Controller
      */
     public function index()     
     {
-        $user = auth()->user();
+        $user = Auth::user();
     
         // Check if the authenticated user has the 'admin' role
         if ($user->role !== 'admin') {
@@ -45,7 +46,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized access. Only admins can register users.'], 403);
         }
@@ -79,7 +80,7 @@ class UserController extends Controller
 
     public function storeUserUnderOwner(Request $request, $ownerId)
     {
-        $authUser = auth()->user();
+        $authUser = Auth::user();
     
         // ✅ Ensure the ownerId is valid and belongs to an actual owner
         $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
@@ -123,7 +124,7 @@ class UserController extends Controller
     }
     public function getUsersByOwner($ownerId)
 {
-    $authUser = auth()->user();
+    $authUser =Auth::user();
 
     // Authorization check
     if (!in_array($authUser->role, ['admin', 'owner']) || 
@@ -147,7 +148,7 @@ class UserController extends Controller
     }
     public function updateUserUnderOwner(Request $request, $ownerId, $userId)
     {
-        $authUser = auth()->user();
+        $authUser = Auth::user();
 
         // ✅ Ensure the owner exists and is valid
         $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
@@ -199,7 +200,7 @@ class UserController extends Controller
     public function deleteUserUnderOwner($ownerId, $userId)
     {
         // Get authenticated user if needed
-        $authUser = auth()->user();
+        $authUser = Auth::user();
 
         // Validate owner exists and is an owner
         $owner = User::where('id', $ownerId)->where('role', 'owner')->first();
@@ -266,7 +267,7 @@ class UserController extends Controller
      */
    public function show($id)
 {
-    $user = auth()->user();
+    $user = Auth::user();
 
     // Ensure that the user is an admin or they are trying to access their own account
     if ($user->role !== 'admin' && $user->id !== (int) $id) {
@@ -290,7 +291,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
     
         // Ensure that the user is an admin or they are updating their own account
         if ($user->role !== 'admin' && $user->id !== (int) $id) {
@@ -336,7 +337,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
     
         // Ensure the user is an admin
         if ($user->role !== 'admin') {
