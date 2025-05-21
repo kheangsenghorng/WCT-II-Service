@@ -3,38 +3,34 @@ import React from "react";
 const tours = [
   {
     id: "#sbbdd4",
-    title: "Any where",
+    title: "Angkor Wat Exploration",
     image: "/1.jpg",
     bookedDate: "5/12/2025",
+    bookedTime: "12:00 PM - 1:00 PM",
     status: "approved",
-    seats: 1,
-    price: 100,
-    start: "5/17/2025",
-    end: "5/20/2025",
+    price: 150,
+    location: "Siem Reap",
   },
   {
     id: "#s5d658",
-    title: "Any where",
+    title: "Phnom Penh City Tour",
     image: "/2.jpg",
     bookedDate: "5/15/2025",
+    bookedTime: "3:30 PM - 4:30 PM",
     status: "approved",
-    seats: 1,
     price: 100,
-    start: "5/17/2025",
-    end: "5/20/2025",
+    location: "Phnom Penh",
   },
 ];
 
 export default function UserTourHistory() {
-  const totalSeats = tours.reduce((acc, tour) => acc + tour.seats, 0);
   const totalPrice = tours.reduce((acc, tour) => acc + tour.price, 0);
 
   return (
     <div className="w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">User Tour History</h2>
+        <h2 className="text-xl font-semibold text-gray-800">User Service History</h2>
         <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">
-          Total Booking: <strong>{totalSeats}</strong> &nbsp; 
           Total Price: <strong>${totalPrice}</strong>
         </div>
       </div>
@@ -43,13 +39,12 @@ export default function UserTourHistory() {
         <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b">
             <tr>
-              <th className="px-4 py-3">Tour</th>
-              <th className="px-4 py-3">Booked Date</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Seats</th>
-              <th className="px-4 py-3">Price</th>
-              <th className="px-4 py-3">Start</th>
-              <th className="px-4 py-3">End</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Service</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Location</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Booked Date</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Scheduled Time</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Status</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Price</th>
             </tr>
           </thead>
           <tbody>
@@ -66,16 +61,19 @@ export default function UserTourHistory() {
                     <p className="font-medium text-gray-800">{tour.title}</p>
                   </div>
                 </td>
+                <td className="px-4 py-3">{tour.location}</td>
                 <td className="px-4 py-3">{tour.bookedDate}</td>
+                <td className="px-4 py-3">{tour.bookedTime}</td>
                 <td className="px-4 py-3">
-                  <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full capitalize">
+                  <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                    tour.status === "approved"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-yellow-100 text-yellow-600"
+                  }`}>
                     {tour.status}
                   </span>
                 </td>
-                <td className="px-4 py-3">{tour.seats}</td>
                 <td className="px-4 py-3">${tour.price}</td>
-                <td className="px-4 py-3">{tour.start}</td>
-                <td className="px-4 py-3">{tour.end}</td>
               </tr>
             ))}
           </tbody>
