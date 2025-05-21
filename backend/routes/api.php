@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\FilteredServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
@@ -89,7 +90,11 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [BookingController::class, 'update']); // PUT update booking by ID
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
     });
+
+    Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
+
 } );
+
 
 
 Route::put('bookingtest/{id}', [BookingController::class, 'update']); // PUT update booking by ID
@@ -160,6 +165,7 @@ Route::get('/services', [ServiceController::class, 'index']);
 
 // routes/api.php
 Route::get('/service-types', [TypeController::class, 'showcategoryId']);
+
 
 
 
