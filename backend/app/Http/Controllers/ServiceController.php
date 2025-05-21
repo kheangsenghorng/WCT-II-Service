@@ -59,7 +59,6 @@ class ServiceController extends Controller
         return response()->json($services);
     }
     
-
     public function getByOwner($ownerId)
 {
     $services = Service::with(['category', 'type', 'owner'])
@@ -107,7 +106,7 @@ class ServiceController extends Controller
     
         return response()->json($service);
     }
-    
+
 
     // public function store(Request $request, $id)
     // {
@@ -187,6 +186,8 @@ class ServiceController extends Controller
         $validated['owner_id'] = $id;
     
         $service = Service::create($validated);
+
+        
     
         return response()->json($service, 201);
     }
@@ -346,8 +347,6 @@ class ServiceController extends Controller
     }
     
 
-
-    
     public function destroy($id, $serviceId)
     {
         $service = Service::where('id', $serviceId)

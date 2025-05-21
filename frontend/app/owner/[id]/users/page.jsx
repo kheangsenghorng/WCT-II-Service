@@ -93,14 +93,20 @@ const Users = () => {
     setShowConfirmDelete(true); // show confirmation modal
   };
 
+  // Add debounce for phone number checking
+  const isValidPhone = (phone) => {
+    return typeof phone === "string" && /^\d{6,}$/.test(phone); // adjust length as needed
+  };
+
   const checkPhoneAvailability = debounce(async (phone) => {
-    if (!phone) return;
+    if (!isValidPhone(phone)) return;
 
     setPhoneChecking(true);
     setPhoneAvailable(null);
 
     try {
       const res = await request(`/check-phone?phone=${phone}`, "GET");
+      await fetchUsersByOwner(ownerId); // If this is required for your flow
 
       if (res.available) {
         setPhoneAvailable(true);
@@ -109,7 +115,7 @@ const Users = () => {
         setPhoneAvailable(false);
         setErrors((prev) => ({
           ...prev,
-          phone: ["The phone number has already been taken."],
+          phone: ["The phone number has already."],
         }));
       }
     } catch (error) {
@@ -135,7 +141,7 @@ const Users = () => {
         setEmailAvailable(false);
         setErrors((prev) => ({
           ...prev,
-          email: ["The email has already been taken."],
+          email: ["The email has already."],
         }));
       }
     } catch (error) {
@@ -500,6 +506,11 @@ const Users = () => {
                 {phoneAvailable === true && (
                   <p className="text-sm text-green-500">
                     Phone number is available.
+                  </p>
+                )}
+                {newPhone && newPhone.length < 6 && (
+                  <p className="text-sm text-yellow-500">
+                    Please enter at least 6 digits to check availability.
                   </p>
                 )}
               </div>
