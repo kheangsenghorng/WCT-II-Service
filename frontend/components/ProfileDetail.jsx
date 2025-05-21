@@ -80,7 +80,7 @@ export default function ProfileDetail() {
           </div>
           {/* Price of Tour*/}
           <span className="text-green-600 text-sm bg-green-100 px-2 py-0.5 rounded-full">
-            Price : 30$
+            Price : 30$/1h
           </span>
         </div>
 
@@ -110,25 +110,23 @@ export default function ProfileDetail() {
             <Calendar className="text-blue-600" size={18} />
             <div className="font-medium">
               <div>{formatDate("2025-05-11T17:05:36.500Z")}</div>
-              <div className="text-sm text-gray-500">
-                {formatTimeRange(
-                  "2025-05-11T17:00:00Z",
-                  "2025-05-11T18:00:00Z"
-                )}
-              </div>
+             
             </div>
           </div>
         </div>
 
         {/* Tour Date */}
         <div className="border-t pt-3">
-          <p className="text-sm font-semibold text-green-600">Tour Date</p>
+          <p className="text-sm font-semibold text-green-600">Scheduled Time</p>
           <div className="flex justify-between items-center mt-1 text-gray-700">
             <div className="flex items-center gap-2">
-              <Calendar className="text-blue-600" size={18} />
-              <span className="font-medium">
-                {formatDateRange("2025-05-17", "2025-05-20")}
-              </span>
+              <Calendar className="text-blue-600 font-medium" size={18} />
+               <div className="text-sm  text-gray-500">
+                {formatTimeRange(
+                  "2025-05-11T17:00:00Z",
+                  "2025-05-11T18:00:00Z"
+                )}
+              </div>
             </div>
           </div>
         </div>
