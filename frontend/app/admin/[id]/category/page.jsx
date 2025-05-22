@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, ImageIcon, CheckCircle } from "lucide-react";
+import { Plus, Edit, Trash2, ImageIcon, CheckCircle, AlertTriangle  } from "lucide-react";
 import { useCategoryStore } from "@/store/useCateroyStore";
 
 // Helper components for modals
