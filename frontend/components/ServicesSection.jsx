@@ -1,55 +1,54 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Image from 'next/image'
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { useServicesStore } from "@/store/useServicesStore";
-import { ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { useServicesStore } from "@/store/useServicesStore"
+import { Star, MapPin, Clock, Calendar, ChevronRight, Wallet, Info } from "lucide-react"
 
-const CARDS_PER_PAGE = 4;
+const CARDS_PER_PAGE = 4
 
 const ServicesSection = () => {
-  const { services, loading, error, fetchAllServices } = useServicesStore();
-  const [visibleCount, setVisibleCount] = useState(CARDS_PER_PAGE);
+  const { services, loading, error, fetchAllServices } = useServicesStore()
+  const [visibleCount, setVisibleCount] = useState(CARDS_PER_PAGE)
 
   useEffect(() => {
-    fetchAllServices();
-  }, [fetchAllServices]);
+    fetchAllServices()
+  }, [fetchAllServices])
 
   const handleViewMore = () => {
-    setVisibleCount(services.length);
-  };
+    setVisibleCount(services.length)
+  }
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-600">Loading services...</div>;
+    return <div className="text-center py-20 text-gray-600">Loading services...</div>
   }
 
   if (error) {
-    return <div className="text-center py-20 text-red-500">Error: {error}</div>;
+    return <div className="text-center py-20 text-red-500">Error: {error}</div>
   }
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
     hover: { scale: 1.03, transition: { duration: 0.2 } },
-  };
+  }
 
   // Slice services to show only the visible ones
-  const visibleServices = services.slice(0, visibleCount);
+  const visibleServices = services.slice(0, visibleCount)
 
   return (
     <div className="py-16 px-8 md:px-20 lg:px-26 md:flex-row">
       <div className="flex flex-col md:flex-row items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-black dark:text-white">
-            We always provide the best service
-          </h1>
+          <h1 className="text-4xl font-bold text-black dark:text-white">We always provide the best service</h1>
         </div>
         <div className="text-left mt-8 md:mt-0 lg:ps-40">
           <h2 className="text-3xl font-semibold text-green-500">Services</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            While we can customize your cleaning plan to suit your needs, most clients schedule regular cleaning services:
+            While we can customize your cleaning plan to suit your needs, most clients schedule regular cleaning
+            services:
           </p>
         </div>
       </div>
@@ -63,54 +62,98 @@ const ServicesSection = () => {
                 Array.isArray(service.images) && service.images.length > 0
                   ? service.images[0]
                   : typeof service.images === "string" && service.images.trim() !== ""
-                  ? service.images
-                  : "/placeholder.jpg";
+                    ? service.images
+                    : "/placeholder.jpg"
 
               return (
                 <motion.div
-                key={service.id}
-                className="relative bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden"
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-              >
-                {/* Image container with rounded top corners */}
-                <div className="relative h-56 overflow-hidden rounded-t-xl">
-                  <Image
-                    src={imageSrc}
-                    alt={service.name || "Service Image"}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    className="transition-transform duration-500 ease-in-out hover:scale-110 rounded-t-xl"
-                  />
-                  {/* Gradient overlay for better readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-                </div>
-              
-                {/* Content area */}
-                <div className="p-6 flex flex-col justify-between flex-grow">
-                  <div>
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                      {service.name}
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3 mb-5 leading-relaxed">
-                      {service.description}
-                    </p>
+                  key={service.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                >
+                  {/* Image Section */}
+                  <div className="relative w-full h-55">
+                    <Image
+                      src={imageSrc || "/placeholder.svg"}
+                      alt={service.name || "Service"}
+                      fill
+                      className="object-cover"
+                    />
+
+                   
                   </div>
-              
-                  {/* Details button */}
-                  <Link
-                    href={`/user/${service.id}/details`}
-                    className="inline-flex items-center self-start bg-green-600 text-white py-2 px-5 rounded-lg hover:bg-green-700 transition-colors duration-300 font-semibold shadow-md hover:shadow-lg"
-                  >
-                    Details
-                    <ArrowRight className="ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
-                  </Link>
-                </div>
-              </motion.div>
-              
-              );
+
+                  {/* Content Section */}
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 line-clamp-1">
+                        {service.name || "Unnamed Service"}
+                      </h3>
+
+                      {/* Rating (if available) */}
+                      {service.rating && (
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-medium">{service.rating}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-2 mb-3">
+                      {service.location && (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                          <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="line-clamp-1">{service.location}</span>
+                        </div>
+                      )}
+
+{service.description && (
+    <div className="flex items-center">
+      <Info className="w-4 h-4 mr-2 text-gray-500" />
+      <span className="line-clamp-2">{service.description}</span>
+    </div>
+  )}
+
+
+                       {/* Price Badge */}
+                    {service.base_price && (
+                      <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                        <Wallet className="w-4 h-4 mr-1 flex-shrink-0" />    
+                          <span className="line-clamp-1">  ${service.base_price}</span>
+                      </div>
+                    )}
+
+                      {service.duration && (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                          <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span>{service.duration}</span>
+                        </div>
+                      )}
+
+                      {service.created_at && (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                          <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span> Time {new Date(service.created_at).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View Details Button */}
+                    <Link href={`/services/${service.id}`} className="w-full block">
+                      <div className="flex justify-end items-center mt-2">
+                        <div className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center">
+                          View Details
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </motion.div>
+              )
             })}
           </div>
           {visibleCount < services.length && (
@@ -126,7 +169,7 @@ const ServicesSection = () => {
         </div>
       </section>
     </div>
-  );
-};
+  )
+}
 
-export default ServicesSection;
+export default ServicesSection

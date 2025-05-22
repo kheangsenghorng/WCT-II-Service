@@ -116,7 +116,7 @@ const Navbar = () => {
                    <a href="">
                     <div className="flex  justify-between">
                      <img
-                      src="/Hero.png"
+                      src={user?.image || "/default-user.svg"}
                       alt="profile"
                       className="h-8 w-8 rounded-full object-cover"
                     />

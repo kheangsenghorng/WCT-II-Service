@@ -7,7 +7,7 @@ import HeroSection from "@/components/HeroSection";
 import WelcomeSection from "@/components/WelcomeSection";
 import ServicesSection from "@/components/ServicesSection";
 import HightQuility from "@/components/HightQuility";
-import BlogSection from "@/components/BlogSection";
+// import BlogSection from "@/components/BlogSection";
 import ExpertTeamSection from "@/components/ExpertTeamSection";
 import FeedbackSection from "@/components/FeedbackSection";
 import FindUs from "@/components/FindUs";
@@ -40,7 +40,7 @@ export default function Home() {
 <ServicesSection id={id} />
 
       <HightQuility/>
-      <BlogSection/>
+      {/* <BlogSection/> */}
       <ExpertTeamSection/>
       <FeedbackSection />
       <div className="py-16 px-4 md:px-5 lg:px-24 ">

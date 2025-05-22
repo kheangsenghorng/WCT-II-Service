@@ -3,9 +3,11 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Wallet } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useUserBooking } from "@/store/useUserBooking";
+import { ChevronRight } from 'lucide-react'; // Import ChevronRight
+// import { log } from "console";
 
 const BookingsPage = () => {
   const { id } = useParams();
@@ -13,7 +15,11 @@ const BookingsPage = () => {
 
   useEffect(() => {
     fetchBookings();
-  }, []); // No need to add fetchBookings in deps unless it's memoized
+  }, [fetchBookings]); //  Now in the dependency array
+
+
+  console.log(bookings);
+  
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -65,58 +71,47 @@ const BookingsPage = () => {
             {bookings.map((booking) => (
               <motion.div
                 key={booking.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition duration-300 p-4"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition duration-300 flex items-center justify-between p-4"
                 variants={itemVariants}
               >
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-300 mb-2">
-                  {booking.serviceName || booking.service?.name || "Unnamed Service"}
-                </h3>
-
-                <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>
-                    {new Date(booking.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
-                  <Clock className="w-4 h-4 mr-2" />
-                  <span>{booking.scheduled_time || "Not scheduled"}</span>
-                </div>
-
-                {booking.service?.images?.[0] && (
-                  <div className="flex items-center text-gray-600 dark:text-gray-400 mb-2">
+                {/* Image */}
+                <div className="w-28 h-28 mr-4 rounded-lg overflow-hidden flex-shrink-0">
+                  {booking.service?.images?.[0] ? (
                     <Image
                       src={booking.service.images[0]}
-                      alt="Service image"
+                      alt="Service"
                       width={100}
                       height={100}
-                      className="rounded-md object-cover"
+                      className="object-cover w-full h-full"
                     />
-                  </div>
-                )}
-
-                <div className="flex items-center text-gray-600 dark:text-gray-400">
-                  {booking.status === "Confirmed" ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                      <span>Confirmed</span>
-                    </>
                   ) : (
-                    <>
-                      <XCircle className="w-4 h-4 mr-2 text-red-500" />
-                      <span>{booking.status}</span>
-                    </>
+                    <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500">
+                      No Image
+                    </div>
                   )}
                 </div>
 
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => cancelBooking(booking.id)}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none"
-                  >
-                    Cancel
-                  </button>
+                {/* Content */}
+                <div className="flex-grow p-2">
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-300 mb-1">
+                    {booking.serviceName || booking.service?.name || "Unnamed Service"}
+                  </h3>
+                  <h3 className="text-1xl  text-gray-800 dark:text-gray-300 mb-1">
+                    {booking.service?.description || booking.service?.name || "Unnamed Service"}
+                  </h3>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-1">
+                    <Calendar className="w-4 h-4 mr-1 text-green-600" />
+                    <span>{new Date(booking.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-1">
+                  <Wallet className="w-4 h-4 mr-1 text-green-600" />   
+                  {booking.service?.base_price}
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="flex items-center justify-center text-gray-500">
+                  <ChevronRight className="w-6 h-6" />
                 </div>
               </motion.div>
             ))}

@@ -58,7 +58,7 @@ export default function ServiceDetails({ service }) {
         )}
 
         {/* If you want to use Itinerary (optional) */}
-        {/* {service.itineraries?.length > 0 && (
+         {service.itineraries?.length > 0 && (
           <section id="Itinerary" className="bg-white p-6 rounded-lg mt-6">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Itinerary</h2>
             <div className="border-l-2 border-gray-300 ml-4">
@@ -76,7 +76,7 @@ export default function ServiceDetails({ service }) {
               ))}
             </div>
           </section>
-        )} */}
+        )} 
       </div>
     </div>
   );
