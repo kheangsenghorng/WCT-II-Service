@@ -120,5 +120,29 @@ public function show($userId, $serviceId)
     ]);
 }
 
+public function showById($id)
+{
+    $booking = Booking::with('user', 'service')->findOrFail($id);
+
+    // Format user image URL if not full URL
+    if ($booking->user && $booking->user->image && !preg_match('/^https?:\/\//', $booking->user->image)) {
+        $booking->user->image = asset('storage/' . ltrim($booking->user->image, '/'));
+    }
+
+    // Format service images URLs if not full URLs
+    if ($booking->service && is_array($booking->service->images)) {
+        $booking->service->images = array_map(function ($image) {
+            return preg_match('/^https?:\/\//', $image)
+                ? $image
+                : asset('storage/' . ltrim($image, '/'));
+        }, $booking->service->images);
+    }
+
+    return response()->json([
+        'booking' => $booking,
+    ]);
+}
+
+
 
 }

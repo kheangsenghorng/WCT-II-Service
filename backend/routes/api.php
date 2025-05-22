@@ -91,7 +91,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
     });
 
-    Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
+
 
 } );
 
@@ -158,6 +158,10 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
         Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']); // Mark as read
         Route::delete('/{id}', [NotificationController::class, 'destroy']);     // Delete
     });
+
+    Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);
+    Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
+
 });
 
 Route::get('/', [ServiceController::class, 'index']);  
