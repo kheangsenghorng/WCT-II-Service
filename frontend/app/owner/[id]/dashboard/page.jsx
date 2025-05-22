@@ -32,7 +32,7 @@ const HomePage = () => {
   const { id: ownerId } = useParams();
   const { fetchUsersByOwner, loading, error, count } = useUserStore();
   const { fetchServicesByOwner, serviceCount } = useServicesStore();
-  const { fetchBookings, bookingCount } = useUserBooking();
+const { totalBookings, fetchBookings, bookingCount  } = useUserBooking();
 
 
   const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
@@ -43,7 +43,7 @@ const HomePage = () => {
     datasets: [
       {
         label: "Total",
-        data: [count || 0, serviceCount || 0, bookingCount || 0],
+        data: [count || 0, serviceCount || 0, totalBookings  || 0],
         backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
         borderRadius: 6,
       },
@@ -92,7 +92,7 @@ const HomePage = () => {
     if (ownerId) {
       fetchUsersByOwner(ownerId);
       fetchServicesByOwner(ownerId); // 👈 New
-      fetchBookings(ownerId);
+      fetchBookings();
     }
   }, [ownerId]);
   
@@ -136,7 +136,7 @@ const HomePage = () => {
       prev.map((stat) => {
         if (stat.id === "user") return { ...stat, value: count || 0 };
         if (stat.id === "service") return { ...stat, value: serviceCount || 0 };
-        if (stat.id === "booking") return { ...stat, value: bookingCount || 0 };
+        if (stat.id === "booking") return { ...stat, value: totalBookings  || 0 };
         return stat;
       })
     );

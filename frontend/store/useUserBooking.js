@@ -1,26 +1,42 @@
-import { create } from "zustand";
-import { request } from "@/util/request"; // Import the request utility
+  import { create } from "zustand";
+  import { request } from "@/util/request"; // Import the request utility
 
-export const useUserBooking = create((set) => ({
-  bookings: [],
-  loading: false,
-  error: null,
+  export const useUserBooking = create((set) => ({
+    bookings: [],
+    loading: false,
+    error: null,
+    totalBookings: 0,  // <-- add this
 
-  // Fetch bookings for the user
+  // Fetch all bookings
   fetchBookings: async () => {
-    set({ loading: true, error: null });
+      set({ loading: true, error: null });
+      try {
+        const response = await request("/bookings", "GET");
+        set({ bookings: response.data });
+        set({ totalBookings: response.data.length }); // set total bookings from data length
+      } catch (err) {
+        set({
+          error: err.response?.data?.message || "Failed to fetch bookings.",
+        });
+      } finally {
+        set({ loading: false });
+      }
+    },
 
+  fetchTotalBookings: async () => {
+    set({ loading: true, error: null });
     try {
-      const response = await request("/users/bookings", "GET"); // Replace with your API endpoint
-      set({ bookings: response.data }); // Assuming the response contains the bookings in `data`
+      const response = await request("/bookings", "GET");
+      set({ totalBookings: response.data.length });
     } catch (err) {
       set({
-        error: err.response?.data?.message || "Failed to fetch bookings.",
+        error: err.response?.data?.message || "Failed to fetch total bookings.",
       });
     } finally {
       set({ loading: false });
     }
   },
+
 
   // Cancel booking
   cancelBooking: async (bookingId) => {
