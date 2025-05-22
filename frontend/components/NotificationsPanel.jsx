@@ -26,7 +26,7 @@ const NotificationItem = ({ notification }) => {
 
   return (
     <Link
-      href={`/owner/${id}/booking/${service?.id}/${user?.id}`}
+      href={`/owner/${id}/booking/${service?.id}/${user?.id}/${notification?.booking_id}`}
       className="block"
       onClick={handleClick}
     >

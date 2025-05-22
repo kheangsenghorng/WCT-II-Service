@@ -39,11 +39,27 @@ const Navbar = ({ id }) => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex space-x-14 text-xl">
-          <Link href={`/`} className="text-gray-600 hover:text-green-500">Home</Link>
-          <Link href={`/user/about-us`} className="text-gray-600 hover:text-green-500">About us</Link>
-          <Link href="/services" className="text-gray-600 hover:text-green-500">Service</Link>
-          <Link href="/blog" className="text-gray-600 hover:text-green-500">Blog</Link>
-          <Link href={`/user/contact`} className="text-gray-600 hover:text-green-500">Contact</Link>
+          <Link href={`/`} className="text-gray-600 hover:text-green-500">
+            Home
+          </Link>
+          <Link
+            href={`/user/about-us`}
+            className="text-gray-600 hover:text-green-500"
+          >
+            About us
+          </Link>
+          <Link href="/services" className="text-gray-600 hover:text-green-500">
+            Service
+          </Link>
+          <Link href="/blog" className="text-gray-600 hover:text-green-500">
+            Blog
+          </Link>
+          <Link
+            href={`/user/contact`}
+            className="text-gray-600 hover:text-green-500"
+          >
+            Contact
+          </Link>
         </div>
 
         {/* Right Side: User Avatar or Login */}
