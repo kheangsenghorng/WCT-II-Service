@@ -27,6 +27,10 @@ export default function UserTourHistory({ userId }) {
       }, 0)
     : 0;
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (!bookings) return <div>No booking found.</div>;
+
   return (
     <div className="w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6">
       <div className="flex justify-between items-center mb-4">

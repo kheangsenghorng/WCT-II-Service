@@ -156,16 +156,19 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
         Route::get('/my/all', [NotificationController::class, 'myNotifications']); // Current user's notifications
         Route::get('/my/{ownerId}', [NotificationController::class, 'getByOwnerId']); // Current user's notifications
         Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']); // Mark as read
-        Route::delete('/{id}', [NotificationController::class, 'destroy']);     // Delete
+        Route::delete('/{id}',  [NotificationController::class, 'destroy']);     // Delete
     });
 
     Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);
+    Route::get('/bookings/by-owner/{id}', [BookingController::class, 'showownerid']);
     Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
 
 });
 
-Route::get('/', [ServiceController::class, 'index']);  
+//ServiceController
 Route::get('/services', [ServiceController::class, 'index']);
+//get by id service
+Route::get('/services/{id}', [FilteredServiceController::class, 'showservice']);
 
 // routes/api.php
 Route::get('/service-types', [TypeController::class, 'showcategoryId']);
