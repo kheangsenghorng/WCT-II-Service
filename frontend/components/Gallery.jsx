@@ -23,7 +23,7 @@ export default function Gallery({ servicesId }) {
   const images = service.images || [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-16">
       {/* Main Image */}
       <div>
         <img
