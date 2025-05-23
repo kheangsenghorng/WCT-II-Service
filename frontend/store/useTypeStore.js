@@ -6,10 +6,11 @@ import { useAuthStore } from "@/store/authStore"; // Import useAuthStore
 export const useTypeStore = create((set) => ({
   userTypes: [],
   types: [],
-  loading: false,
+  loading: false, 
   loadingTypes: false,
   error: null,
   selectedUserType: null,
+
 
   fetchAllUserTypes: async () => {
     set({ loading: true, error: null });

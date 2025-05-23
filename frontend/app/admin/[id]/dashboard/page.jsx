@@ -32,7 +32,7 @@ const HomePage = () => {
   const { id: ownerId } = useParams();
   const { fetchAdminUsers, count, users  } = useUserStore();
   const { fetchCategories, categories } = useCategoryStore();
-  const { fetchAllUserTypes, userTypes } = useTypeStore();
+  const { fetchAllUserTypes, userTypes, loading  } = useTypeStore();
   const totalOwners = users?.filter((user) => user.role === "owner").length || 0;
 
 
@@ -45,7 +45,7 @@ const HomePage = () => {
     datasets: [
       {
         label: "Total",
-        data: [count || 0, categories?.length || 0, userTypes?.length || 0, totalOwners], // Example values
+        data: [count || 0, categories?.length || 0, userTypes?.length || 0, totalOwners || 0],
         backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
         borderRadius: 6,
       },
@@ -116,14 +116,13 @@ const HomePage = () => {
       change: 12,
       isPositive: true,
     },
-    
     {
       id: "type",
       label: "Total Type",
       value: 0,
-      change: 15,
+      change: 20,
       isPositive: true,
-    },
+    },    
     {
       id: "owner",
       label: "Total Owners",
@@ -141,13 +140,14 @@ const HomePage = () => {
     setStats((prev) =>
       prev.map((stat) => {
         if (stat.id === "user") return { ...stat, value: count || 0 };
-        if (stat.id === "category") return { ...stat, value: categories?.length || 0 }; // Update here
-        if (stat.id === "type") return { ...stat, value: userTypes?.length || 0 }; // <-- Update here
+        if (stat.id === "category") return { ...stat, value: categories?.length || 0 };
+        if (stat.id === "type") return { ...stat, value: userTypes?.length || 0 };
         if (stat.id === "owner") return { ...stat, value: totalOwners };
         return stat;
       })
     );
-  }, [count, categories, fetchAllUserTypes, users]);
+  }, [count, categories, userTypes, users]);
+  
   
 
 

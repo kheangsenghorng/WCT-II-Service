@@ -143,7 +143,7 @@ const Navbar = () => {
                     </li>
                     <div className="border-t border-gray-200" />
                     <li>
-                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Settings</a>
+                      <a href={`/admin/${id}/edit-profile`} className="block px-4 py-2 hover:bg-gray-200">Settings</a>
                     </li>
                   </ul>
                   <div className="border-t border-gray-200" />
