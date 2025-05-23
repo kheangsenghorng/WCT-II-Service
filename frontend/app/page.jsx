@@ -22,7 +22,7 @@ export default function Home() {
   const fetchUserById = useUserStore((state) => state.fetchUserById);
   useEffect(() => {
     const storedId = localStorage.getItem("userId");
-  
+
     if (!storedId && id) {
       localStorage.setItem("userId", id);
       fetchUserById(id);
@@ -30,24 +30,23 @@ export default function Home() {
       fetchUserById(storedId);
     }
   }, [id, fetchUserById]);
-  
 
   return (
     <div>
       <Navbar />
       <HeroSection />
       <WelcomeSection />
-<ServicesSection id={id} />
+      <ServicesSection id={id} />
 
-      <HightQuility/>
+      <HightQuility />
       {/* <BlogSection/> */}
-      <ExpertTeamSection/>
+      <ExpertTeamSection />
       <FeedbackSection />
       <div className="py-16 px-4 md:px-5 lg:px-24 ">
-      <div className="grid md:grid-cols-2 gap-6 w-full">
-        <FindUs />
-        <ContactInfo />
-      </div>
+        <div className="grid md:grid-cols-2 gap-6 w-full">
+          <FindUs />
+          <ContactInfo />
+        </div>
       </div>
       <Footer />
     </div>

@@ -142,6 +142,24 @@ public function showById($id)
         'booking' => $booking,
     ]);
 }
+public function showservice($id)
+{
+    // Retrieve the service by ID with related models
+    $service = Service::with(['category', 'type', 'owner'])->find($id);
+
+    if (!$service) {
+        return response()->json(['message' => 'Service not found'], 404);
+    }
+
+    // Format service image URLs (assuming 'images' is an array or a single image string)
+    if (is_array($service->images)) {
+        $service->images = array_map(function ($img) {
+            return asset('storage/' . $img);
+        }, $service->images);
+    }
+
+    return response()->json($service);
+}
 
 
 

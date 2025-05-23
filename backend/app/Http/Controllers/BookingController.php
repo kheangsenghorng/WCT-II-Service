@@ -173,6 +173,72 @@ public function store(Request $request, $serviceId)
         ]);
     }
     
+    public function showownerid($id)
+    {
+        // Get all bookings with user and service info (including category, type)
+        $allBookings = Booking::with([
+            'user',
+            'service' => function ($query) {
+                $query->with(['category', 'type']);
+            }
+        ])
+        ->whereHas('service', function ($query) use ($id) {
+            $query->where('owner_id', $id);
+        })
+        ->get();
+    
+        // Total booking count (count all bookings)
+        $totalBookingCount = $allBookings->count();
+    
+        // Total base price (sum of base_price * bookings)
+        $totalBasePrice = $allBookings->sum(function ($booking) {
+            return $booking->service->base_price ?? 0;
+        });
+    
+        // Group bookings by service_id to calculate per-service counts and sums
+        $groupedByService = $allBookings->groupBy('service_id');
+    
+        // Map unique service bookings with additional data (booking count and total price per service)
+        $uniqueServiceBookings = $groupedByService->map(function ($bookings, $serviceId) {
+            $firstBooking = $bookings->first();
+    
+            // Add per service booking count and total price fields
+            $firstBooking->service_booking_count = $bookings->count();
+            $firstBooking->service_total_price = $bookings->sum(function ($booking) {
+                return $booking->service->base_price ?? 0;
+            });
+    
+            return $firstBooking;
+        })->values();
+    
+        // Format images urls
+        $uniqueServiceBookings->transform(function ($booking) {
+            if ($booking->user && $booking->user->image) {
+                $booking->user->image = asset('storage/' . $booking->user->image);
+            }
+    
+            if ($booking->service && is_array($booking->service->images)) {
+                $booking->service->images = array_map(function ($image) {
+                    return asset('storage/' . $image);
+                }, $booking->service->images);
+            }
+    
+            return $booking;
+        });
+    
+        return response()->json([
+            'owner_id' => $id,
+            'related_bookings_stats' => [
+                'total_booking_count' => $totalBookingCount,
+                'unique_services_count' => $uniqueServiceBookings->count(),
+                'total_base_price' => $totalBasePrice,
+            ],
+            'bookings' => $uniqueServiceBookings,
+        ]);
+    }
+    
+    
+    
     
     
     /**

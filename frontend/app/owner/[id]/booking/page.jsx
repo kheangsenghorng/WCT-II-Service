@@ -4,17 +4,29 @@ import { useUserBooking } from "@/store/useUserBooking";
 import { Calendar, CreditCard, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog } from "@headlessui/react"; // Or use your own modal library
+import { useParams } from "next/navigation";
 
 export default function AllBookingsPage() {
-  const { bookings, loading, error, fetchBookings, cancelBooking } =
-    useUserBooking();
+  const params = useParams();
+  const ownerId = params?.id;
+
+  const {
+    bookings,
+    loading,
+    error,
+    fetchBookingsByOwnerId,
+    cancelBooking,
+    stats,
+  } = useUserBooking();
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchBookingsByOwnerId(ownerId);
+  }, [ownerId, fetchBookingsByOwnerId]);
+
+  console.log(bookings);
 
   const handleConfirmCancel = (id) => {
     setSelectedBookingId(id);
@@ -29,7 +41,32 @@ export default function AllBookingsPage() {
     }
   };
 
-  console.log("Bookings:", bookings);
+  const getCategoryColor = (name) => {
+    if (!name) return "bg-gray-100 text-gray-800";
+    const colors = [
+      "bg-blue-100 text-blue-800",
+      "bg-green-100 text-green-800",
+      "bg-purple-100 text-purple-800",
+      "bg-yellow-100 text-yellow-800",
+      "bg-pink-100 text-pink-800",
+    ];
+    const index = Math.abs(name.charCodeAt(0) % colors.length);
+    return colors[index];
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
 
   if (loading)
     return (
@@ -57,50 +94,19 @@ export default function AllBookingsPage() {
     );
   }
 
-  // Function to get badge color based on category
-  const getCategoryColor = (categoryId) => {
-    if (!categoryId) return "bg-gray-100 text-gray-800";
-
-    const colors = [
-      "bg-blue-100 text-blue-800",
-      "bg-green-100 text-green-800",
-      "bg-purple-100 text-purple-800",
-      "bg-yellow-100 text-yellow-800",
-      "bg-pink-100 text-pink-800",
-    ];
-
-    // Simple hash function to consistently assign colors
-    const index = Math.abs(categoryId.toString().charCodeAt(0) % colors.length);
-    return colors[index];
-  };
-
-  // Format date to be more readable
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (e) {
-      return dateString;
-    }
-  };
-
   return (
     <div className="w-full p-4">
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-0">
-          <CardTitle className="text-2xl font-bold ">
+          <CardTitle className="text-2xl font-bold">
             All Users Bookings List
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           <div className="overflow-x-auto mt-4">
-            <table className="min-w-full divide-y  dark:divide-gray-700">
-              <thead className=" dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
+            <table className="min-w-full divide-y dark:divide-gray-700">
+              <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
                 <tr>
                   {[
                     "ID",
@@ -110,6 +116,8 @@ export default function AllBookingsPage() {
                     "Scheduled Date",
                     "Category",
                     "Type",
+                    "total Price",
+                    "Total Guests",
                     "Status",
                     "Actions",
                   ].map((header) => (
@@ -132,7 +140,7 @@ export default function AllBookingsPage() {
                     <td className="p-3 text-gray-700">{index + 1}</td>
                     <td className="p-3">
                       <img
-                        src={booking.service?.images || "/placeholder.png"}
+                        src={booking.service?.images?.[0] || "/placeholder.png"}
                         alt={booking.service?.name || "Service Image"}
                         className="w-16 h-16 object-cover rounded-md"
                       />
@@ -144,7 +152,7 @@ export default function AllBookingsPage() {
                       <div className="flex items-center gap-1.5">
                         <CreditCard className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">
-                          ${booking.service?.base_price || "-"}
+                          {booking.service?.base_price || "N/A"}
                         </span>
                       </div>
                     </td>
@@ -157,32 +165,38 @@ export default function AllBookingsPage() {
                       </div>
                     </td>
                     <td className="p-3">
-                      {booking.service?.service_categories_id ? (
+                      {booking.service?.category ? (
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                            booking.service?.service_categories_id
+                            booking.service.category.name
                           )}`}
                         >
                           <Tag className="h-3 w-3" />
-                          {booking.service?.service_categories_id}
+                          {booking.service.category.name}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
                     <td className="p-3">
-                      {booking.service?.service_categories_id ? (
+                      {booking.service?.type ? (
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                            booking.service?.service_categories_id
+                            booking.service.type.name
                           )}`}
                         >
                           <Tag className="h-3 w-3" />
-                          {booking.service?.type_id}
+                          {booking.service.type.name}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
+                    </td>
+                    <td className="p-3 text-gray-700 font-medium">
+                      ${Number(booking?.service_total_price).toLocaleString()}
+                    </td>
+                    <td className="p-3 text-gray-700 font-medium">
+                      {booking?.service_booking_count || "Unknown Service"}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1.5">
@@ -205,8 +219,10 @@ export default function AllBookingsPage() {
               </tbody>
             </table>
           </div>
+
           <div className="mt-4 text-sm text-gray-500">
-            Showing {bookings.length} booking{bookings.length !== 1 ? "s" : ""}
+            Showing {bookings.length} booking
+            {bookings.length !== 1 ? "s" : ""}
           </div>
         </CardContent>
       </Card>
