@@ -162,6 +162,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
     Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);
     Route::get('/bookings/by-owner/{id}', [BookingController::class, 'showownerid']);
     Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
+    Route::get('/bookings/user', [BookingController::class, 'getUserBookings']);
 
 });
 

@@ -52,7 +52,7 @@ export default function ProfileDetail({ userId }) {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <img
-            src={user?.image || "/me.jpg"}
+            src={user?.image || "/default-avatar.png"}
             alt="Profile"
             className="w-12 h-12 rounded-full object-cover"
             onError={(e) => (e.target.src = "/me.jpg")}
@@ -74,7 +74,8 @@ export default function ProfileDetail({ userId }) {
               {service?.name || "Home"}
             </a>
             <p className="text-sm text-gray-400">
-              {service?.description || "We provide good service for cleaning Home"}
+              {service?.description ||
+                "We provide good service for cleaning Home"}
             </p>
           </div>
           <span className="text-green-600 text-sm bg-green-100 px-2 py-0.5 rounded-full">
@@ -89,7 +90,9 @@ export default function ProfileDetail({ userId }) {
             <div className="flex items-center gap-2 text-gray-700">
               <MapPin className="text-blue-600" size={18} />
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location || "Phnom Penh")}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  location || "Phnom Penh"
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-blue-600 hover:underline"
@@ -115,7 +118,9 @@ export default function ProfileDetail({ userId }) {
           <p className="text-sm font-semibold text-green-600">Scheduled Time</p>
           <div className="flex items-center gap-2 mt-1 text-gray-700">
             <Calendar className="text-blue-600" size={18} />
-            <div className="text-sm text-gray-500">{scheduled_time || "N/A"}</div>
+            <div className="text-sm text-gray-500">
+              {scheduled_time || "N/A"}
+            </div>
           </div>
         </div>
       </div>

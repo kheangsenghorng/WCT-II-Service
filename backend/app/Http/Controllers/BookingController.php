@@ -44,6 +44,24 @@ class BookingController extends Controller
     return response()->json($bookings);
 }
 
+    public function getUserBookings(Request $request)
+    {
+        $query = Booking::with('service', 'user');
+
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->has('token')) {
+            $query->orWhere('token', $request->token);
+        }
+
+        $bookings = $query->get();
+
+        return response()->json($bookings);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */

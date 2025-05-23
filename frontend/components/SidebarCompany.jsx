@@ -1,21 +1,18 @@
 "use client";
 
-import {
-  Home,
-  Users,
-  FolderKanban,
-  Calendar ,
-  LogOut,
-} from "lucide-react";
+import { Home, Users, FolderKanban, Calendar, LogOut } from "lucide-react";
 import { useState, useEffect } from "react"; //Import useEffect
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, usePathname } from "next/navigation"; //Import usePathname
+import { useAuthStore } from "@/store/authStore"; // adjust path as needed
+
 import Link from "next/link";
 
 const Sidebar = () => {
   const { id } = useParams();
   const pathname = usePathname(); // Hook to get the current pathname
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
 
   const sidebarVariants = {
     hidden: { x: -250 },
@@ -42,9 +39,13 @@ const Sidebar = () => {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
-    // Redirect or handle sign out
-    window.location.href = "/login";
+  const confirmLogout = async () => {
+    try {
+      await logout(); // Calls your async logout function
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -55,13 +56,20 @@ const Sidebar = () => {
         animate="visible"
         variants={sidebarVariants}
       >
-       
         <nav className="space-y-3 flex-1">
           {[
-            { href: `/owner/${id}/dashboard`, icon: Home, label: "Owner Dashboard" },
+            {
+              href: `/owner/${id}/dashboard`,
+              icon: Home,
+              label: "Owner Dashboard",
+            },
             { href: `/owner/${id}/users`, icon: Users, label: "Staff" },
-            { href: `/owner/${id}/services`, icon: FolderKanban, label: "Service" },
-            { href: `/owner/${id}/booking`, icon: Calendar , label: "Booking" },
+            {
+              href: `/owner/${id}/services`,
+              icon: FolderKanban,
+              label: "Service",
+            },
+            { href: `/owner/${id}/booking`, icon: Calendar, label: "Booking" },
           ].map(({ href, icon: Icon, label }, i) => {
             const isActive = pathname === href; // Check if the current path matches the link's href
 
@@ -122,7 +130,9 @@ const Sidebar = () => {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             >
-              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Confirm Logout</h2>
+              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">
+                Confirm Logout
+              </h2>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                 Are you sure you want to log out?
               </p>
