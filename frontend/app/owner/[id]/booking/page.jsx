@@ -106,14 +106,14 @@ export default function AllBookingsPage() {
         <CardContent>
           <div className="overflow-x-auto mt-4">
             <table className="min-w-full divide-y dark:divide-gray-700">
-              <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
+              <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm ">
                 <tr>
                   {[
                     "ID",
                     "Images",
                     "Name",
                     "Price",
-                    "Scheduled Date",
+                    "Scheduled ",
                     "Category",
                     "Type",
                     "total Price",
@@ -123,7 +123,7 @@ export default function AllBookingsPage() {
                   ].map((header) => (
                     <th
                       key={header}
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase"
+                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase whitespace-nowrap"
                     >
                       {header}
                     </th>
@@ -137,7 +137,9 @@ export default function AllBookingsPage() {
                     key={index}
                     className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   >
-                    <td className="p-3 text-gray-700">{index + 1}</td>
+                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                      {index + 1}
+                    </td>
                     <td className="p-3">
                       <img
                         src={booking.service?.images?.[0] || "/placeholder.png"}
@@ -145,10 +147,10 @@ export default function AllBookingsPage() {
                         className="w-16 h-16 object-cover rounded-md"
                       />
                     </td>
-                    <td className="p-3 text-gray-700 font-medium">
+                    <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
                       {booking.service?.name || "Unknown Service"}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <CreditCard className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">
@@ -156,7 +158,7 @@ export default function AllBookingsPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">
@@ -164,7 +166,7 @@ export default function AllBookingsPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       {booking.service?.category ? (
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
@@ -178,7 +180,7 @@ export default function AllBookingsPage() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       {booking.service?.type ? (
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
@@ -192,13 +194,13 @@ export default function AllBookingsPage() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="p-3 text-gray-700 font-medium">
+                    <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
                       ${Number(booking?.service_total_price).toLocaleString()}
                     </td>
-                    <td className="p-3 text-gray-700 font-medium">
+                    <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
                       {booking?.service_booking_count || "Unknown Service"}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">
@@ -206,7 +208,7 @@ export default function AllBookingsPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       <button
                         onClick={() => handleConfirmCancel(booking.id)}
                         className="text-red-500 font-bold py-2 rounded inline-flex items-center"
