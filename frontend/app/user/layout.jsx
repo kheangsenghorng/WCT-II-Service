@@ -14,13 +14,11 @@ const Userlayout = ({ children }) => {
       {/* Top Navigation */}
       <Navbar id={id} />
       {/* Content with Sidebar and Main */}
-      <div className="flex flex-1 md:px-4 py-5 space-x-6">
 
         {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-autu dark:bg-gray-900  md:p-6 ">
+        <main className="flex-1 overflow-x-hidden overflow-y-autu dark:bg-gray-900 ">
           {children}
         </main>
-      </div>
 
       {/* Footer */}
       <Footer />

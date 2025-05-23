@@ -14,16 +14,25 @@ import {
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
+import { useUserBooking } from "@/store/useUserBooking";
 
 const ProfilePage = () => {
   const { id } = useParams();
   const router = useRouter();
   const { user, fetchUserById, loading, error } = useUserStore();
   const [showImageModal, setShowImageModal] = useState(false);
+  const {
+    bookings,
+    fetchBookings,
+    loading: bookingsLoading,
+  } = useUserBooking();
 
   useEffect(() => {
-    if (id) fetchUserById(id);
-  }, [id, fetchUserById]);
+    if (id) {
+      fetchUserById(id);
+      fetchBookings(); // fetch all bookings (or you may want to filter later by userId if needed)
+    }
+  }, [id, fetchUserById, fetchBookings]);
 
   const handleOpenImageModal = () => setShowImageModal(true);
   const handleCloseImageModal = () => setShowImageModal(false);
@@ -102,20 +111,28 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-800 dark:text-gray-200">
               <div className="flex items-center gap-3">
                 <Mail className="w-6 h-6 text-blue-500" />
-                <span className="text-lg font-medium break-words">{user.email}</span>
+                <span className="text-lg font-medium break-words">
+                  {user.email}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-blue-500" />
-                <span className="text-lg font-medium">{user.location || "N/A"}</span>
+                <span className="text-lg font-medium">
+                  {user.location || "N/A"}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-6 h-6 text-blue-500" />
-                <span className="text-lg font-medium">{user.phone || "N/A"}</span>
+                <span className="text-lg font-medium">
+                  {user.phone || "N/A"}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <Calendar className="w-6 h-6 text-blue-500" />
                 <span className="text-lg font-medium">
-                  {user.hotelsBooked ?? 0} Hotels Booked
+                  {bookingsLoading
+                    ? "Loading..."
+                    : `${bookings?.length ?? 0} Service Booked`}
                 </span>
               </div>
             </div>
