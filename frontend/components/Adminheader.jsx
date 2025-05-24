@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Search, HelpCircle, Bell, ChevronDown, LogOut } from "lucide-react";
+import { Search, HelpCircle, Bell, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -17,13 +17,14 @@ const Navbar = () => {
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const toggleNotifications = () => setShowNotifications((prev) => !prev);
 
   const notificationCount =
     notifications?.filter((n) => n.is_read === 0).length || 0;
 
-  const dropdownRef = useRef();
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -44,17 +45,56 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" },
+    }),
+  };
+
+  const sidebarVariants = {
+    hidden: { x: -250 },
+    visible: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      },
+    },
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    // Redirect or handle sign out
+    window.location.href = "/login";
+  };
+
   return (
     <>
       <nav className="bg-white dark:bg-gray-800 shadow-md py-3 px-6 flex items-center justify-between transition-colors duration-300">
         {/* Left Side: Logo */}
         <div className="flex items-center">
-          <Image src="/logo.png" alt="CleaningPro Logo" width={40} height={40} className="mr-2" />
+          <Image
+            src="/logo.png"
+            alt="CleaningPro Logo"
+            width={40}
+            height={40}
+            className="mr-2"
+          />
           <div>
             <p className="text-2xl font-bold text-gray-800 dark:text-white">
-              Cleaning<span className="text-2xl text-green-600 px-1">Pro</span>
+              Cleaning
+              <span className="text-2xl text-green-600 px-1">Pro</span>
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Cleaning Services Provider</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Cleaning Services Provider
+            </p>
           </div>
         </div>
 
@@ -95,7 +135,7 @@ const Navbar = () => {
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <Image
-                  src={user?.image || "/default-user.svg"}
+                  src={user?.images || "/default-user.svg"}
                   alt={user?.last_name || "USER"}
                   width={30}
                   height={30}
@@ -105,29 +145,33 @@ const Navbar = () => {
                   <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
                     {user?.first_name} {user?.last_name}
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {user?.email}
+                  </p>
                 </div>
                 <ChevronDown className="h-4 w-4" />
               </button>
 
               {isOpen && (
-                <div className="absolute right-0 mt-2 w-[350px] h-[300px] origin-top-right rounded-md bg-gray-100 shadow-sm border ring-black ring-opacity-5 z-50">
+                <div className="absolute right-0 mt-2 w-[250px] h-[200px] origin-top-right rounded-md bg-gray-100 shadow-sm border ring-black ring-opacity-5 z-50">
                   <div className="px-4 py-3 flex justify-between items-center">
-                   <a href="">
-                    <div className="flex  justify-between">
-                     <img
-                      src={user?.image || "/default-user.svg"}
-                      alt="profile"
-                      className="h-8 w-8 rounded-full object-cover"
-                    />
-                    <div className="text-left ms-3">
-                      <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
-                        {user?.first_name} {user?.last_name}
-                      </h1>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
-                    </div>
-                   </div>
-                   </a>
+                    <a href="">
+                      <div className="flex  justify-between">
+                        <img
+                          src={user?.images || "/default-user.svg"}
+                          alt="profile"
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                        <div className="text-left ms-3">
+                          <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
+                            {user?.first_name} {user?.last_name}
+                          </h1>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </div>
+                    </a>
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
@@ -139,29 +183,39 @@ const Navbar = () => {
                   <div className="border-t border-gray-200" />
                   <ul className="py-1 text-sm text-gray-700">
                     <li>
-                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Customize Services</a>
+                      <a
+                        href="#"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
+                      >
+                        <User className="h-5 w-5" />
+                        Profile
+                      </a>
                     </li>
                     <div className="border-t border-gray-200" />
                     <li>
-                      <a href={`/admin/${id}/edit-profile`} className="block px-4 py-2 hover:bg-gray-200">Settings</a>
+                      <a
+                        href={`/admin/${id}/edit-profile`}
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
+                      >
+                        <Settings className="h-5 w-5" />
+                        Settings
+                      </a>
                     </li>
                   </ul>
                   <div className="border-t border-gray-200" />
-                  <ul className="py-1 text-sm text-gray-700">
-                    <li>
-                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Help & FAQ</a>
-                    </li>
-                    <div className="border-t border-gray-200" />
-                    <li>
-                      <a href="#" className="block px-4 py-2 hover:bg-gray-200">Terms & Policies</a>
-                    </li>
-                  </ul>
+
                   <div className="border-t border-gray-200" />
-                  <div className="py-1">
-                    <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-white">
-                      <LogOut className="mr-2 inline-block h-4 w-4" /> Log out
-                    </button>
-                  </div>
+                  <motion.button
+                    onClick={handleLogout}
+                    className="group flex items-center py-3 px-4 rounded-md w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-800 dark:text-red-400 hover:text-red-700 dark:hover:text-red-200 transition-colors"
+                    custom={4}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    <span className="text-sm font-medium">Logout</span>
+                  </motion.button>
                 </div>
               )}
             </div>
@@ -182,6 +236,47 @@ const Navbar = () => {
             />
             <NotificationsPanel id={id} onClose={toggleNotifications} />
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                Confirm Logout
+              </h3>
+              <p className="mb-6 text-gray-700 dark:text-gray-300">
+                Are you sure you want to log out?
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
