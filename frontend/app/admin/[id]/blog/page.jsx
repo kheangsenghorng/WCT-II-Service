@@ -6,11 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useBlogStore } from "@/store/useBlogStore";
 import BlogForm from "@/components/blog/BlogForm";
 import BlogTable from "@/components/blog/BlogTable";
+import { useParams } from "next/navigation";
 
 export default function BlogPage() {
+  const { id } = useParams(); // id from URL params, string type
+  const adminId = id; // optionally convert to number if needed: Number(id);
+
   const {
     blogs,
-    fetchAllBlogs,
+    fetchBlogs,
     selectBlog,
     clearSelectedBlog,
     loading,
@@ -21,21 +25,22 @@ export default function BlogPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
-    fetchAllBlogs();
-  }, [fetchAllBlogs]);
+    // If fetchBlogs accepts adminId, pass it here:
+    fetchBlogs(adminId);
+  }, [fetchBlogs, adminId]);
 
   const openAddForm = () => {
-    clearSelectedBlog();
+    clearSelectedBlog?.();
     setShowForm(true);
   };
 
   const openEditForm = (blog) => {
-    selectBlog(blog);
+    selectBlog?.(blog);
     setShowForm(true);
   };
 
   const openDeleteConfirm = (blog) => {
-    selectBlog(blog);
+    selectBlog?.(blog);
     setShowConfirm(true);
   };
 
@@ -75,13 +80,20 @@ export default function BlogPage() {
 
       {/* Add/Edit Form Modal */}
       <AnimatePresence>
-        {showForm && <BlogForm showForm={showForm} setShowForm={setShowForm} />}
+        {showForm && (
+          <BlogForm
+            key="blog-form"
+            showForm={showForm}
+            setShowForm={setShowForm}
+          />
+        )}
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {showConfirm && (
           <motion.div
+            key="delete-confirm"
             className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

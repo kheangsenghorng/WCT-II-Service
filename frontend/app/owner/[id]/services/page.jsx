@@ -1,4 +1,3 @@
-// app/admin/[id]/services/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,13 +15,14 @@ import {
 import { useServicesStore } from "@/store/useServicesStore";
 import { useCategoryStore } from "@/store/useCateroyStore";
 import { useTypeStore } from "@/store/useTypeStore";
-import { useParams, useRouter } from "next/navigation"; // Import useRouter
+import { useParams, useRouter } from "next/navigation";
 import EditServiceModal from "@/components/services/EditServiceModal";
 import DeleteConfirmationModal from "@/components/services/DeleteConfirmationModal";
 
 export default function ServicesPage() {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const { id: ownerId } = useParams();
+
   const {
     services,
     loading: servicesLoading,
@@ -55,6 +55,8 @@ export default function ServicesPage() {
 
   const [stats, setStats] = useState({ total: 0 });
   const [prevStats, setPrevStats] = useState({ total: 0 });
+
+  const [filterCategory, setFilterCategory] = useState("");
 
   useEffect(() => {
     if (ownerId) {
@@ -112,6 +114,17 @@ export default function ServicesPage() {
   const safeCategories = categories || [];
   const safeTypes = types || [];
 
+  const filteredServices = filterCategory
+    ? services.filter((service) => {
+        const category = safeCategories.find(
+          (cat) => cat.id === service.service_categories_id
+        );
+        return category?.name
+          ?.toLowerCase()
+          .includes(filterCategory.toLowerCase());
+      })
+    : services;
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="flex-1 p-4 md:p-6">
@@ -123,7 +136,7 @@ export default function ServicesPage() {
             <button
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
               onClick={() => {
-                router.push(`/owner/${ownerId}/services/add`); // Navigate to add service page
+                router.push(`/owner/${ownerId}/services/add`);
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
@@ -133,7 +146,6 @@ export default function ServicesPage() {
             </button>
           </div>
 
-          {/* Stats Display */}
           <div className="mb-4 text-sm text-gray-600 dark:text-gray-300">
             Total Services: {stats.total}
             {stats.total !== prevStats.total && (
@@ -142,6 +154,30 @@ export default function ServicesPage() {
                 {stats.total - prevStats.total})
               </span>
             )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-4">
+            <label
+              htmlFor="filterCategory"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0"
+            >
+              Filter by Category:
+            </label>
+            <div className="relative flex-1">
+              <select
+                id="filterCategory"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Categories</option>
+                {safeCategories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <AnimatePresence>
@@ -172,7 +208,6 @@ export default function ServicesPage() {
             )}
           </AnimatePresence>
 
-          {/* Services Table */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border dark:border-gray-700">
             {servicesLoading ? (
               <div className="p-6 text-center text-gray-500">
@@ -203,7 +238,7 @@ export default function ServicesPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {services.map((service, index) => {
+                    {filteredServices.map((service, index) => {
                       const category = safeCategories.find(
                         (cat) => cat.id === service.service_categories_id
                       );
@@ -272,7 +307,7 @@ export default function ServicesPage() {
                                 <Trash2 className="w-8" />
                               </button>
                             </div>
-                          </td> 
+                          </td>
                         </tr>
                       );
                     })}
@@ -283,7 +318,6 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {/* Edit Service Modal */}
         <EditServiceModal
           show={showEditModal}
           onClose={() => setShowEditModal(false)}

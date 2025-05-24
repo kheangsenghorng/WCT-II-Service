@@ -83,8 +83,6 @@ export default function SettingsPage() {
   };
 
   const confirmUpdate = async () => {
-    
-
     const formData = new FormData();
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
@@ -98,7 +96,7 @@ export default function SettingsPage() {
     try {
       await updateUser(user.id, formData);
       await fetchUserById(id);
-      router.push(`/admin/${id}/dashboard`);
+      router.push(`/owner/${id}/dashboard`);
     } catch (error) {
       console.error("Update failed:", error);
     } finally {

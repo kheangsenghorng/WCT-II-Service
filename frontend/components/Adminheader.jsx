@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Search, HelpCircle, Bell, ChevronDown, LogOut, User, Settings } from "lucide-react";
+import Link from "next/link";
+import {
+  Search,
+  HelpCircle,
+  Bell,
+  ChevronDown,
+  LogOut,
+  User,
+  Settings,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -54,26 +63,15 @@ const Navbar = () => {
     }),
   };
 
-  const sidebarVariants = {
-    hidden: { x: -250 },
-    visible: {
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 20,
-      },
-    },
-  };
-
   const handleLogout = () => {
     setShowLogoutConfirm(true);
   };
 
   const confirmLogout = () => {
-    // Redirect or handle sign out
     window.location.href = "/login";
   };
+
+  const hasAdminAccess = user?.role === "admin" || user?.role === "owner";
 
   return (
     <>
@@ -107,7 +105,6 @@ const Navbar = () => {
             type="search"
             placeholder="Search..."
             className="block w-full p-2 pl-10 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            required
           />
         </div>
 
@@ -135,12 +132,19 @@ const Navbar = () => {
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <Image
-                  src={user?.images || "/default-user.svg"}
+                  src={
+                    user?.image && user.image.trim() !== ""
+                      ? user.image.startsWith("http")
+                        ? user.image
+                        : `/${user.image.replace(/^\/+/, "")}`
+                      : "/default-user.svg"
+                  }
                   alt={user?.last_name || "USER"}
                   width={30}
                   height={30}
-                  className="rounded-full"
+                  className="rounded-full object-cover"
                 />
+
                 <div className="text-left">
                   <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
                     {user?.first_name} {user?.last_name}
@@ -153,25 +157,29 @@ const Navbar = () => {
               </button>
 
               {isOpen && (
-                <div className="absolute right-0 mt-2 w-[250px] h-[200px] origin-top-right rounded-md bg-gray-100 shadow-sm border ring-black ring-opacity-5 z-50">
+                <div className="absolute right-0 mt-2 w-[250px] origin-top-right rounded-md bg-gray-100 shadow-sm border ring-black ring-opacity-5 z-50">
                   <div className="px-4 py-3 flex justify-between items-center">
-                    <a href="">
-                      <div className="flex  justify-between">
-                        <img
-                          src={user?.images || "/default-user.svg"}
-                          alt="profile"
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                        <div className="text-left ms-3">
-                          <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
-                            {user?.first_name} {user?.last_name}
-                          </h1>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {user?.email}
-                          </p>
-                        </div>
+                    <div className="flex">
+                      <img
+                        src={
+                          user?.image && user.image.trim() !== ""
+                            ? user.image.startsWith("http")
+                              ? user.image
+                              : `/${user.image.replace(/^\/+/, "")}`
+                            : "/default-user.svg"
+                        }
+                        alt="profile"
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                      <div className="text-left ms-3">
+                        <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
+                          {user?.first_name} {user?.last_name}
+                        </h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {user?.email}
+                        </p>
                       </div>
-                    </a>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
@@ -191,19 +199,21 @@ const Navbar = () => {
                         Profile
                       </a>
                     </li>
-                    <div className="border-t border-gray-200" />
-                    <li>
-                      <a
-                        href={`/admin/${id}/edit-profile`}
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
-                      >
-                        <Settings className="h-5 w-5" />
-                        Settings
-                      </a>
-                    </li>
+                    {hasAdminAccess && (
+                      <>
+                        <div className="border-t border-gray-200" />
+                        <li>
+                          <Link
+                            href={`/${user?.role}/${id}/edit-profile`}
+                            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
+                          >
+                            <Settings className="h-5 w-5" />
+                            Settings
+                          </Link>
+                        </li>
+                      </>
+                    )}
                   </ul>
-                  <div className="border-t border-gray-200" />
-
                   <div className="border-t border-gray-200" />
                   <motion.button
                     onClick={handleLogout}
