@@ -6,11 +6,10 @@ import { useAuthStore } from "@/store/authStore"; // Import useAuthStore
 export const useTypeStore = create((set) => ({
   userTypes: [],
   types: [],
-  loading: false, 
+  loading: false,
   loadingTypes: false,
   error: null,
   selectedUserType: null,
-
 
   fetchAllUserTypes: async () => {
     set({ loading: true, error: null });
@@ -58,19 +57,56 @@ export const useTypeStore = create((set) => ({
     }
   },
 
-  addUserType: async (name, serviceCategoriesId) => {
+  // addUserType: async (name, serviceCategoriesId) => {
+  //   set({ loading: true, error: null });
+  //   try {
+  //     const token = useAuthStore.getState()?.getToken?.(); // Get Token
+  //     const res = await request(
+  //       "/admin/type",
+  //       "POST",
+  //       {
+  //         name,
+  //         service_categories_id: Number(serviceCategoriesId),
+  //       },
+  //       token
+  //     ); // pass token
+
+  //     if (!res) {
+  //       throw new Error("Invalid response from server (addUserType)");
+  //     }
+
+  //     set((state) => ({
+  //       userTypes: [
+  //         ...state.userTypes,
+  //         {
+  //           ...res,
+  //           service_categories_id: res.service_categories_id || [],
+  //         },
+  //       ],
+  //     }));
+  //   } catch (err) {
+  //     set({
+  //       error:
+  //         err.response?.data?.message ||
+  //         err.message ||
+  //         "Failed to add user type.",
+  //     });
+  //   } finally {
+  //     set({ loading: false });
+  //   }
+  // },
+
+  addUserType: async (name, serviceCategoriesId, imageFile) => {
     set({ loading: true, error: null });
     try {
-      const token = useAuthStore.getState()?.getToken?.(); // Get Token
-      const res = await request(
-        "/admin/type",
-        "POST",
-        {
-          name,
-          service_categories_id: Number(serviceCategoriesId),
-        },
-        token
-      ); // pass token
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("service_categories_id", Number(serviceCategoriesId));
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      const res = await request("/admin/type", "POST", formData);
 
       if (!res) {
         throw new Error("Invalid response from server (addUserType)");
@@ -80,8 +116,8 @@ export const useTypeStore = create((set) => ({
         userTypes: [
           ...state.userTypes,
           {
-            ...res,
-            service_categories_id: res.service_categories_id || [],
+            ...res.data, // the created Type is in res.data (adjust if different)
+            service_categories_id: res.data.service_categories_id || [],
           },
         ],
       }));
@@ -97,41 +133,46 @@ export const useTypeStore = create((set) => ({
     }
   },
 
-  updateUserType: async (id, name, serviceCategoriesId) => {
+  updateUserType: async (id, name, serviceCategoriesId, imageFile) => {
     set({ loading: true, error: null });
     try {
-      const token = useAuthStore.getState()?.getToken?.(); // Get Token
-      const res = await request(
-        `/admin/type/${id}`,
-        "PUT",
-        {
-          name,
-          service_categories_id: Number(serviceCategoriesId), // Ensure it's an array
-        },
-        token
-      );
+      const formData = new FormData();
+      formData.append("_method", "PUT"); // 👈 Laravel-compatible method spoofing
+      formData.append("name", name);
+      formData.append("service_categories_id", serviceCategoriesId); // can be string or number
 
-      if (!res) {
+      if (imageFile) {
+        formData.append("image", imageFile); // 👈 optional image
+      }
+
+      const res = await request(`/admin/type/${id}`, "POST", formData);
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update user type.");
+      }
+
+      const json = await res.json();
+
+      if (!json?.data) {
         throw new Error("Invalid response from server (updateUserType)");
       }
 
-      // Update user types in state
+      const updatedType = json.data;
+
       set((state) => ({
         userTypes: state.userTypes.map((type) =>
           type.id === id
             ? {
-                ...res, // Update the type with the response from the server
-                service_categories_id: res.service_categories_id || [], // Ensure service_categories_id is always an array
+                ...updatedType,
+                service_categories_id: updatedType.service_categories_id || [],
               }
             : type
         ),
       }));
     } catch (err) {
       set({
-        error:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to update user type.",
+        error: err.message || "Failed to update user type.",
       });
     } finally {
       set({ loading: false });
