@@ -6,112 +6,98 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Blog;
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Facades\Validator;
+
 class BlogController extends Controller
 {
     public function store(Request $request)
     {
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'title'   => 'required|string|max:255',
-            'content' => 'required|string',
-            'images'  => 'array',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        $validated = $request->validate([
+            'title'    => 'required|string|max:255',
+            'content'  => 'required|string',
+            'image'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'admin_id' => 'nullable|exists:admins,id',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+    
+        $imagePath = null;
+    
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('blogs', 'public'); // saves like blogs/filename.jpg
         }
-
-        $validated = $validator->validated();
-
-        $imagePaths = [];
-
-        if ($request->hasFile('images')) {
-            $images = $request->file('images');
-            if (is_array($images)) {
-                foreach ($images as $image) {
-                    $path = $image->store('blogs', 'public');
-                    $imagePaths[] = $path;
-                }
-            }
-        }
-
+    
         $blog = new Blog();
         $blog->title = $validated['title'];
         $blog->content = $validated['content'];
         $blog->admin_id = $validated['admin_id'] ?? auth()->id();
-        $blog->images = $imagePaths;
+        $blog->image = $imagePath; // saved as blogs/filename.jpg
         $blog->save();
-
-        $blog->images = $blog->getImagesAttribute($blog->images); //Access to your images path getter to return path.
-
+    
         return response()->json($blog, 201);
     }
-
-
-
-    // Show single blog
+    
     public function show($id)
     {
         $blog = Blog::findOrFail($id);
         return response()->json($blog);
     }
-
-    // List all blogs
+    
     public function index()
     {
         $blogs = Blog::latest()->get();
         return response()->json($blogs);
     }
+    
 
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string',
-                'images' => 'nullable|image|max:2048',
-            ]);
+        $blog = Blog::findOrFail($id);
     
-            $blog = Blog::findOrFail($id);
-            $blog->title = $request->title;
-            $blog->content = $request->content;
+        $validated = $request->validate([
+            'title'    => 'sometimes|required|string|max:255',
+            'content'  => 'sometimes|required|string',
+            'image'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'admin_id' => 'nullable|exists:admins,id',
+        ]);
     
-            if ($request->hasFile('images')) {
-                if ($blog->images) {
-                    $oldPath = str_replace('/storage/', '', $blog->images);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
-                }
-    
-                $path = $request->file('images')->store('blogs', 'public');
-                $blog->images = Storage::url($path);
+        if ($request->hasFile('image')) {
+            // Optionally delete the old image
+            if ($blog->image) {
+                $oldPath = str_replace(url('storage/') . '/', '', $blog->image);
+                Storage::disk('public')->delete($oldPath);
             }
     
-            $blog->save();
-    
-            return response()->json($blog);
-        } catch (\Exception $e) {
-            \Log::error('Blog update error: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to update blog'], 500);
+            // Store the new image
+            $newImagePath = $request->file('image')->store('blogs', 'public');
+            $blog->image = $newImagePath;
         }
+    
+        // Update other fields if present
+        if (isset($validated['title'])) {
+            $blog->title = $validated['title'];
+        }
+    
+        if (isset($validated['content'])) {
+            $blog->content = $validated['content'];
+        }
+    
+        if (isset($validated['admin_id'])) {
+            $blog->admin_id = $validated['admin_id'];
+        }
+    
+        $blog->save();
+    
+        return response()->json($blog);
     }
     
-    
-    
 
-    // Delete blog
     public function destroy($id)
     {
         $blog = Blog::findOrFail($id);
 
-        if ($blog->images) {
-            $oldPath = str_replace('/storage/', '', $blog->images);
-            Storage::disk('public')->delete($oldPath);
+        if (is_array($blog->image)) {
+            foreach ($blog->image as $img) {
+                Storage::disk('public')->delete($img);
+            }
         }
 
         $blog->delete();

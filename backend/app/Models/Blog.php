@@ -1,25 +1,16 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
-    protected $fillable = ['title', 'content', 'images', 'admin_id'];
+    protected $fillable = ['title', 'content', 'image', 'admin_id'];
 
-    // Cast images attribute to array automatically
-    protected $casts = [
-        'images' => 'array',
-    ];
-    
-    public function getImagesAttribute($images)
-{
-    if (is_array($images)) {
-        return array_map(fn($img) => url('storage/' . ltrim($img, '/')), $images);
+    public function getImageAttribute($value)
+    {
+        return $value ? url('storage/' . $value) : null;
     }
-    return [];
 }
 
-    
-}  
+
