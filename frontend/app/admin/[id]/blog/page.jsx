@@ -28,7 +28,6 @@ export default function BlogPage() {
     clearSelectedBlog();
     setShowForm(true);
   };
-  
 
   const openEditForm = (blog) => {
     selectBlog(blog);
@@ -44,8 +43,6 @@ export default function BlogPage() {
     await deleteBlog();
     setShowConfirm(false);
   };
-
-
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -78,9 +75,7 @@ export default function BlogPage() {
 
       {/* Add/Edit Form Modal */}
       <AnimatePresence>
-        {showForm && (
-         <BlogForm showForm={showForm} setShowForm={setShowForm} />
-        )}
+        {showForm && <BlogForm showForm={showForm} setShowForm={setShowForm} />}
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
