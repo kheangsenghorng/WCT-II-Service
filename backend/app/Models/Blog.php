@@ -7,10 +7,11 @@ class Blog extends Model
 {
     protected $fillable = ['title', 'content', 'image', 'admin_id'];
 
-    public function getImageAttribute($value)
-    {
-        return $value ? url('storage/' . $value) : null;
-    }
+
+    // public function getImageAttribute($value)
+    // {
+    //     return $value ? url('storage/' . $value) : null;
+    // }
 }
 
 

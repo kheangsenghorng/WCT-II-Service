@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 
 import { useParams } from "next/navigation";
 
-
 const Userlayout = ({ children }) => {
   const { id } = useParams();
 
@@ -15,10 +14,10 @@ const Userlayout = ({ children }) => {
       <Navbar id={id} />
       {/* Content with Sidebar and Main */}
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-autu dark:bg-gray-900 ">
-          {children}
-        </main>
+      {/* Main Content */}
+      <main className="flex-1 overflow-x-hidden overflow-y-autu dark:bg-gray-900 ">
+        {children}
+      </main>
 
       {/* Footer */}
       <Footer />

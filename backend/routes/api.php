@@ -67,9 +67,9 @@ Route::middleware('auth:api')->group(function () {
           // Blog Routes
           Route::prefix('blogs')->group(function () {
             Route::get('/', [BlogController::class, 'index']);          // Get all blogs
-            Route::post('/', [BlogController::class, 'store']);         // Create a new blog
+            Route::post('/{id}', [BlogController::class, 'store']);         // Create a new blog
             Route::get('/{id}', [BlogController::class, 'show']);       // Get blog by id
-            Route::put('/{id}', [BlogController::class, 'update']);     // Update blog by id
+            Route::put('/edit/{id}', [BlogController::class, 'update']);     // Update blog by id
             Route::delete('/{id}', [BlogController::class, 'destroy']); // Delete blog by id
         });
         
