@@ -8,6 +8,7 @@ import PhnomPenhTour from "@/components/PhnomPenhTour";
 import AdditionalInfo from "@/components/AdditionalInfo";
 // import Reviews from "@/components/Reviews"; // Make sure you have it or remove it
 import { useParams } from "next/navigation";
+import ServicesForDetails from "@/components/ServicesForDetails"; // Import the ServicesSection component
 
 function PageTour() {
   const { servicesId } = useParams(); // Access the tour ID
@@ -32,6 +33,9 @@ function PageTour() {
         <div>
           <BookingForm servicesId={servicesId} />
         </div>
+      </div>
+      <div>
+        <ServicesForDetails />
       </div>
     </div>
   );

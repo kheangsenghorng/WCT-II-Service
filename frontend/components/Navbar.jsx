@@ -28,7 +28,14 @@ const Navbar = ({ id }) => {
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Logo" width={35} height={35} />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={0} // or omit width & height
+            height={0}
+            style={{ width: "35px", height: "auto" }}
+          />
+
           <div>
             <p className="text-xl font-bold text-gray-800">
               Services<span className="text-green-600 px-2">Me</span>
@@ -39,23 +46,29 @@ const Navbar = ({ id }) => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex space-x-14 text-xl">
-          <Link href={`/user/${id}/home`} className="text-gray-600 hover:text-green-500">
+          <Link
+            href={ id ? `/user/${id}/home` : `/` }
+            className="text-gray-600 hover:text-green-500"
+          >
             Home
           </Link>
           <Link
-            href={`/user/about-us`}
+            href={ id ? `/user/${id}/about-us`
+          : `/about-us/`}
             className="text-gray-600 hover:text-green-500"
           >
             About us
           </Link>
-          <Link href="/services" className="text-gray-600 hover:text-green-500">
+          <Link href={ id ? `/user/${id}/service` : `/service`} className="text-gray-600 hover:text-green-500">
             Service
           </Link>
-          <Link href="/blog" className="text-gray-600 hover:text-green-500">
+          <Link href={ id ? `/user/${id}/blog` : `/blog`} className="text-gray-600 hover:text-green-500">
             Blog
           </Link>
           <Link
-            href={`/user/contact`}
+            href={ id
+              ? `/user/${id}/contact/`
+              : `/contact/`}
             className="text-gray-600 hover:text-green-500"
           >
             Contact

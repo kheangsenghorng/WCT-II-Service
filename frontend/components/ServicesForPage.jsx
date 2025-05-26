@@ -9,15 +9,16 @@ import {
   Star,
   MapPin,
   Clock,
+  Calendar,
   ChevronRight,
   Wallet,
   Info,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
-const CARDS_PER_PAGE = 4;
+const CARDS_PER_PAGE = 12;
 
-const ServicesSection = ({ selectedCategorySlug }) => {
+const ServicesForDetails = () => {
   const { id } = useParams();
   const { services, loading, error, fetchAllServices } = useServicesStore();
   const [visibleCount, setVisibleCount] = useState(CARDS_PER_PAGE);
@@ -26,20 +27,8 @@ const ServicesSection = ({ selectedCategorySlug }) => {
     fetchAllServices();
   }, [fetchAllServices]);
 
-  const filteredServices = selectedCategorySlug
-    ? services.filter((s) => s.categorySlug === selectedCategorySlug)
-    : services;
-
-  const visibleServices = filteredServices.slice(0, visibleCount);
-
   const handleViewMore = () => {
-    setVisibleCount(filteredServices.length);
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    hover: { scale: 1.03, transition: { duration: 0.2 } },
+    setVisibleCount(services.length);
   };
 
   if (loading) {
@@ -51,6 +40,15 @@ const ServicesSection = ({ selectedCategorySlug }) => {
   if (error) {
     return <div className="text-center py-20 text-red-500">Error: {error}</div>;
   }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    hover: { scale: 1.03, transition: { duration: 0.2 } },
+  };
+
+  // Slice services to show only the visible ones
+  const visibleServices = services.slice(0, visibleCount);
 
   return (
     <div className="py-16 px-8 md:px-20 lg:px-26 md:flex-row">
@@ -73,10 +71,12 @@ const ServicesSection = ({ selectedCategorySlug }) => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {visibleServices.map((service) => {
+              // Determine image source safely
               const imageSrc =
                 Array.isArray(service.images) && service.images.length > 0
                   ? service.images[0]
-                  : typeof service.images === "string" && service.images.trim() !== ""
+                  : typeof service.images === "string" &&
+                    service.images.trim() !== ""
                   ? service.images
                   : "/placeholder.jpg";
 
@@ -89,9 +89,10 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                   animate="visible"
                   whileHover="hover"
                 >
+                  {/* Image Section */}
                   <div className="relative w-full h-55">
                     <Image
-                      src={imageSrc}
+                      src={imageSrc || "/placeholder.svg"}
                       alt={service.name || "Service"}
                       fill
                       sizes="(max-width: 768px) 100vw, 800px"
@@ -99,12 +100,14 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                     />
                   </div>
 
+                  {/* Content Section */}
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 line-clamp-1">
                         {service.name || "Unnamed Service"}
                       </h3>
 
+                      {/* Rating (if available) */}
                       {service.rating && (
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
                           <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
@@ -115,6 +118,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                       )}
                     </div>
 
+                    {/* Details */}
                     <div className="space-y-2 mb-3">
                       {service.location && (
                         <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
@@ -134,10 +138,14 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                         </div>
                       )}
 
+                      {/* Price Badge */}
                       {service.base_price && (
                         <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
                           <Wallet className="w-4 h-4 mr-1 flex-shrink-0" />
-                          <span>${service.base_price}</span>
+                          <span className="line-clamp-1">
+                            {" "}
+                            ${service.base_price}
+                          </span>
                         </div>
                       )}
 
@@ -152,6 +160,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                         <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
                           <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
                           <span>
+                            {" "}
                             Time{" "}
                             {new Date(service.created_at).toLocaleDateString()}
                           </span>
@@ -159,6 +168,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                       )}
                     </div>
 
+                    {/* View Details Button */}
                     <Link
                       href={
                         id
@@ -179,8 +189,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
               );
             })}
           </div>
-
-          {visibleCount < filteredServices.length && (
+          {visibleCount < services.length && (
             <div className="text-center mt-8">
               <button
                 onClick={handleViewMore}
@@ -196,4 +205,4 @@ const ServicesSection = ({ selectedCategorySlug }) => {
   );
 };
 
-export default ServicesSection;
+export default ServicesForDetails;

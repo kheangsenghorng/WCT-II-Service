@@ -1,5 +1,6 @@
-"use client";
 
+
+"use client"// BlogPage.js (your main page)
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,44 +10,51 @@ import BlogTable from "@/components/blog/BlogTable";
 import { useParams } from "next/navigation";
 
 export default function BlogPage() {
-  const { id } = useParams(); // id from URL params, string type
-  const adminId = id; // optionally convert to number if needed: Number(id);
+  const { id } = useParams();
+  const adminId = id;
 
   const {
     blogs,
     fetchBlogs,
-    selectBlog,
+    setSelectedBlog,
     clearSelectedBlog,
     loading,
     deleteBlog,
+    selectedBlog,
   } = useBlogStore();
 
   const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
-    // If fetchBlogs accepts adminId, pass it here:
     fetchBlogs(adminId);
   }, [fetchBlogs, adminId]);
 
   const openAddForm = () => {
-    clearSelectedBlog?.();
+    clearSelectedBlog();
     setShowForm(true);
   };
 
   const openEditForm = (blog) => {
-    selectBlog?.(blog);
+    setSelectedBlog(blog);
     setShowForm(true);
   };
 
   const openDeleteConfirm = (blog) => {
-    selectBlog?.(blog);
+    setSelectedBlog(blog);
     setShowConfirm(true);
   };
 
   const confirmDelete = async () => {
-    await deleteBlog();
-    setShowConfirm(false);
+    if (!selectedBlog?.id) return;
+
+    try {
+      await deleteBlog(selectedBlog.id);
+      setShowConfirm(false);
+      clearSelectedBlog();
+    } catch (error) {
+      console.error("Error deleting blog:", error);
+    }
   };
 
   return (
@@ -65,7 +73,7 @@ export default function BlogPage() {
         </button>
       </div>
 
-      {/* Blog Table or Loading */}
+      {/* Blog Table */}
       {loading ? (
         <p className="text-center text-gray-500 dark:text-gray-400">
           Loading blogs...
@@ -78,13 +86,20 @@ export default function BlogPage() {
         />
       )}
 
-      {/* Add/Edit Form Modal */}
+      {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
           <BlogForm
             key="blog-form"
             showForm={showForm}
             setShowForm={setShowForm}
+            blog={selectedBlog}         // pass selected blog here
+            adminId={adminId}           // pass admin id to form
+            onSuccess={() => {
+              setShowForm(false);
+              clearSelectedBlog();
+              fetchBlogs(adminId);      // refresh list after add/edit
+            }}
           />
         )}
       </AnimatePresence>
@@ -94,7 +109,7 @@ export default function BlogPage() {
         {showConfirm && (
           <motion.div
             key="delete-confirm"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
