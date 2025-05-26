@@ -99,18 +99,31 @@ class BlogController extends Controller
         // Do not add image_url — just return stored fields
         return response()->json($blog);
     }
-    
-    // DELETE /api/blogs/{id}
+   
     public function destroy($id)
     {
-        $blog = Blog::findOrFail($id);
-
-        if ($blog->image) {
-            Storage::disk('public')->delete($blog->image);
+        $blog = Blog::find($id);
+    
+        if (!$blog) {
+            return response()->json(['error' => 'Blog not found.'], 404);
         }
-
-        $blog->delete();
-
-        return response()->json(['message' => 'Blog deleted successfully']);
+    
+        try {
+            // Delete image file if exists
+            if ($blog->image) {
+                Storage::disk('public')->delete($blog->image);
+            }
+    
+            $blog->delete();
+    
+            return response()->json(['message' => 'Blog deleted successfully.'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to delete blog.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
     }
+    
 }
+    

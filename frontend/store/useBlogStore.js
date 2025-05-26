@@ -1,36 +1,33 @@
-// store/blogStore.js
 import { create } from "zustand";
-import { request } from "@/util/request";
+import { request } from "@/util/request"; // your centralized request helper
 
 export const useBlogStore = create((set) => ({
   blogs: [],
   selectedBlog: null,
   loading: false,
+  error: null,
 
-  // Select & clear blog
   setSelectedBlog: (blog) => set({ selectedBlog: blog }),
   clearSelectedBlog: () => set({ selectedBlog: null }),
 
-  // Fetch all blogs
   fetchBlogs: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
       const blogs = await request("/admin/blogs", "GET");
       set({ blogs });
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
+      set({ error: "Failed to fetch blogs. Please try again later." });
     } finally {
       set({ loading: false });
     }
   },
 
-  // Fetch single blog
   fetchBlogById: async (id) => {
     if (!id) {
       console.error("No blog ID provided.");
       return null;
     }
-
     try {
       const blog = await request(`/admin/blogs/${id}`, "GET");
       set({ selectedBlog: blog });
@@ -41,7 +38,6 @@ export const useBlogStore = create((set) => ({
     }
   },
 
-  // Create new blog
   createBlog: async (formData, adminId) => {
     try {
       return await request(`/admin/blogs/${adminId}`, "POST", formData);
@@ -51,7 +47,6 @@ export const useBlogStore = create((set) => ({
     }
   },
 
-  // Update existing blog
   updateBlog: async (id, formData) => {
     try {
       formData.append("_method", "PUT"); // Laravel method spoofing
@@ -62,15 +57,17 @@ export const useBlogStore = create((set) => ({
     }
   },
 
-  // Delete blog
-  deleteBlog: async (id) => {
+  deleteBlog: async (blogId) => {
     try {
-      await request(`/api/blogs/${id}`, "DELETE");
+      await request(`/admin/blogs/${blogId}`, "DELETE");  // Use request helper with DELETE method
       set((state) => ({
-        blogs: state.blogs.filter((blog) => blog.id !== id),
+        blogs: state.blogs.filter((blog) => blog.id !== blogId),
+        selectedBlog: null,
       }));
+      return true;
     } catch (error) {
       console.error("Failed to delete blog:", error);
+      throw error;
     }
   },
 }));
