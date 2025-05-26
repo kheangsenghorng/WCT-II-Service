@@ -59,7 +59,7 @@ export const useBlogStore = create((set) => ({
 
   deleteBlog: async (blogId) => {
     try {
-      await request(`/admin/blogs/${blogId}`, "DELETE");  // Use request helper with DELETE method
+      await request(`/admin/blogs/${blogId}`, "DELETE"); // Use request helper with DELETE method
       set((state) => ({
         blogs: state.blogs.filter((blog) => blog.id !== blogId),
         selectedBlog: null,
