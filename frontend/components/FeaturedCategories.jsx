@@ -24,6 +24,8 @@ const FeaturedCategories = () => {
     fetchAllServices();
     fetchTypes();
   }, []);
+  console.log(services[0]);
+  
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
