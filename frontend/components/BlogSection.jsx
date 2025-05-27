@@ -122,7 +122,7 @@ const BlogSection = () => {
 
                       <Link
                         href={
-                          id ? `/user/${id}/blog/${blog.id}` : `/blog/${blog.id}`
+                          id ? `/user/${id}/blogdetails/${blog.id}` : `/blog/${blog.id}`
                         }
                         className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:underline group-hover:text-blue-700 dark:group-hover:text-blue-300"
                       >
