@@ -1,10 +1,9 @@
 import React from 'react';
-
+import BookingConfirmation from '@/components/BookingConfirmation';
 const BookingPage = () => {
     return (
         <div>
-            <h1>Booking Details</h1>
-            <p>Display booking information here.</p>
+            <BookingConfirmation />
         </div>
     );
 };

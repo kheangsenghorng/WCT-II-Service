@@ -5,6 +5,8 @@ import { Calendar, CreditCard, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "next/navigation";
+import { Search } from "lucide-react"; 
+
 
 export default function AllBookingsPage() {
   const params = useParams();
@@ -21,12 +23,11 @@ export default function AllBookingsPage() {
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // <-- Added search query
 
   useEffect(() => {
     fetchBookingsByOwnerId(ownerId);
   }, [ownerId, fetchBookingsByOwnerId]);
-
-  console.log(bookings);
 
   const handleConfirmCancel = (id) => {
     setSelectedBookingId(id);
@@ -104,6 +105,24 @@ export default function AllBookingsPage() {
         </CardHeader>
 
         <CardContent>
+         
+        {/* Search Bar */}
+        <div className="flex justify-end mb-4">
+          <div className="relative w-full max-w-xs">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <Search className="h-4 w-4" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by service name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-3 py-2 border rounded-md w-full text-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+        </div>
+
+
           <div className="overflow-x-auto mt-4">
             <table className="min-w-full divide-y dark:divide-gray-700">
               <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm ">
@@ -118,12 +137,11 @@ export default function AllBookingsPage() {
                     "Type",
                     "total Price",
                     "Total Guests",
-                    "Status",
                     "Actions",
                   ].map((header) => (
                     <th
                       key={header}
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase whitespace-nowrap"
+                      className="px-2 py-2 text-left text-sm  font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase whitespace-nowrap"
                     >
                       {header}
                     </th>
@@ -132,99 +150,114 @@ export default function AllBookingsPage() {
               </thead>
 
               <tbody>
-                {bookings.map((booking, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="p-3 text-gray-700 whitespace-nowrap">
-                      {index + 1}
-                    </td>
-                    <td className="p-3">
-                      <img
-                        src={booking.service?.images?.[0] || "/placeholder.png"}
-                        alt={booking.service?.name || "Service Image"}
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                    </td>
-                    <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
-                      {booking.service?.name || "Unknown Service"}
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <CreditCard className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">
-                          {booking.service?.base_price || "N/A"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">
-                          {formatDate(booking?.scheduled_date)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      {booking.service?.category ? (
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                            booking.service.category.name
-                          )}`}
+                {bookings
+                  .filter((booking) =>
+                    booking.service?.name
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase().trim())
+                  )
+                  .map((booking, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-2 py-1 text-[14px] text-gray-700 whitespace-nowrap">
+                        {index + 1}
+                      </td>
+                      <td className="p-3">
+                        <img
+                          src={booking.service?.images?.[0] || "/placeholder.png"}
+                          alt={booking.service?.name || "Service Image"}
+                          className="w-16 h-16 object-cover rounded-md"
+                        />
+                      </td>
+                      <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
+                        {booking.service?.name || "Unknown Service"}
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <CreditCard className="h-4 w-4 text-blue-400" />
+                          <span className="text-gray-700">
+                            {booking.service?.base_price || "N/A"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-4 w-4 text-blue-400" />
+                          <span className="text-gray-700">
+                            {formatDate(booking?.scheduled_date)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        {booking.service?.category ? (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                              booking.service.category.name
+                            )}`}
+                          >
+                            <Tag className="h-3 w-3" />
+                            {booking.service.category.name}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        {booking.service?.type ? (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                              booking.service.type.name
+                            )}`}
+                          >
+                            <Tag className="h-3 w-3" />
+                            {booking.service.type.name}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
+                        ${Number(booking?.service_total_price).toLocaleString()}
+                      </td>
+                      <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
+                        {booking?.service_booking_count || "Unknown Service"}
+                      </td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        <button
+                          onClick={() => handleConfirmCancel(booking.id)}
+                          className="text-red-500 font-bold py-2 rounded inline-flex items-center"
                         >
-                          <Tag className="h-3 w-3" />
-                          {booking.service.category.name}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      {booking.service?.type ? (
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                            booking.service.type.name
-                          )}`}
-                        >
-                          <Tag className="h-3 w-3" />
-                          {booking.service.type.name}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
-                      ${Number(booking?.service_total_price).toLocaleString()}
-                    </td>
-                    <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
-                      {booking?.service_booking_count || "Unknown Service"}
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">
-                          {booking?.status || "Nothing"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <button
-                        onClick={() => handleConfirmCancel(booking.id)}
-                        className="text-red-500 font-bold py-2 rounded inline-flex items-center"
-                      >
-                        <Trash2 className="w-8" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          <Trash2 className="w-8" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
 
           <div className="mt-4 text-sm text-gray-500">
-            Showing {bookings.length} booking
-            {bookings.length !== 1 ? "s" : ""}
+            Showing{" "}
+            {
+              bookings.filter((booking) =>
+                booking.service?.name
+                  ?.toLowerCase()
+                  .includes(searchQuery.toLowerCase().trim())
+              ).length
+            }{" "}
+            booking
+            {
+              bookings.filter((booking) =>
+                booking.service?.name
+                  ?.toLowerCase()
+                  .includes(searchQuery.toLowerCase().trim())
+              ).length !== 1
+                ? "s"
+                : ""
+            }
           </div>
         </CardContent>
       </Card>
