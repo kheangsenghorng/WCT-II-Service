@@ -12,7 +12,7 @@ import {
   User,
   Settings,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
 import NotificationsPanel from "./NotificationsPanel";
@@ -53,6 +53,14 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Close both dropdown and notifications panel when route changes
+    setIsOpen(false);
+    setShowNotifications(false);
+  }, [pathname]);
 
   const itemVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -194,6 +202,7 @@ const Navbar = () => {
                       <a
                         href="#"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
+                        onClick={() => setIsOpen(false)}
                       >
                         <User className="h-5 w-5" />
                         Profile
@@ -206,6 +215,7 @@ const Navbar = () => {
                           <Link
                             href={`/${user?.role}/${id}/edit-profile`}
                             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
+                            onClick={() => setIsOpen(false)}
                           >
                             <Settings className="h-5 w-5" />
                             Settings

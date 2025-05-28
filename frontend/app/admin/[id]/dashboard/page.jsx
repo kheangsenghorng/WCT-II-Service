@@ -330,9 +330,9 @@ const HomePage = () => {
         </DragDropContext>
 
         {/* Calendar Section */}
-        <div className="py-10">
+        {/* <div className="py-10">
           <Calendar />
-        </div>
+        </div> */}
       </div>
     </div>
   );
