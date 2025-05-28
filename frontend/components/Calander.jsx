@@ -8,6 +8,10 @@ import {
   Clock,
   User,
   CalendarIcon,
+  MapPin,
+  Sparkles,
+  CheckCircle2,
+  Star,
 } from "lucide-react";
 import { useUserBooking } from "@/store/useUserBooking";
 import { cn } from "@/lib/utils";
@@ -25,7 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 
 const Calendar = () => {
@@ -215,107 +218,194 @@ const Calendar = () => {
         </div>
       </div>
 
-      {/* Booking Details Dialog */}
+      {/* Enhanced Booking Details Dialog */}
       <Dialog open={showBookingDetails} onOpenChange={setShowBookingDetails}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>
-              View the details of this booking appointment.
+        <DialogContent className="sm:max-w-lg h-[85vh] max-h-[85vh] flex flex-col">
+          <DialogHeader className="text-center pb-2 flex-shrink-0">
+            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mb-3">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Booking Confirmed! ✨
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
+              Here are all the wonderful details for your upcoming appointment
             </DialogDescription>
           </DialogHeader>
 
-          {selectedBooking && (
-            <div className="space-y-4 py-2">
-              <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800">
-                <div className="flex items-center justify-between mb-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-indigo-100 dark:bg-indigo-800 border-indigo-200 dark:border-indigo-700"
-                  >
-                    {/* Booking ID: {selectedBooking.id || "N/A"} */}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {selectedBooking.status || "Scheduled"}
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto px-1 -mx-1 min-h-0">
+            {selectedBooking && (
+              <div className="space-y-6 py-4">
+                {/* Status Badge */}
+                <div className="flex justify-center">
+                  <Badge className="bg-green-100 text-green-800 border-green-200 px-4 py-2 text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    {selectedBooking.status || "Confirmed"}
                   </Badge>
                 </div>
 
-                <h3 className="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
-                  {selectedBooking.service?.name || "Appointment"}
-                </h3>
+                {/* Main Service Card */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-100 dark:border-green-800 shadow-sm">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-green-900 dark:text-green-100 mb-2">
+                        {selectedBooking.service?.name || "Appointment"}
+                      </h3>
+                      <div className="flex items-center text-green-700 dark:text-green-300">
+                        <Star className="w-4 h-4 mr-1 fill-current" />
+                        <span className="text-sm font-medium">
+                          Premium Service
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+                        {selectedBooking.price || "$120"}
+                      </div>
+                      <div className="text-sm text-green-600 dark:text-green-400">
+                        {selectedBooking.duration || "90 minutes"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Date & Time
-                    </h4>
-                    <div className="flex items-center mt-1">
-                      <CalendarIcon className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-sm">
-                        {selectedBooking.scheduled_date} at{" "}
-                        {formatTime(selectedBooking.scheduled_time)}
-                      </span>
+                {/* Details Grid */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Date & Time */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center mb-3">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mr-3">
+                        <CalendarIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                          Date & Time
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          When you'll be pampered
+                        </p>
+                      </div>
+                    </div>
+                    <div className="ml-13 space-y-2">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {selectedBooking.scheduled_date}
+                      </p>
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {formatTime(selectedBooking.scheduled_time)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                        Duration: {selectedBooking.duration || "90 minutes"}
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Client
-                    </h4>
-                    <div className="flex items-center mt-1">
-                      <User className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-sm">
-                        {selectedBooking.user?.first_name || "Kheang"}{" "}
-                        {selectedBooking.user?.last_name || "Senghorng"}
-                      </span>
+                  {/* Client Info */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center mb-3">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mr-3">
+                        <User className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                          Client Information
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          That's you! 👋
+                        </p>
+                      </div>
+                    </div>
+                    <div className="ml-13 space-y-2">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {selectedBooking.user?.first_name ||
+                          selectedBooking.first_name ||
+                          "Kheang"}{" "}
+                        {selectedBooking.user?.last_name ||
+                          selectedBooking.last_name ||
+                          "Senghorng"}
+                      </p>
+                      {selectedBooking.user?.email && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {selectedBooking.user.email}
+                        </p>
+                      )}
+                      {selectedBooking.user?.phone && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {selectedBooking.user.phone}
+                        </p>
+                      )}
+                      <div className="text-xs text-gray-500 dark:text-gray-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                        Booking ID: {selectedBooking.id || "BK-2024-001"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location & Service Details */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center mb-3">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mr-3">
+                        <MapPin className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                          Location & Service
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Where the magic happens
+                        </p>
+                      </div>
+                    </div>
+                    <div className="ml-13 space-y-3">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                          {selectedBooking.location || "Downtown Beauty Studio"}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {selectedBooking.address ||
+                            "123 Main Street, Downtown"}
+                        </p>
+                      </div>
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Service Details:
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedBooking.service?.description ||
+                            "Professional styling and treatment service"}
+                        </p>
+                      </div>
+                      {selectedBooking.notes && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                          <strong>Notes:</strong> {selectedBooking.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Friendly Note */}
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-lg">💡</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+                        Friendly Reminder
+                      </h4>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        Please arrive 10 minutes early to ensure we can start
+                        your appointment on time. We're excited to see you! 🌟
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Service Details
-                </h4>
-                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-                  {/* <div className="flex justify-between items-center">
-                    <span className="font-medium">Service ID:</span>
-                    <span>{selectedBooking.service?.id || "N/A"}</span>
-                  </div> */}
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-medium">Service Name:</span>
-                    <span>{selectedBooking.service?.name || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-medium">Location:</span>
-                    <span>
-                      {selectedBooking.location || "N/A"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex justify-between sm:justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setShowBookingDetails(false)}
-            >
-              Close
-            </Button>
-            {/* <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
-              >
-                Edit
-              </Button>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                Manage
-              </Button>
-            </div> */}
-          </DialogFooter>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
