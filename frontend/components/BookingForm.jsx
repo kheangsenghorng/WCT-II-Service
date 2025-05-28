@@ -57,7 +57,7 @@ const BookingForm = () => {
       time: selectedTime,
     }).toString();
 
-    router.push(`/user/${userId}/bookings/?${queryParams}`);
+    router.push(`/user/${userId}/Payment/?${queryParams}`);
   };
 
   // Animation variants

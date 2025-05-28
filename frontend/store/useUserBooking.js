@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { request } from "@/util/request"; // Import the request utility
+  import { create } from "zustand";
+  import { request } from "@/util/request"; // Import the request utility
 
 export const useUserBooking = create((set) => ({
   bookings: [],
@@ -21,7 +21,7 @@ export const useUserBooking = create((set) => ({
       set({ totalBookings: response.data.length }); // set total bookings from data length
     } catch (err) {
       set({
-        error: err.response?.data?.message || "Failed to fetch bookings.",
+        error: err.response?.data?.message || "Failed to fetch total bookings.",
       });
     } finally {
       set({ loading: false });
