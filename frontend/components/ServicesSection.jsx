@@ -5,14 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useServicesStore } from "@/store/useServicesStore";
-import {
-  Star,
-  MapPin,
-  Clock,
-  ChevronRight,
-  Wallet,
-  Info,
-} from "lucide-react";
+import { Star, MapPin, Clock, ChevronRight, Wallet, Info } from "lucide-react";
 import { useParams } from "next/navigation";
 
 const CARDS_PER_PAGE = 4;
@@ -76,7 +69,8 @@ const ServicesSection = ({ selectedCategorySlug }) => {
               const imageSrc =
                 Array.isArray(service.images) && service.images.length > 0
                   ? service.images[0]
-                  : typeof service.images === "string" && service.images.trim() !== ""
+                  : typeof service.images === "string" &&
+                    service.images.trim() !== ""
                   ? service.images
                   : "/placeholder.jpg";
 

@@ -19,6 +19,43 @@ export default function LoginForm() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!email || !password) {
+  //     setError("Please enter both email and password.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setError(null);
+
+  //   try {
+  //     const { user } = await login(email, password);
+
+  //     if (!user) {
+  //       throw new Error("Invalid email or password");
+  //     }
+
+  //     const { role, id } = user;
+
+  //     const redirectMap = {
+  //       admin: `/admin/${id}/dashboard`,
+  //       owner: `/owner/${id}/dashboard`,
+  //       staff: `/staff/${id}/dashboard`,
+  //       user: `/user/${id}/home`,
+  //     };
+
+  //     router.push(redirectMap[role] || "/");
+  //   } catch (err) {
+  //     const msg = err?.message || "Login failed. Please try again.";
+  //     setError(msg);
+  //     toast.error(msg);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -37,8 +74,13 @@ export default function LoginForm() {
         throw new Error("Invalid email or password");
       }
 
-      const { role, id } = user;
+      // Show success toast
+      toast.success("Login successful!");
 
+      // OPTIONAL: Delay before redirect
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // wait 1.5 seconds
+
+      const { role, id } = user;
       const redirectMap = {
         admin: `/admin/${id}/dashboard`,
         owner: `/owner/${id}/dashboard`,

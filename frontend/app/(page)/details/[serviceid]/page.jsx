@@ -11,15 +11,17 @@ import { useParams } from "next/navigation";
 import ServicesForDetails from "@/components/ServicesForPage";
 
 function PageTour() {
-  const { servicesId } = useParams(); // Access the tour ID
+  const { serviceId } = useParams(); // Access the tour ID
+  const servicesId = serviceId;
+  console.log("Tour ID:", servicesId); // Log the tour ID for debugging
 
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       {/* Gallery component */}
       <Gallery servicesId={servicesId} />
       {/* Explore component */}
-      <div className="ml-4 mt-4"> 
-      <Explore />
+      <div className="ml-4 mt-4">
+        <Explore />
       </div>
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Main content (left) */}
