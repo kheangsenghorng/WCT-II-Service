@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, ChevronDown, ChevronUp, Calendar, Clock, ArrowRight } from "lucide-react";
+import {
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import DateTimeSelector from "./DateTimeSelector";
 
 const BookingForm = () => {
@@ -45,13 +52,12 @@ const BookingForm = () => {
 
     const queryParams = new URLSearchParams({
       userId: userId,
-      tourId: servicesId,
-      sit: sit.toString(),
+      servicesId: servicesId,
       date: selectedDate,
       time: selectedTime,
     }).toString();
 
-    router.push(`/${userId}/bookings/?${queryParams}`);
+    router.push(`/user/${userId}/bookings/?${queryParams}`);
   };
 
   // Animation variants
@@ -80,12 +86,19 @@ const BookingForm = () => {
   };
 
   return (
-    <motion.div className="max-w-md mx-auto" initial="hidden" animate="visible" variants={formVariants}>
+    <motion.div
+      className="max-w-md mx-auto"
+      initial="hidden"
+      animate="visible"
+      variants={formVariants}
+    >
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-emerald-600 dark:bg-emerald-700 p-6 text-white">
           <h2 className="text-2xl font-bold">Book Your Tour</h2>
-          <p className="text-emerald-100 mt-2">Complete the form below to secure your reservation</p>
+          <p className="text-emerald-100 mt-2">
+            Complete the form below to secure your reservation
+          </p>
         </div>
 
         {/* Form */}
@@ -118,7 +131,9 @@ const BookingForm = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-gray-700 dark:text-gray-300">{selectedTime}</span>
+                <span className="text-gray-700 dark:text-gray-300">
+                  {selectedTime}
+                </span>
               </div>
             </motion.div>
           )}
