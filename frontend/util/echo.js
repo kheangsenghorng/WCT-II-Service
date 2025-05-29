@@ -1,16 +1,60 @@
-export const getEcho = async () => {
-  if (typeof window === "undefined") return null;
+// util/echo.js
+import Pusher from "pusher-js";
+import Echo from "laravel-echo";
 
-  const { default: Echo } = await import("laravel-echo");
-  const Pusher = (await import("pusher-js")).default;
+let echoInstance = null;
 
-  window.Pusher = Pusher;
+/**
+ * Initializes the Echo singleton instance (once) with the given token.
+ * If already initialized, returns the existing instance.
+ */
+export const initializeEcho = (authToken) => {
+  if (typeof window === "undefined") {
+    // Echo should only be initialized in the browser (not SSR)
+    return null;
+  }
 
-  return new Echo({
-    broadcaster: "pusher",
-    key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
-    cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER,
-    forceTLS: true,
-    encrypted: true,
-  });
+  if (!echoInstance) {
+    window.Pusher = Pusher;
+
+    echoInstance = new Echo({
+      broadcaster: "pusher",
+      key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+      cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER,
+      forceTLS: true,
+      authEndpoint: `${process.env.NEXT_PUBLIC_BACKEND_URL}/broadcasting/auth`,
+      auth: {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      },
+      enabledTransports: ["ws", "wss"],
+    });
+  }
+
+  return echoInstance;
+};
+
+/**
+ * Gets the existing Echo singleton instance.
+ * Throws if it hasn’t been initialized yet.
+ */
+export const getEchoInstance = () => {
+  if (!echoInstance) {
+    throw new Error(
+      "Echo instance not initialized. Call initializeEcho(authToken) first."
+    );
+  }
+  return echoInstance;
+};
+
+/**
+ * Optional: Fully disconnect and reset the singleton.
+ * Call this if you want to fully clear Echo (e.g. on logout).
+ */
+export const destroyEchoInstance = () => {
+  if (echoInstance) {
+    echoInstance.disconnect();
+    echoInstance = null;
+  }
 };

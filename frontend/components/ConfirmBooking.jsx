@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 const ConfirmBooking = () => {
   const searchParams = useSearchParams();
@@ -50,7 +50,7 @@ const ConfirmBooking = () => {
 
   const { user, fetchUserById } = useUserStore();
   const { createBooking } = useUserBooking();
-  const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), {
+  const LocationPickerMap = dynamic(() => import("./LocationPickerMap"), {
     ssr: false, // 👈 disables server-side rendering
   });
 
@@ -98,22 +98,24 @@ const ConfirmBooking = () => {
   };
 
   const handleLocationSelect = ({ latlng, address }) => {
-    if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') {
+    if (
+      !latlng ||
+      typeof latlng.lat !== "number" ||
+      typeof latlng.lng !== "number"
+    ) {
       console.error("Invalid latitude or longitude:", latlng);
       return;
     }
-  
+
     console.log("Selected location:", latlng, address);
-  
+
     setFormData({
       ...formData,
       location: address, // or `${latlng.lat}, ${latlng.lng}` if needed
     });
-  
+
     setShowMap(false);
   };
-  
-  
 
   const handleCountryChange = (value) => {
     setFormData((prev) => ({
@@ -264,38 +266,38 @@ const ConfirmBooking = () => {
             </div>
 
             <div className="space-y-4">
-      <div>
-        <label className="flex items-center gap-2">
-          <span>Service Location</span>
-          <button
-            type="button"
-            onClick={() => setShowMap(true)}
-            className="text-blue-500 underline"
-            aria-expanded={showMap}
-            aria-controls="location-map"
-          >
-            Pick on map
-          </button>
-        </label>
-        <input
-          type="text"
-          value={formData.location}
-          readOnly
-          placeholder="Lat, Lng"
-          className="w-full border p-2 mt-1"
-        />
-      </div>
+              <div>
+                <label className="flex items-center gap-2">
+                  <span>Service Location</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowMap(true)}
+                    className="text-blue-500 underline"
+                    aria-expanded={showMap}
+                    aria-controls="location-map"
+                  >
+                    Pick on map
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  readOnly
+                  placeholder="Lat, Lng"
+                  className="w-full border p-2 mt-1"
+                />
+              </div>
 
-      {showMap && (
-        <div
-          id="location-map"
-          className="mt-4 border rounded overflow-hidden"
-          style={{ height: 400 }}
-        >
-          <LocationPickerMap onSelect={handleLocationSelect} />
-        </div>
-      )}
-    </div>
+              {showMap && (
+                <div
+                  id="location-map"
+                  className="mt-4 border rounded overflow-hidden"
+                  style={{ height: 400 }}
+                >
+                  <LocationPickerMap onSelect={handleLocationSelect} />
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

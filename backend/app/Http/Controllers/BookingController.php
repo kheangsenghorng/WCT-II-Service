@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
@@ -146,7 +147,7 @@ public function store(Request $request, $serviceId)
         ]);
 
         // 🔔 Broadcast success
-        // event(new BookingNotificationEvent($booking, 'success'));
+        event(new BookingNotificationEvent($booking, 'success'));
 
         return response()->json($booking, 201);
 
@@ -163,7 +164,6 @@ public function store(Request $request, $serviceId)
 }
 
 
-    
     /**
      * Display the specified resource.
      */
@@ -288,7 +288,107 @@ public function store(Request $request, $serviceId)
     
         return response()->json($bookings);
     }
+
     
+  
+
+    public function showByOwnerAndService($ownerId, $serviceId)
+    {
+        $authUser = Auth::user();
+    
+        if (!$authUser || $authUser->id != $ownerId) {
+            return response()->json([
+                'message' => 'Unauthorized. You are not the owner of this service.'
+            ], 403);
+        }
+    
+        // Fetch the service (to show in response, regardless of bookings)
+        $service = Service::with(['category', 'type'])
+            ->where('id', $serviceId)
+            ->where('owner_id', $ownerId)
+            ->first();
+    
+        if (!$service) {
+            return response()->json([
+                'message' => 'Service not found for this owner.'
+            ], 404);
+        }
+    
+        // Format service images
+        if (is_array($service->images)) {
+            $service->images = array_map(function ($image) {
+                return preg_match('/^http/', $image) ? $image : asset('storage/' . $image);
+            }, $service->images);
+        }
+    
+        // Fetch bookings for this owner and service
+        $bookings = Booking::with(['user'])
+            ->whereHas('service', function ($query) use ($ownerId, $serviceId) {
+                $query->where('owner_id', $ownerId)
+                      ->where('id', $serviceId);
+            })
+            ->get();
+    
+        if ($bookings->isEmpty()) {
+            return response()->json([
+                'message' => 'No bookings found for this service.',
+                'service' => $service, // Still show service even if no bookings
+                'related_bookings_stats' => [
+                    'total_booking_count' => 0,
+                    'unique_users_count' => 0,
+                    'total_base_price' => 0,
+                ],
+                'user_bookings' => [],
+            ]);
+        }
+    
+        $basePrice = $service->base_price ?? 0;
+    
+        // Group bookings by user_id
+        $groupedByUser = $bookings->groupBy('user_id');
+    
+        // Prepare user bookings summary
+        $userBookings = $groupedByUser->map(function ($bookings, $userId) use ($basePrice) {
+            $firstBooking = $bookings->first();
+    
+            // Count of bookings by this user
+            $userBookingCount = $bookings->count();
+    
+            // Total price for this user
+            $userTotalPrice = $userBookingCount * $basePrice;
+    
+            // Format user image
+            if ($firstBooking->user && $firstBooking->user->image) {
+                if (!preg_match('/^http/', $firstBooking->user->image)) {
+                    $firstBooking->user->image = asset('storage/' . $firstBooking->user->image);
+                }
+            }
+    
+            return [
+                'user' => $firstBooking->user,
+                'booking_count' => $userBookingCount,
+                'total_price' => $userTotalPrice,
+            ];
+        })->values();
+    
+        // Calculate totals
+        $totalBookingCount = $bookings->count();
+        $totalBasePrice = $userBookings->sum('total_price');
+    
+        return response()->json([
+            'owner_id' => $ownerId,
+            'service_id' => $serviceId,
+            'service' => $service,
+            'related_bookings_stats' => [
+                'total_booking_count' => $totalBookingCount,
+                'unique_users_count' => $userBookings->count(),
+                'total_base_price' => $totalBasePrice,
+            ],
+            'user_bookings' => $userBookings,
+        ]);
+    }
+    
+
     
 
     

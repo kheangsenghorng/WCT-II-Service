@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->post('/broadcasting/auth', function () {
     return Broadcast::auth(request());
 });
 
+
 // rest routes
 //Auth
 Route::post("register", [AuthController::class, "register"]);
@@ -175,6 +176,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
 
     //BookingController
     Route::get('/bookings/by-owner/{id}', [BookingController::class, 'showownerid']);
+    Route::get('/bookings/by-owner/{id}/service/{serviceId}', [BookingController::class, 'showByOwnerAndService']);
     Route::get('/bookings/user', [BookingController::class, 'getUserBookings']);
     Route::get('/by-owner/{ownerId}', [BookingController::class, 'getByIdOwner']);
 
