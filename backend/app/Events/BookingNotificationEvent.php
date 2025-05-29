@@ -2,26 +2,21 @@
 
 namespace App\Events;
 
+use App\Models\Booking;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Booking;
 
-class BookingNotificationEvent
+class BookingNotificationEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $booking;
-    public $status; // success or error
+    public $status;
 
-
-    /**
-     * Create a new event instance.
-     */
     public function __construct(Booking $booking, $status)
     {
         $this->booking = $booking;
@@ -30,13 +25,10 @@ class BookingNotificationEvent
 
     public function broadcastOn(): Channel
     {
-        return new PrivateChannel('booking.' . $this->booking->user_id);
+        return new PrivateChannel('owner.' . $this->booking->service->owner_id);
     }
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
+    
+
     public function broadcastWith(): array
     {
         return [
@@ -46,5 +38,10 @@ class BookingNotificationEvent
                 ? 'Booking created successfully.'
                 : 'Booking failed.'
         ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'booking.notification';
     }
 }

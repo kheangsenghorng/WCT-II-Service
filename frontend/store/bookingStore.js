@@ -9,6 +9,8 @@ export const useBookingStoreFetch = create(
       loading: false,
       booking: null, // ⬅️ single booking
       error: null,
+      bookedSlots: [],
+      loadingSlots: false,
 
       // ✅ Fetch all bookings by userId & serviceId
       fetchBookingsByUserAndService: async (userId, serviceId) => {
@@ -31,6 +33,32 @@ export const useBookingStoreFetch = create(
           set({ booking: data.booking, loading: false });
         } catch (error) {
           set({ error: error.message, loading: false });
+        }
+      },
+      // ✅ Fetch all bookings by ownerId
+      fetchBookingsByOwner: async (ownerId) => {
+        set({ loading: true, error: null });
+        try {
+          const data = await request(`/owner/by-owner/${ownerId}`, "GET");
+          set({ bookings: data, loading: false });
+        } catch (err) {
+          set({ error: err, loading: false });
+        }
+      },
+      fetchBookedSlots: async (serviceId, date) => {
+        set({ loadingSlots: true, error: null });
+        try {
+          const data = await request(
+            `/bookings/booked-times/${serviceId}`,
+            "GET",
+            {},
+            {
+              params: { date },
+            }
+          );
+          set({ bookedSlots: data, loadingSlots: false });
+        } catch (error) {
+          set({ error, loadingSlots: false });
         }
       },
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\BlogController;
 
 
@@ -18,6 +19,12 @@ use App\Http\Controllers\BlogController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
+
+Route::middleware('auth:sanctum')->post('/broadcasting/auth', function () {
+    return Broadcast::auth(request());
+});
 
 // rest routes
 //Auth
@@ -86,7 +93,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('bookings')->group(function () {
         Route::get('/', [BookingController::class, 'index']); // GET all bookings
-        Route::post('/{serviceId}', [BookingController::class, 'store']); // POST create booking for a specific service
+        Route::post('/services/{serviceId}', [BookingController::class, 'store']); // POST create booking for a specific service
         Route::get('/user/{userId}/service/{serviceId}', [BookingController::class, 'show']); // GET booking by user & service
         Route::put('/{id}', [BookingController::class, 'update']); // PUT update booking by ID
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
@@ -159,11 +166,17 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
         Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']); // Mark as read
         Route::delete('/{id}',  [NotificationController::class, 'destroy']);     // Delete
     });
+ 
+    // FilteredServiceController
 
-    Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);
-    Route::get('/bookings/by-owner/{id}', [BookingController::class, 'showownerid']);
+    Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);  
     Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
+
+
+    //BookingController
+    Route::get('/bookings/by-owner/{id}', [BookingController::class, 'showownerid']);
     Route::get('/bookings/user', [BookingController::class, 'getUserBookings']);
+    Route::get('/by-owner/{ownerId}', [BookingController::class, 'getByIdOwner']);
 
 });
 
@@ -171,6 +184,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
 Route::get('/services', [ServiceController::class, 'index']);
 //get by id service
 Route::get('/services/{id}', [FilteredServiceController::class, 'showservice']);
+Route::get('/bookings/booked-times/{serviceId}', [FilteredServiceController::class, 'getBookedSlots']);
 
 // routes/api.php
 Route::get('/service-types', [TypeController::class, 'showcategoryId']);

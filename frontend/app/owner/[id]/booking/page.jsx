@@ -5,8 +5,8 @@ import { Calendar, CreditCard, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "next/navigation";
-import { Search } from "lucide-react"; 
-
+import { Search } from "lucide-react";
+import Link from "next/link";
 
 export default function AllBookingsPage() {
   const params = useParams();
@@ -105,23 +105,21 @@ export default function AllBookingsPage() {
         </CardHeader>
 
         <CardContent>
-         
-        {/* Search Bar */}
-        <div className="flex justify-end mb-4">
-          <div className="relative w-full max-w-xs">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <Search className="h-4 w-4" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by service name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 py-2 border rounded-md w-full text-sm focus:outline-none focus:ring focus:border-blue-300"
-            />
+          {/* Search Bar */}
+          <div className="flex justify-end mb-4">
+            <div className="relative w-full max-w-xs">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <Search className="h-4 w-4" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search by service name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 border rounded-md w-full text-sm focus:outline-none focus:ring focus:border-blue-300"
+              />
+            </div>
           </div>
-        </div>
-
 
           <div className="overflow-x-auto mt-4">
             <table className="min-w-full divide-y dark:divide-gray-700">
@@ -166,13 +164,17 @@ export default function AllBookingsPage() {
                       </td>
                       <td className="p-3">
                         <img
-                          src={booking.service?.images?.[0] || "/placeholder.png"}
+                          src={
+                            booking.service?.images?.[0] || "/placeholder.png"
+                          }
                           alt={booking.service?.name || "Service Image"}
                           className="w-16 h-16 object-cover rounded-md"
                         />
                       </td>
                       <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
-                        {booking.service?.name || "Unknown Service"}
+                        <Link href={`/owner/${ownerId}/booking/${booking.id}`}>
+                          {booking.service?.name || "Unknown Service"}
+                        </Link>
                       </td>
                       <td className="p-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
@@ -249,15 +251,13 @@ export default function AllBookingsPage() {
               ).length
             }{" "}
             booking
-            {
-              bookings.filter((booking) =>
-                booking.service?.name
-                  ?.toLowerCase()
-                  .includes(searchQuery.toLowerCase().trim())
-              ).length !== 1
-                ? "s"
-                : ""
-            }
+            {bookings.filter((booking) =>
+              booking.service?.name
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase().trim())
+            ).length !== 1
+              ? "s"
+              : ""}
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
-  import { create } from "zustand";
-  import { request } from "@/util/request"; // Import the request utility
+import { create } from "zustand";
+import { request } from "@/util/request"; // Import the request utility
 
 export const useUserBooking = create((set) => ({
   bookings: [],
@@ -81,6 +81,29 @@ export const useUserBooking = create((set) => ({
       });
     } catch (err) {
       set({ error: err.message || "Failed to fetch bookings", loading: false });
+    }
+  },
+
+  createBooking: async (servicesId, bookingData) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await request(
+        `/bookings/services/${servicesId}`,
+        "POST",
+        bookingData
+      );
+      set((state) => ({
+        bookings: [response.data, ...state.bookings],
+        totalBookings: state.totalBookings + 1,
+      }));
+      return response.data; // optional: return the new booking for UI
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to create booking.",
+      });
+      throw err; // optional: re-throw for UI error handling
+    } finally {
+      set({ loading: false });
     }
   },
 }));
