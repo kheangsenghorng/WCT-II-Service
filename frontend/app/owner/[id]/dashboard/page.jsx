@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
-import Calendar from "../../../../components/Calander";
+import Calendar from "@/components/Calander";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";

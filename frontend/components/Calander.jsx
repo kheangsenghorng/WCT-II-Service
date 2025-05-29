@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   Star,
 } from "lucide-react";
-import { useUserBooking } from "@/store/useUserBooking";
+
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,16 +30,23 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useBookingStoreFetch } from "@/store/bookingStore";
+import { useParams } from "next/navigation";
 
 const Calendar = () => {
+  const { id } = useParams();
+  const ownerId = id; // Assuming ownerId is passed as a prop or derived from context
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { bookings, fetchBookings } = useUserBooking();
+  const { bookings, fetchBookingsByOwner, loading, error } =
+    useBookingStoreFetch();
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showBookingDetails, setShowBookingDetails] = useState(false);
 
   useEffect(() => {
-    fetchBookings(); // Load bookings on mount
-  }, [fetchBookings]);
+    fetchBookingsByOwner(ownerId);
+  }, [ownerId]);
+
+  console.log(bookings);
 
   const getDaysInMonth = (date) =>
     new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -261,10 +268,10 @@ const Calendar = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-green-900 dark:text-green-100">
-                        {selectedBooking.price || "$120"}
+                        {selectedBooking.service?.base_price || "$120"}
                       </div>
                       <div className="text-sm text-green-600 dark:text-green-400">
-                        {selectedBooking.duration || "90 minutes"}
+                        {selectedBooking.scheduled_time || "90 minutes"}
                       </div>
                     </div>
                   </div>

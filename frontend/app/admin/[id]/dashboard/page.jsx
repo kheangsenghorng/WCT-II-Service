@@ -25,27 +25,36 @@ import {
   Legend,
 } from "chart.js";
 
-ChartJS.register(BarElement, ArcElement, CategoryScale, LinearScale, Tooltip, Legend);
-
+ChartJS.register(
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 const HomePage = () => {
   const { id: ownerId } = useParams();
-  const { fetchAdminUsers, count, users  } = useUserStore();
+  const { fetchAdminUsers, count, users } = useUserStore();
   const { fetchCategories, categories } = useCategoryStore();
-  const { fetchAllUserTypes, userTypes, loading  } = useTypeStore();
-  const totalOwners = users?.filter((user) => user.role === "owner").length || 0;
-
-
+  const { fetchAllUserTypes, userTypes, loading } = useTypeStore();
+  const totalOwners =
+    users?.filter((user) => user.role === "owner").length || 0;
 
   const [chartOrder, setChartOrder] = useState(["marketing", "sales"]);
-
 
   const barData = {
     labels: ["Users", "category", "type", "owner"],
     datasets: [
       {
         label: "Total",
-        data: [count || 0, categories?.length || 0, userTypes?.length || 0, totalOwners || 0],
+        data: [
+          count || 0,
+          categories?.length || 0,
+          userTypes?.length || 0,
+          totalOwners || 0,
+        ],
         backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
         borderRadius: 6,
       },
@@ -58,10 +67,16 @@ const HomePage = () => {
       legend: { position: "top" },
     },
   };
-  
+
   // Doughnut for sales segments
   const doughnutData = {
-    labels: ["Online Shop", "Acquisition", "Investing", "Subscription", "Purchase"],
+    labels: [
+      "Online Shop",
+      "Acquisition",
+      "Investing",
+      "Subscription",
+      "Purchase",
+    ],
     datasets: [
       {
         label: "Sales",
@@ -93,12 +108,10 @@ const HomePage = () => {
   useEffect(() => {
     if (ownerId) {
       fetchAdminUsers();
-      fetchCategories(); 
+      fetchCategories();
       fetchAllUserTypes(); // <-- Add this
-
     }
-  }, [fetchAdminUsers, fetchCategories, fetchAllUserTypes ]);
-  
+  }, [fetchAdminUsers, fetchCategories, fetchAllUserTypes]);
 
   // Stats data (derived from store)
   const [stats, setStats] = useState([
@@ -122,36 +135,32 @@ const HomePage = () => {
       value: 0,
       change: 20,
       isPositive: true,
-    },    
+    },
     {
       id: "owner",
       label: "Total Owners",
       value: 0,
       change: 10,
       isPositive: true,
-    }
-    
+    },
   ]);
-  
 
   // Update stats when count changes
   useEffect(() => {
-    const totalOwners = users?.filter((user) => user.role === "owner").length || 0;
+    const totalOwners =
+      users?.filter((user) => user.role === "owner").length || 0;
     setStats((prev) =>
       prev.map((stat) => {
         if (stat.id === "user") return { ...stat, value: count || 0 };
-        if (stat.id === "category") return { ...stat, value: categories?.length || 0 };
-        if (stat.id === "type") return { ...stat, value: userTypes?.length || 0 };
+        if (stat.id === "category")
+          return { ...stat, value: categories?.length || 0 };
+        if (stat.id === "type")
+          return { ...stat, value: userTypes?.length || 0 };
         if (stat.id === "owner") return { ...stat, value: totalOwners };
         return stat;
       })
     );
   }, [count, categories, userTypes, users]);
-  
-  
-
-
-  
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -278,9 +287,8 @@ const HomePage = () => {
                               </select>
                             </div>
                             <div className="h-64">
-  <Bar data={barData} options={barOptions} />
-</div>
-
+                              <Bar data={barData} options={barOptions} />
+                            </div>
                           </>
                         )}
                         {chart === "sales" && (
@@ -295,8 +303,11 @@ const HomePage = () => {
                               </select>
                             </div>
                             <div className="h-64">
-  <Doughnut data={doughnutData} options={doughnutOptions} />
-</div>
+                              <Doughnut
+                                data={doughnutData}
+                                options={doughnutOptions}
+                              />
+                            </div>
 
                             <div className="flex justify-around mt-4 text-sm text-gray-600 dark:text-gray-400">
                               {[

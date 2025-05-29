@@ -1,6 +1,6 @@
 "use client";
-import ConfirmBooking from '@/components/ConfirmBooking';
-import BookingSummary from '@/components/BookingSummary';
+import ConfirmBooking from "@/components/ConfirmBooking";
+import BookingSummary from "@/components/BookingSummary";
 
 const BookingConfirmation = () => {
   return (

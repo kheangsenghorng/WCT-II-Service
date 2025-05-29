@@ -161,6 +161,21 @@ public function showservice($id)
     return response()->json($service);
 }
 
+public function getBookedSlots($serviceId, Request $request)
+{
+    $request->validate([
+        'date' => 'required|date',
+    ]);
+
+    $bookings = Booking::where('service_id', $serviceId)
+        ->where('scheduled_date', $request->date)
+        ->pluck('scheduled_time');
+
+    return response()->json($bookings);
+}
+
+
+
 
 
 }

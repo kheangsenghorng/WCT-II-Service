@@ -146,7 +146,7 @@ public function store(Request $request, $serviceId)
         ]);
 
         // 🔔 Broadcast success
-        event(new BookingNotificationEvent($booking, 'success'));
+        // event(new BookingNotificationEvent($booking, 'success'));
 
         return response()->json($booking, 201);
 
@@ -254,10 +254,43 @@ public function store(Request $request, $serviceId)
             'bookings' => $uniqueServiceBookings,
         ]);
     }
+
+    public function getByIdOwner($ownerId)
+    {
+        $bookings = Booking::with(['user', 'service' => function ($query) use ($ownerId) {
+            $query->where('owner_id', $ownerId);
+        }])->get();
+    
+        // Filter out bookings with no service (because the owner_id condition is inside the relation)
+        $bookings = $bookings->filter(function ($booking) {
+            return $booking->service !== null;
+        })->values();
+    
+        // Transform image URLs 
+        $bookings->transform(function ($booking) {
+            if ($booking->user && $booking->user->image) {
+                if (!preg_match('/^http/', $booking->user->image)) {
+                    $booking->user->image = asset('storage/' . $booking->user->image);
+                }
+            }
+    
+            if ($booking->service && is_array($booking->service->images)) {
+                $booking->service->images = array_map(function ($image) {
+                    if (!preg_match('/^http/', $image)) {
+                        return asset('storage/' . $image);
+                    }
+                    return $image;
+                }, $booking->service->images);
+            }
+    
+            return $booking;
+        });
+    
+        return response()->json($bookings);
+    }
     
     
-    
-    
+
     
     /**
      * Update the specified resource in storage.
