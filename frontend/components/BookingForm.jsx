@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import DateTimeSelector from "./DateTimeSelector";
-import { useBookingStoreFetch } from "@/store/bookingStore"; // adjust path
+import { useBookingStoreFetch } from "@/store/bookingStore";
 
 const BookingForm = () => {
   const [selectedDate, setSelectedDate] = useState("");
@@ -22,7 +22,7 @@ const BookingForm = () => {
   useEffect(() => {
     if (servicesId && selectedDate) {
       fetchBookedSlots(servicesId, selectedDate);
-      setSelectedTime(""); // reset selected time when date changes
+      setSelectedTime(""); // Reset time when date changes
     }
   }, [servicesId, selectedDate, fetchBookedSlots]);
 
@@ -33,8 +33,7 @@ const BookingForm = () => {
 
   const handleBooking = () => {
     if (!userId) return router.push("/login");
-    if (!servicesId) return;
-    if (!selectedDate || !selectedTime) {
+    if (!servicesId || !selectedDate || !selectedTime) {
       alert("Please select both date and time.");
       return;
     }
@@ -65,13 +64,7 @@ const BookingForm = () => {
           </p>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleBooking();
-          }}
-          className="p-6 space-y-8"
-        >
+        <div className="p-6 space-y-8">
           <DateTimeSelector
             onDateTimeChange={handleDateTimeChange}
             bookedSlots={bookedSlots}
@@ -103,7 +96,7 @@ const BookingForm = () => {
           )}
 
           <motion.button
-            type="submit"
+            onClick={handleBooking}
             disabled={loading || !selectedDate || !selectedTime}
             className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:hover:bg-emerald-600 dark:bg-emerald-700 dark:hover:bg-emerald-800 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             whileHover={{ scale: 1.02 }}
@@ -121,7 +114,7 @@ const BookingForm = () => {
               </>
             )}
           </motion.button>
-        </form>
+        </div>
       </div>
     </motion.div>
   );

@@ -37,7 +37,7 @@ function PageTour() {
         </div>
       </div>
       <div>
-        <ServicesForDetails />
+        <ServicesForDetails servicesId={servicesId}/>
       </div>
     </div>
   );

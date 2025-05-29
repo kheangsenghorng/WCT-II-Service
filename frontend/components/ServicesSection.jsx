@@ -23,11 +23,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
     ? services.filter((s) => s.categorySlug === selectedCategorySlug)
     : services;
 
-  const visibleServices = filteredServices.slice(0, visibleCount);
-
-  const handleViewMore = () => {
-    setVisibleCount(filteredServices.length);
-  };
+  const visibleServices = filteredServices.slice(0, 4); // Always only show first 4
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -174,14 +170,16 @@ const ServicesSection = ({ selectedCategorySlug }) => {
             })}
           </div>
 
-          {visibleCount < filteredServices.length && (
+          {/* Link to full services page */}
+          {filteredServices.length > 4 && (
             <div className="text-center mt-8">
-              <button
-                onClick={handleViewMore}
-                className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-colors duration-200"
+              <Link
+                href={ 
+                  id ? `/user/${id}/service` : `/service`}
+                className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-colors duration-200 inline-block"
               >
-                View More
-              </button>
+                View More Services
+              </Link>
             </div>
           )}
         </div>

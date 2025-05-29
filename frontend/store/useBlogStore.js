@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { request } from "@/util/request"; // your centralized request helper
+import { request } from "@/util/request";
 
 export const useBlogStore = create((set) => ({
   blogs: [],
@@ -25,18 +25,31 @@ export const useBlogStore = create((set) => ({
 
   fetchBlogById: async (id) => {
     if (!id) {
-      console.error("No blog ID provided.");
+      set({ error: "Invalid blog ID." });
       return null;
     }
+  
+    set({ loading: true, error: null, selectedBlog: null });
+  
     try {
       const blog = await request(`/admin/blogs/${id}`, "GET");
       set({ selectedBlog: blog });
       return blog;
     } catch (error) {
       console.error("Failed to fetch blog:", error);
+      
+      if (error?.response?.status === 404) {
+        set({ error: "Blog not found." });
+      } else {
+        set({ error: "Failed to fetch blog. Please try again later." });
+      }
+  
       return null;
+    } finally {
+      set({ loading: false });
     }
   },
+  
 
   createBlog: async (formData, adminId) => {
     try {

@@ -1,11 +1,11 @@
 
-import BlogSection from '@/components/BlogSection';
+import Blogs from '@/components/Blogs';
 import React from 'react';
 
 const Page = () => {
     return (
         <div>
-          <BlogSection />
+          <Blogs />
         </div>
     );
 };

@@ -1,8 +1,8 @@
-import BlogDetails from "@/components/BlogDetail"
+import BlogDetails from "@/components/BlogDetails"
 export default function DetailsBlog() {
     return(
         <div>
-            {/* <BlogDetails/> */}
+            <BlogDetails/>
 
             <h1>Hello blog page</h1>
         </div>
