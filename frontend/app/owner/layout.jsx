@@ -4,16 +4,17 @@ import React from "react";
 import AdminNavbar from "../../components/Adminheader";
 import SidebarCompany from "../../components/SidebarCompany";
 import { useParams } from "next/navigation";
-import OwnerBookingUpdates from "@/components/OwnerBookingUpdates"; // ✅ Notification listener
-import { useUserStore } from "@/store/useUserStore"; // ✅ Auth store
+// import BookingListener from "../../components/BookingListener";
+// import { SessionProvider } from "next-auth/react";
 
 const AdminLayout = ({ children }) => {
-  const { id } = useParams();
+  const params = useParams();
+  const { id } = params; // `params` is an object
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
       {/* 🔔 Real-time Booking Listener */}
-      {id && <OwnerBookingUpdates ownerId={id} />}
+      {/* <BookingListener ownerId={id} /> */}
 
       {/* Navbar */}
       <AdminNavbar id={id} className="bg-white border-b border-gray-200" />

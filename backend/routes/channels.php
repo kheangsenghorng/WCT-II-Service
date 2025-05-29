@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Broadcast;
 //     return (int) $user->id === (int) $userId;
 // });
 
-Broadcast::channel('owner.{ownerId}', function ($user, $ownerId) {
+// routes/channels.php
+Broadcast::channel('private-owner.{ownerId}', function ($user, $ownerId) {
     return (int) $user->id === (int) $ownerId;
 });

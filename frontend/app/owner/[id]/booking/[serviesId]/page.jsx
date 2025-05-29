@@ -1,27 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import GuestListComponent from "@/components/GuestListComponent";
+import { useUserBooking } from "@/store/useUserBooking";
+import { useParams } from "next/navigation";
 
 export default function TourDetails() {
-  const [accommodationOptions, setAccommodationOptions] = useState({
-    ac: false,
-    heating: false,
-    dishwasher: false,
-    petsAllowed: false,
-    fitnessCenter: false,
-    airportTransfer: false,
-    transfer: false,
-    spa: false,
-    pool: false,
-  });
+  const params = useParams();
+  const { id: ownerId, serviesId } = params; // `params` is an object
+  console.log("Owner ID:", ownerId);
+  console.log("Service ID:", serviesId);
 
-  const handleAccommodationChange = (option) => {
-    setAccommodationOptions((prev) => ({
-      ...prev,
-      [option]: !prev[option],
-    }));
-  };
+  const {
+    bookings,
+    loading,
+    error,
+    fetchBookingsByOwnerId,
+    cancelBooking,
+    stats,
+  } = useUserBooking();
+
+  useEffect(() => {
+    fetchBookingsByOwnerId(ownerId);
+  }, [ownerId, fetchBookingsByOwnerId]);
 
   return (
     <div className="bg-gray-50 min-h-screen p-6 font-sans">
@@ -49,9 +50,7 @@ export default function TourDetails() {
                   ID: TTHH3
                 </span>
               </div>
-              <div className="text-sm text-gray-500">
-                Created: May 17, 2025
-              </div>
+              <div className="text-sm text-gray-500">Created: May 17, 2025</div>
             </div>
 
             <div className="flex space-x-4 mb-4">
@@ -110,7 +109,19 @@ export default function TourDetails() {
               <div className="text-lg font-bold text-gray-700 mb-1 py-1">
                 Description
               </div>
-              <div className="text-[16px] text-gray-600">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae error culpa et incidunt exercitationem totam perspiciatis sunt at dignissimos dolore officiis est, delectus repudiandae quidem, laudantium placeat iusto mollitia soluta? Lorem ipsum dolor sit amet consectetur adipisicing elit. Repudiandae at excepturi sequi quam veritatis rerum repellendus quaerat id mollitia molestias architecto deserunt, et neque in quis, culpa consequuntur atque fuga! L Modi enim recusandae alias in dolores blanditiis adipisci, autem est amet cum aspernatur quo tempora quidem minus nobis facilis! Sit, itaque et!loadingdfdgfffffffffffffffffghgjh tyut rtytrutyuy ytuyt   </div>
+              <div className="text-[16px] text-gray-600">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae
+                error culpa et incidunt exercitationem totam perspiciatis sunt
+                at dignissimos dolore officiis est, delectus repudiandae quidem,
+                laudantium placeat iusto mollitia soluta? Lorem ipsum dolor sit
+                amet consectetur adipisicing elit. Repudiandae at excepturi
+                sequi quam veritatis rerum repellendus quaerat id mollitia
+                molestias architecto deserunt, et neque in quis, culpa
+                consequuntur atque fuga! L Modi enim recusandae alias in dolores
+                blanditiis adipisci, autem est amet cum aspernatur quo tempora
+                quidem minus nobis facilis! Sit, itaque
+                et!loadingdfdgfffffffffffffffffghgjh tyut rtytrutyuy ytuyt{" "}
+              </div>
             </div>
           </div>
         </div>
@@ -149,8 +160,6 @@ export default function TourDetails() {
               View All Photos (4)
             </div>
           </div>
-
-  
         </div>
       </div>
 
