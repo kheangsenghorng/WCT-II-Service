@@ -8,7 +8,6 @@ import {
   User,
   Bookmark,
   Calendar,
-  CreditCard,
   Star,
   MapPin,
   Settings,
@@ -25,8 +24,7 @@ const Sidebar = () => {
   const [items, setItems] = useState([
     { name: "MyProfile", icon: User },
     { name: "Saved Services", icon: Bookmark },
-    { name: "Bookings", icon: Calendar },
-    { name: "Payment Details", icon: CreditCard },
+    { name: "Service Booked", icon: Calendar },
     { name: "Reviews & Ratings", icon: Star },
     { name: "Saved Address", icon: MapPin },
     { name: "Settings", icon: Settings },
