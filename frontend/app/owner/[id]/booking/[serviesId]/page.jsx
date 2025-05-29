@@ -161,6 +161,7 @@ export default function TourDetails() {
             </div>
           </div>
         </div>
+        
       </div>
 
       <GuestListComponent />
