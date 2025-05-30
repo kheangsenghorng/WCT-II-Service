@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import GuestListComponent from "@/components/GuestListComponent";
 import { useParams } from "next/navigation";
 import { useBookingStoreFetch } from "@/store/bookingStore";
+import { Tag, Layers } from "lucide-react";
 
 export default function TourDetails() {
   const params = useParams();
@@ -25,6 +26,15 @@ export default function TourDetails() {
       month: "long",
       day: "numeric",
     });
+
+
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const images = service?.images || [];
+  const mainImage = images[0] || "https://picsum.photos/id/1015/400/300";
+  const sideImages = images.slice(1, 4);
+  const extraImages = images.slice(4);
 
   return (
     <div className="bg-gray-50 min-h-screen p-6 font-sans">
@@ -57,7 +67,7 @@ export default function TourDetails() {
               </div>
             </div>
 
-            <div className="flex space-x-4 mb-4">
+            <div className="flex space-x-4 mb-4 my-6">
               <div className="bg-gray-100 p-3 rounded-lg">
                 <div className="text-sm text-gray-600">
                   <svg
@@ -103,6 +113,25 @@ export default function TourDetails() {
                   ${stats?.total_base_price}
                 </div>
               </div>
+
+              {/* Category */}
+              <div className="bg-gray-100 p-3 rounded-lg flex items-start gap-2">
+                <Tag className="w-5 h-5 text-green-600 mt-1" />
+                <div>
+                  <div className="text-sm text-gray-600">Category</div>
+                  <div className="text-sm font-medium">{service?.category?.name}</div>
+                </div>
+              </div>
+
+              {/* Type */}
+              <div className="bg-gray-100 p-3 rounded-lg flex items-start gap-2">
+                <Layers className="w-5 h-5 text-green-600 mt-1" />
+                <div>
+                  <div className="text-sm text-gray-600">Type</div>
+                  <div className="text-sm font-medium">{service?.type?.name}</div>
+                </div>
+              </div>
+
             </div>
 
             {/* Created Date Section (replacing start and end date) */}
@@ -124,77 +153,86 @@ export default function TourDetails() {
                 {service?.description}{" "}
               </div>
             </div>
-            <div className="mb-4">
-              <div className="text-lg font-bold text-gray-700 mb-1 py-1">
-                category
-              </div>
-              <div className="text-[16px] text-gray-600">
-                {service?.category?.name}{" "}
-                <img
-                  src={
-                    service?.category?.image ||
-                    "https://picsum.photos/id/1019/150/100"
-                  }
-                  alt="Tour"
-                  className="rounded-lg w-1/3"
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <div className="text-lg font-bold text-gray-700 mb-1 py-1">
-                type
-              </div>
-              <div className="text-[16px] text-gray-600">
-                {service?.type?.name}{" "}
-                <img
-                  src={
-                    service?.type?.image_url ||
-                    "https://picsum.photos/id/1019/150/100"
-                  }
-                  alt="Tour"
-                  className="rounded-lg w-1/3"
-                />
-              </div>
-            </div>
+
           </div>
         </div>
 
-        <div className="md:w-1/2 md:pl-4 mt-4 md:mt-0">
+       
           {/* Right Column */}
-          <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-            <div className="text-lg font-bold text-gray-700 mb-2 py-3">
-              Tour Gallery
-            </div>
+           <div className="md:w-1/2 md:pl-4 mt-4 md:mt-0">
+      {/* Tour Gallery */}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+        <div className="text-lg font-bold text-gray-700 mb-4">Tour Gallery</div>
 
-            {/* Main Image */}
-            <div className="mb-2">
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Main Image */}
+          <div className="relative">
+            <img
+              src={mainImage}
+              alt="Main"
+              className="w-full h-64 object-cover rounded-lg shadow"
+            />
+          </div>
+
+          {/* Side Images */}
+          <div className="grid grid-cols-2 gap-2">
+            {sideImages.map((img, idx) => (
               <img
-                src={
-                  service?.images?.[0] ||
-                  "https://picsum.photos/id/1015/400/300"
-                }
-                alt="Main"
-                className="rounded-lg w-full h-64 object-cover mb-2"
+                key={idx}
+                src={img}
+                alt={`Photo ${idx + 1}`}
+                className="w-full h-28 object-cover rounded-lg shadow"
               />
-            </div>
+            ))}
 
-            {/* Thumbnail images */}
-            <div className="flex space-x-2 mb-4">
-              {(service?.images?.slice(1, 4) ?? []).map((img, idx) => (
+            {/* +X More Photos overlay */}
+            {extraImages.length > 0 && (
+              <div className="relative">
                 <img
-                  key={idx}
-                  src={img}
-                  alt={`Thumb ${idx + 1}`}
-                  className="rounded-lg w-1/3 h-[100px] object-cover"
+                  src={extraImages[0]}
+                  alt="Extra Preview"
+                  className="w-full h-28 object-cover rounded-lg shadow"
                 />
-              ))}
-            </div>
-
-            <div className="text-sm text-blue-600 text-center cursor-pointer">
-              View All Photos ({service?.images?.length ?? 0})
-            </div>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="absolute inset-0 flex items-center font-bold text-xl justify-center bg-opacity-50 text-white rounded-lg"
+                >
+                  +{extraImages.length} More Photos
+                </button>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Modal for Extra Images */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-white l rounded-lg p-4 w-[80%] max-w-2xl shadow-xl">
+              <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {extraImages.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`Extra Photo ${index + 1}`}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="mt-4 px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+       
+
+
       </div>
 
       <GuestListComponent />

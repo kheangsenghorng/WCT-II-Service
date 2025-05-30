@@ -118,9 +118,18 @@ export default function ProfileDetail({ userId }) {
           <p className="text-sm font-semibold text-green-600">Scheduled Time</p>
           <div className="flex items-center gap-2 mt-1 text-gray-700">
             <Calendar className="text-blue-600" size={18} />
-            <div className="text-sm text-gray-500">
-              {scheduled_time || "N/A"}
-            </div>
+              <div className="text-sm text-gray-500">
+                {scheduled_time ? (
+                  new Date(`1970-01-01T${scheduled_time}`).toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                ) : (
+                  "N/A"
+                )}
+              </div>
+
           </div>
         </div>
       </div>

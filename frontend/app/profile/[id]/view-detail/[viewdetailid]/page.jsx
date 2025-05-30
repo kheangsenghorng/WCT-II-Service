@@ -55,10 +55,7 @@ export default function ViewDetail() {
             View All Photos (4)
         </div>
         </div>
-
-
-       
-
+        
         </div>
 
         {/* Right Side: Booking Summary */}
@@ -122,10 +119,6 @@ export default function ViewDetail() {
             </div>
         </div>
         </div>
-
-           
-       
-
 
       </div>
       <div className='className="min-h-screen'> <StaffProvider/></div>

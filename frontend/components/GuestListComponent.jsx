@@ -36,12 +36,11 @@ export default function GuestListPage() {
 
   const paginatedBookings = userBookings.slice(startIndex, endIndex);
 
-  // Optional: define handleClick or remove it if not needed
   const handleClick = (e) => {
-    // e.preventDefault();
-    // Implement if needed
+    // Optional: Prevent default if needed
   };
 
+  console.log(userBookings);
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-8xl mx-auto bg-white rounded-2xl shadow-md p-6">
@@ -67,28 +66,26 @@ export default function GuestListPage() {
         {!loading && !error && (
           <>
             {/* Table Headers */}
-            <div className="grid grid-cols-7 gap-4 text-xs font-bold text-gray-600 uppercase border-b pb-2">
-              <div>#</div>
-              <div>Guest</div>
-              <div>Email</div>
-              <div>Booking Count</div>
-              <div>Total</div>
-              <div className="col-span-2">Details</div>
+            <div className="grid grid-cols-12 gap-4 text-xs font-bold text-gray-600 uppercase border-b pb-2">
+              <div className="w-6">#</div>
+              <div className="col-span-3">Guest</div>
+              <div className="col-span-3">Email</div>
+              <div className="col-span-1">Booking</div>
+              <div className="col-span-1">Total</div>
+              <div className="col-span-3">Details</div>
             </div>
 
             {/* Table Rows */}
             {paginatedBookings.map((guest, index) => {
-              // Defensive href variables
               const guestUserId = guest.user?.id || "unknownUser";
-              const guestBookingId = guest.id || "unknownBooking";
 
               return (
                 <div
                   key={guest.id || index}
-                  className="grid grid-cols-7 gap-4 py-4 items-center border-b border-gray-100"
+                  className="grid grid-cols-12 gap-4 py-4 items-center border-b border-gray-100"
                 >
-                  <div>{startIndex + index + 1}</div>
-                  <div className="flex items-center">
+                  <div className="w-6">{startIndex + index + 1}</div>
+                  <div className="col-span-3 flex items-center">
                     <img
                       src={guest.user?.image || "https://i.pravatar.cc/40"}
                       alt={guest.user?.first_name || "Guest"}
@@ -96,10 +93,10 @@ export default function GuestListPage() {
                     />
                     {guest.user?.first_name} {guest.user?.last_name}
                   </div>
-                  <div>{guest.user?.email || "N/A"}</div>
-                  <div>{guest.booking_count || 0}</div>
-                  <div>${guest.total_price || 0}</div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">{guest.user?.email || "N/A"}</div>
+                  <div className="col-span-1">{guest.booking_count || 0}</div>
+                  <div className="col-span-1">${guest.total_price || 0}</div>
+                  <div className="col-span-3">
                     <Link
                       href={`/owner/${ownerId}/booking/${serviceId}/${guestUserId}`}
                       onClick={handleClick}
