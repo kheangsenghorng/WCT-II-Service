@@ -326,26 +326,30 @@ export default function AddServicePage() {
               />
             </label>
 
-            {/* Previews */}
-            {imagePreviews.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index}`}
-                      className="h-24 w-24 object-cover rounded-lg"
-                    />
-                    <button
-                      onClick={() => removeImage(index)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 -mt-2 -mr-2"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+{/* Image Previews */}
+{imagePreviews.length > 0 && (
+  <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-10 gap-4">
+    {imagePreviews.map((preview, index) => (
+      <div
+        key={index}
+        className="relative rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm"
+      >
+        <img
+          src={preview}
+          alt={`Preview ${index}`}
+          className="w-full h-24 object-cover"
+        />
+        <button
+          onClick={() => removeImage(index)}
+          className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md"
+        >
+          <XCircle className="h-4 w-4" />
+        </button>
+      </div>
+    ))}
+  </div>
+)}
+
           </div>
         </div>
 
