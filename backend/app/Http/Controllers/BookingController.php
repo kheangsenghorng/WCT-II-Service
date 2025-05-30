@@ -302,7 +302,6 @@ public function store(Request $request, $serviceId)
             ], 403);
         }
     
-        // Fetch the service with category and type
         $service = Service::with(['category', 'type'])
             ->where('id', $serviceId)
             ->where('owner_id', $ownerId)
@@ -314,20 +313,18 @@ public function store(Request $request, $serviceId)
             ], 404);
         }
     
-        // Format service images
         if (is_array($service->images)) {
             $service->images = array_map(function ($image) {
                 return preg_match('/^http/', $image) ? $image : asset('storage/' . $image);
             }, $service->images);
         }
     
-        // Format category image
         if ($service->category && $service->category->image) {
             if (!preg_match('/^http/', $service->category->image)) {
                 $service->category->image = asset('storage/' . $service->category->image);
             }
         }
-        // Fetch bookings with user
+    
         $bookings = Booking::with(['user'])
             ->whereHas('service', function ($query) use ($ownerId, $serviceId) {
                 $query->where('owner_id', $ownerId)
@@ -350,14 +347,11 @@ public function store(Request $request, $serviceId)
     
         $basePrice = $service->base_price ?? 0;
     
-        // Group bookings by user
         $groupedByUser = $bookings->groupBy('user_id');
     
-        // Map grouped bookings
-        $userBookings = $groupedByUser->map(function ($bookings, $userId) use ($basePrice) {
-            $firstBooking = $bookings->first();
+        $userBookings = $groupedByUser->map(function ($userBookings, $userId) use ($basePrice) {
+            $firstBooking = $userBookings->first();
     
-            // Format user image
             if ($firstBooking->user && $firstBooking->user->image) {
                 if (!preg_match('/^http/', $firstBooking->user->image)) {
                     $firstBooking->user->image = asset('storage/' . $firstBooking->user->image);
@@ -366,8 +360,16 @@ public function store(Request $request, $serviceId)
     
             return [
                 'user' => $firstBooking->user,
-                'booking_count' => $bookings->count(),
-                'total_price' => $bookings->count() * $basePrice,
+                'booking_count' => $userBookings->count(),
+                'total_price' => $userBookings->count() * $basePrice,
+                'bookings' => $userBookings->map(function ($booking) {
+                    return [
+                        'id' => $booking->id,
+                        'scheduled_date' => $booking->scheduled_date,
+                        'scheduled_time' => $booking->scheduled_time,
+                        'location' => $booking->location,
+                    ];
+                })->values(),
             ];
         })->values();
     
@@ -383,6 +385,7 @@ public function store(Request $request, $serviceId)
             'user_bookings' => $userBookings,
         ]);
     }
+    
     
 
     /**
