@@ -2,27 +2,29 @@
 
 import React, { useEffect, useState } from "react";
 import GuestListComponent from "@/components/GuestListComponent";
-import { useUserBooking } from "@/store/useUserBooking";
 import { useParams } from "next/navigation";
+import { useBookingStoreFetch } from "@/store/bookingStore";
 
 export default function TourDetails() {
   const params = useParams();
   const { id: ownerId, serviesId } = params; // `params` is an object
-  console.log("Owner ID:", ownerId);
-  console.log("Service ID:", serviesId);
+  const serviceId = params?.serviceId || params?.serviesId; // fallback for typo
 
-  const {
-    bookings,
-    loading,
-    error,
-    fetchBookingsByOwnerId,
-    cancelBooking,
-    stats,
-  } = useUserBooking();
+  const { fetchServiceBookings, service, stats, userBookings, loading, error } =
+    useBookingStoreFetch();
 
   useEffect(() => {
-    fetchBookingsByOwnerId(ownerId);
-  }, [ownerId, fetchBookingsByOwnerId]);
+    if (ownerId && serviceId) {
+      fetchServiceBookings(ownerId, serviceId);
+    }
+  }, [ownerId, serviceId]);
+
+  const formatDate = (isoString) =>
+    new Date(isoString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   return (
     <div className="bg-gray-50 min-h-screen p-6 font-sans">
@@ -50,7 +52,9 @@ export default function TourDetails() {
                   ID: TTHH3
                 </span>
               </div>
-              <div className="text-sm text-gray-500">Created: May 17, 2025</div>
+              <div className="text-sm text-gray-500">
+                Created: {formatDate(service?.created_at)}
+              </div>
             </div>
 
             <div className="flex space-x-4 mb-4">
@@ -72,7 +76,9 @@ export default function TourDetails() {
                   </svg>
                   Bookings
                 </div>
-                <div className="text-sm font-medium text-center">2</div>
+                <div className="text-sm font-medium text-center">
+                  {stats?.total_booking_count}
+                </div>
               </div>
 
               <div className="bg-gray-100 p-3 rounded-lg">
@@ -93,7 +99,9 @@ export default function TourDetails() {
                   </svg>
                   Price
                 </div>
-                <div className="text-sm font-medium px-2">$100.00</div>
+                <div className="text-sm font-medium px-2">
+                  ${stats?.total_base_price}
+                </div>
               </div>
             </div>
 
@@ -102,7 +110,10 @@ export default function TourDetails() {
               <div className="text-lgfont-bold text-gray-700 font-bold py-1 mb-1">
                 Created Date
               </div>
-              <div className="text-[16px] text-gray-600">May 17, 2025</div>
+              <div className="text-[16px] text-gray-600">
+                {" "}
+                {formatDate(service?.created_at)}
+              </div>
             </div>
 
             <div className="mb-4">
@@ -110,58 +121,80 @@ export default function TourDetails() {
                 Description
               </div>
               <div className="text-[16px] text-gray-600">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae
-                error culpa et incidunt exercitationem totam perspiciatis sunt
-                at dignissimos dolore officiis est, delectus repudiandae quidem,
-                laudantium placeat iusto mollitia soluta? Lorem ipsum dolor sit
-                amet consectetur adipisicing elit. Repudiandae at excepturi
-                sequi quam veritatis rerum repellendus quaerat id mollitia
-                molestias architecto deserunt, et neque in quis, culpa
-                consequuntur atque fuga! L Modi enim recusandae alias in dolores
-                blanditiis adipisci, autem est amet cum aspernatur quo tempora
-                quidem minus nobis facilis! Sit, itaque
-                et!loadingdfdgfffffffffffffffffghgjh tyut rtytrutyuy ytuyt{" "}
+                {service?.description}{" "}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-lg font-bold text-gray-700 mb-1 py-1">
+                category
+              </div>
+              <div className="text-[16px] text-gray-600">
+                {service?.category?.name}{" "}
+                <img
+                  src={
+                    service?.category?.image ||
+                    "https://picsum.photos/id/1019/150/100"
+                  }
+                  alt="Tour"
+                  className="rounded-lg w-1/3"
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-lg font-bold text-gray-700 mb-1 py-1">
+                type
+              </div>
+              <div className="text-[16px] text-gray-600">
+                {service?.type?.name}{" "}
+                <img
+                  src={
+                    service?.type?.image_url ||
+                    "https://picsum.photos/id/1019/150/100"
+                  }
+                  alt="Tour"
+                  className="rounded-lg w-1/3"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="w-1/2 pl-4">
+        <div className="md:w-1/2 md:pl-4 mt-4 md:mt-0">
           {/* Right Column */}
           <div className="bg-white rounded-lg shadow-md p-4 mb-4">
             <div className="text-lg font-bold text-gray-700 mb-2 py-3">
               Tour Gallery
             </div>
+
+            {/* Main Image */}
             <div className="mb-2">
               <img
-                src="https://picsum.photos/id/1015/400/300"
-                alt="Tour"
+                src={
+                  service?.images?.[0] ||
+                  "https://picsum.photos/id/1015/400/300"
+                }
+                alt="Main"
                 className="rounded-lg w-full h-64 object-cover mb-2"
               />
             </div>
+
+            {/* Thumbnail images */}
             <div className="flex space-x-2 mb-4">
-              <img
-                src="https://picsum.photos/id/1016/150/100"
-                alt="Tour"
-                className="rounded-lg w-1/3"
-              />
-              <img
-                src="https://picsum.photos/id/1018/150/100"
-                alt="Tour"
-                className="rounded-lg w-1/3"
-              />
-              <img
-                src="https://picsum.photos/id/1019/150/100"
-                alt="Tour"
-                className="rounded-lg w-1/3"
-              />
+              {(service?.images?.slice(1, 4) ?? []).map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={`Thumb ${idx + 1}`}
+                  className="rounded-lg w-1/3 h-[100px] object-cover"
+                />
+              ))}
             </div>
-            <div className="text-sm text-blue-600 text-center">
-              View All Photos (4)
+
+            <div className="text-sm text-blue-600 text-center cursor-pointer">
+              View All Photos ({service?.images?.length ?? 0})
             </div>
           </div>
         </div>
-        
       </div>
 
       <GuestListComponent />

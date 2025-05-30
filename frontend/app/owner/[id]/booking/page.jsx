@@ -172,7 +172,9 @@ export default function AllBookingsPage() {
                         />
                       </td>
                       <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
-                        <Link href={`/owner/${ownerId}/booking/${booking.id}`}>
+                        <Link
+                          href={`/owner/${ownerId}/booking/${booking.service?.id}`}
+                        >
                           {booking.service?.name || "Unknown Service"}
                         </Link>
                       </td>
