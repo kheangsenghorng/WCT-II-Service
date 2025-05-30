@@ -2,35 +2,59 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import {
   Save,
   AlertTriangle,
-  Edit as EditIcon,
+  Edit,
   Camera,
-  User,
   Phone,
   Mail,
+  CheckCircle,
+  MapPin,
+  Building2,
+  Globe,
+  Clock,
+  Users,
+  Award,
 } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import { motion, AnimatePresence } from "framer-motion";
-import {} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function SettingsPage() {
   const { user, updateUser, fetchUserById } = useUserStore();
   const { id } = useParams();
   const router = useRouter();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  // Basic Information
+  const [companyName, setCompanyName] = useState("");
+  const [employeeCount, setEmployeeCount] = useState("");
+  const [description, setDescription] = useState("");
+
+  // Contact Information
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [bio, setBio] = useState(""); // Added Bio State
-  const [avatarPreview, setAvatarPreview] = useState("/default-user.svg");
+  const [website, setWebsite] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+
+  // Business Details
+  const [businessHours, setBusinessHours] = useState("");
+  const [services, setServices] = useState("");
+  // Social Media & Online Presence
+  const [facebook, setFacebook] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+
+  // Other states
+  const [avatarPreview, setAvatarPreview] = useState("/default-company.svg");
   const [avatarFile, setAvatarFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -40,20 +64,39 @@ export default function SettingsPage() {
     if (id) {
       fetchUserById(id);
     }
-  }, [id]);
+  }, [id, fetchUserById]);
 
   useEffect(() => {
     if (user) {
-      setFirstName(user.first_name || "");
-      setLastName(user.last_name || "");
-      setPhone(user?.phone || "");
-      setBio(user?.bio || ""); // Load Bio From User Data
+      // Basic Information
+      setCompanyName(user.company_name || "");
+      setEmployeeCount(user.employee_count || "");
+      setDescription(user.description || "");
+
+      // Contact Information
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setWebsite(user.website || "");
+      setAddress(user.address || "");
+      setCity(user.city || "");
+      setCountry(user.country || "");
+
+      // Business Details
+      setBusinessHours(user.business_hours || "");
+      setServices(user.services || "");
+
+      // Social Media
+      setFacebook(user.facebook || "");
+      setInstagram(user.instagram || "");
+      setTwitter(user.twitter || "");
+      setLinkedin(user.linkedin || "");
+
       setAvatarPreview(
-        user.image?.startsWith("http")
-          ? user.image
-          : user.image
-          ? `/${user.image}`
-          : "/default-user.svg"
+        user.logo?.startsWith("http")
+          ? user.logo
+          : user.logo
+          ? `/${user.logo}`
+          : "/default-company.svg"
       );
     }
   }, [user]);
@@ -74,23 +117,34 @@ export default function SettingsPage() {
     setShowConfirmModal(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "first_name") setFirstName(value);
-    if (name === "last_name") setLastName(value);
-    if (name === "phone") setPhone(value);
-    if (name === "bio") setBio(value);
-  };
-
   const confirmUpdate = async () => {
+    setIsLoading(true);
     const formData = new FormData();
-    formData.append("first_name", firstName);
-    formData.append("last_name", lastName);
+
+    // Basic Information
+    formData.append("company_name", companyName);
+    formData.append("employee_count", employeeCount);
+    formData.append("description", description);
+
+    // Contact Information
     formData.append("phone", phone);
-    formData.append("bio", bio);
+    formData.append("website", website);
+    formData.append("address", address);
+    formData.append("city", city);
+    formData.append("country", country);
+
+    // Business Details
+    formData.append("business_hours", businessHours);
+    formData.append("services", services);
+
+    // Social Media
+    formData.append("facebook", facebook);
+    formData.append("instagram", instagram);
+    formData.append("twitter", twitter);
+    formData.append("linkedin", linkedin);
 
     if (avatarFile) {
-      formData.append("image", avatarFile);
+      formData.append("logo", avatarFile);
     }
 
     try {
@@ -100,6 +154,7 @@ export default function SettingsPage() {
     } catch (error) {
       console.error("Update failed:", error);
     } finally {
+      setIsLoading(false);
       setShowConfirmModal(false);
     }
   };
@@ -122,37 +177,45 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 flex items-center justify-center">
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="w-full max-w-2xl"
+        className="w-full max-w-4xl"
       >
-        <Card className="shadow-2xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <motion.div variants={itemVariants}>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Profile Settings
-              </CardTitle>
-              <p className="text-slate-600 dark:text-slate-400 mt-2">
-                Update your personal information and preferences
-              </p>
+        <Card className="shadow-xl border-0 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden">
+          {/* Header */}
+          <CardHeader className="pb-8 pt-10 px-8 border-b border-gray-100 dark:border-gray-700">
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center mb-4"
+            >
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg mr-4">
+                <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-800 dark:text-white">
+                  Company Profile Settings
+                </CardTitle>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                  Manage your company information and business details
+                </p>
+              </div>
             </motion.div>
           </CardHeader>
 
-          <CardContent className="space-y-8">
-            {/* Avatar Section */}
+          <CardContent className="p-8 space-y-8">
+            {/* Company Logo Section */}
             <motion.div variants={itemVariants} className="flex justify-center">
               <div className="relative group">
-                <Avatar className="w-32 h-32 border-4 border-white dark:border-slate-700 shadow-xl">
+                <Avatar className="w-32 h-32 border-4 border-blue-200 shadow-lg">
                   <AvatarImage
                     src={avatarPreview || "/placeholder.svg"}
-                    alt="Profile"
+                    alt="Company Logo"
                   />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                    {firstName?.[0]}
-                    {lastName?.[0]}
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                    {companyName?.[0] || "C"}
                   </AvatarFallback>
                 </Avatar>
 
@@ -176,94 +239,312 @@ export default function SettingsPage() {
             </motion.div>
 
             {/* Form Fields */}
-            <div className="grid gap-6">
-              <motion.div
-                variants={itemVariants}
-                className="grid md:grid-cols-2 gap-4"
-              >
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="firstName"
-                    className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
-                  >
-                    <User className="w-4 h-4" />
-                    First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    name="first_name"
-                    value={firstName}
-                    onChange={handleChange}
-                    placeholder="Enter your first name"
-                    className="border-slate-200 dark:border-slate-600 focus:border-blue-500 transition-colors"
-                  />
+            <div className="grid gap-8">
+              {/* Basic Company Information */}
+              <motion.div variants={itemVariants}>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Basic Company Information
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="companyName"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Building2 className="w-4 h-4 text-blue-600" />
+                      Company Name
+                    </Label>
+                    <Input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Enter company name"
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="employeeCount"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Users className="w-4 h-4 text-indigo-600" />
+                      Employee Count
+                    </Label>
+                    <Input
+                      id="employeeCount"
+                      value={employeeCount}
+                      onChange={(e) => setEmployeeCount(e.target.value)}
+                      placeholder="e.g., 1-5, 6-10, 11-25"
+                      className="border-gray-300 dark:border-gray-600 focus:border-indigo-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="mt-4 space-y-2">
                   <Label
-                    htmlFor="lastName"
-                    className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
+                    htmlFor="description"
+                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
                   >
-                    <User className="w-4 h-4" />
-                    Last Name
+                    <Edit className="w-4 h-4 text-purple-600" />
+                    Company Description
                   </Label>
-                  <Input
-                    id="lastName"
-                    name="last_name"
-                    value={lastName}
-                    onChange={handleChange}
-                    placeholder="Enter your last name"
-                    className="border-slate-200 dark:border-slate-600 focus:border-blue-500 transition-colors"
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Describe your company, mission, and what makes you unique..."
+                    rows={4}
+                    className="border-gray-300 dark:border-gray-600 focus:border-purple-500 transition-colors rounded-lg"
                   />
                 </div>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="phone"
-                  className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
-                >
-                  <Phone className="w-4 h-4" />
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  className="border-slate-200 dark:border-slate-600 focus:border-blue-500 transition-colors"
-                />
+              {/* Contact Information */}
+              <motion.div variants={itemVariants}>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-green-600" />
+                  Contact Information
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="email"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Mail className="w-4 h-4 text-orange-600" />
+                      Email Address
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      disabled
+                      className="bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg h-12 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Email cannot be changed for security reasons
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="phone"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Phone className="w-4 h-4 text-green-600" />
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Enter phone number"
+                      className="border-gray-300 dark:border-gray-600 focus:border-green-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="website"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Globe className="w-4 h-4 text-blue-600" />
+                      Website
+                    </Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      placeholder="https://www.yourcompany.com"
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="businessHours"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Clock className="w-4 h-4 text-purple-600" />
+                      Business Hours
+                    </Label>
+                    <Input
+                      id="businessHours"
+                      value={businessHours}
+                      onChange={(e) => setBusinessHours(e.target.value)}
+                      placeholder="e.g., Mon-Fri 9AM-6PM"
+                      className="border-gray-300 dark:border-gray-600 focus:border-purple-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+                </div>
+
+                {/* Address Section */}
+                <div className="mt-4 grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="address"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <MapPin className="w-4 h-4 text-red-600" />
+                      Street Address
+                    </Label>
+                    <Input
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Enter street address"
+                      className="border-gray-300 dark:border-gray-600 focus:border-red-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="city"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      City
+                    </Label>
+                    <Input
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Enter city"
+                      className="border-gray-300 dark:border-gray-600 focus:border-red-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2">
+                    <Label
+                      htmlFor="country"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      Country
+                    </Label>
+                    <Input
+                      id="country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="Enter country"
+                      className="border-gray-300 dark:border-gray-600 focus:border-red-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+                </div>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
-                >
-                  <Mail className="w-4 h-4" />
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user?.email || ""}
-                  disabled
-                  className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
-                />
+              {/* Business Details */}
+              <motion.div variants={itemVariants}>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Business Details
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="services"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      <Award className="w-4 h-4 text-blue-600" />
+                      Services Offered
+                    </Label>
+                    <Textarea
+                      id="services"
+                      value={services}
+                      onChange={(e) => setServices(e.target.value)}
+                      placeholder="List your main services and offerings..."
+                      rows={3}
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-500 transition-colors rounded-lg"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Social Media */}
+              <motion.div variants={itemVariants}>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                  Social Media & Online Presence
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="facebook"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      Facebook
+                    </Label>
+                    <Input
+                      id="facebook"
+                      value={facebook}
+                      onChange={(e) => setFacebook(e.target.value)}
+                      placeholder="https://facebook.com/yourcompany"
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="instagram"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      Instagram
+                    </Label>
+                    <Input
+                      id="instagram"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      placeholder="https://instagram.com/yourcompany"
+                      className="border-gray-300 dark:border-gray-600 focus:border-pink-500 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="twitter"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      Twitter
+                    </Label>
+                    <Input
+                      id="twitter"
+                      value={twitter}
+                      onChange={(e) => setTwitter(e.target.value)}
+                      placeholder="https://twitter.com/yourcompany"
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-400 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="linkedin"
+                      className="text-gray-700 dark:text-gray-300 font-medium"
+                    >
+                      LinkedIn
+                    </Label>
+                    <Input
+                      id="linkedin"
+                      value={linkedin}
+                      onChange={(e) => setLinkedin(e.target.value)}
+                      placeholder="https://linkedin.com/company/yourcompany"
+                      className="border-gray-300 dark:border-gray-600 focus:border-blue-600 transition-colors rounded-lg h-12"
+                    />
+                  </div>
+                </div>
               </motion.div>
             </div>
 
             {/* Update Button */}
             <motion.div
               variants={itemVariants}
-              className="flex justify-end pt-4"
+              className="flex justify-center pt-4"
             >
               <Button
                 onClick={handleUpdate}
                 disabled={isLoading}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-2 rounded-full shadow-lg transition-all duration-300"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all duration-300 text-lg font-semibold"
               >
                 {isLoading ? (
                   <motion.div
@@ -273,13 +554,13 @@ export default function SettingsPage() {
                       repeat: Number.POSITIVE_INFINITY,
                       ease: "linear",
                     }}
-                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                   />
                 ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Update Profile
-                  </>
+                  <div className="flex items-center gap-2">
+                    <Save className="w-5 h-5" />
+                    Update Company Profile
+                  </div>
                 )}
               </Button>
             </motion.div>
@@ -290,13 +571,13 @@ export default function SettingsPage() {
         <AnimatePresence>
           {showConfirmModal && (
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
@@ -307,28 +588,45 @@ export default function SettingsPage() {
                     <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
                       <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Confirm Changes
                     </h3>
                   </div>
 
-                  <p className="text-slate-600 dark:text-slate-400 mb-6">
-                    Are you sure you want to save these changes to your profile?
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Are you sure you want to save these changes to your company
+                    profile?
                   </p>
 
                   <div className="flex gap-3 justify-end">
                     <Button
                       variant="outline"
                       onClick={() => setShowConfirmModal(false)}
-                      className="border-slate-200 dark:border-slate-600"
+                      className="border-gray-300 dark:border-gray-600"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={confirmUpdate}
+                      disabled={isLoading}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      Confirm
+                      {isLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "linear",
+                          }}
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          Confirm
+                        </div>
+                      )}
                     </Button>
                   </div>
                 </div>
