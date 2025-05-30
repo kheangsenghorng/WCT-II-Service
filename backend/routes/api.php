@@ -96,11 +96,11 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/', [BookingController::class, 'index']); // GET all bookings
         Route::post('/services/{serviceId}', [BookingController::class, 'store']); // POST create booking for a specific service
         Route::get('/user/{userId}/service/{serviceId}', [BookingController::class, 'show']); // GET booking by user & service
+        Route::get('/user/{userId}/service/{serviceId}/booking/{bookingId}', [BookingController::class, 'showid']); // GET booking by user & service
+        Route::get('/user/{id}', [FilteredServiceController::class, 'showByIduser']);  
         Route::put('/{id}', [BookingController::class, 'update']); // PUT update booking by ID
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
     });
-
-
 
 } );
 
@@ -169,7 +169,7 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
     });
  
     // FilteredServiceController
-
+    
     Route::get('/booking/{id}', [FilteredServiceController::class, 'showById']);  
     Route::get('/user/{userId}/service/{serviceId}', [FilteredServiceController::class, 'show']);
 

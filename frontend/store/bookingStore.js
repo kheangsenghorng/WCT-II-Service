@@ -87,6 +87,44 @@ export const useBookingStoreFetch = create(
           });
         }
       },
+      // ✅ NEW: Fetch all bookings for a user
+      fetchBookingsByUserId: async (userId) => {
+        set({ loading: true, error: null });
+        try {
+          const data = await request(`/bookings/user/${userId}`, "GET");
+          set({ bookings: data.bookings, loading: false });
+        } catch (error) {
+          set({
+            error:
+              error?.response?.data?.message || "Failed to fetch bookings.",
+            loading: false,
+          });
+        }
+      },
+
+      fetchBookingDetail: async (userId, serviceId, bookingId) => {
+        set({ loading: true, error: null });
+
+        try {
+          // Update the API endpoint to include bookingId
+          const response = await request(
+            `/bookings/user/${userId}/service/${serviceId}/booking/${bookingId}`,
+            "GET"
+          );
+
+          set({
+            booking: response.booking,
+            loading: false,
+          });
+        } catch (error) {
+          console.error("Error fetching booking detail:", error);
+          set({
+            error:
+              error.response?.data?.message || "Failed to fetch booking detail",
+            loading: false,
+          });
+        }
+      },
 
       // ✅ Clear all bookings and errors
       clearBookings: () =>
@@ -97,7 +135,6 @@ export const useBookingStoreFetch = create(
           stats: null,
           userBookings: [],
           loading: false,
-          error: null,
         }),
     }),
     {
