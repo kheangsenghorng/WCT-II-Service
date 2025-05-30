@@ -302,7 +302,7 @@ public function store(Request $request, $serviceId)
             ], 403);
         }
     
-        // Fetch the service (to show in response, regardless of bookings)
+        // Fetch the service with category and type
         $service = Service::with(['category', 'type'])
             ->where('id', $serviceId)
             ->where('owner_id', $ownerId)
@@ -321,7 +321,13 @@ public function store(Request $request, $serviceId)
             }, $service->images);
         }
     
-        // Fetch bookings for this owner and service
+        // Format category image
+        if ($service->category && $service->category->image) {
+            if (!preg_match('/^http/', $service->category->image)) {
+                $service->category->image = asset('storage/' . $service->category->image);
+            }
+        }
+        // Fetch bookings with user
         $bookings = Booking::with(['user'])
             ->whereHas('service', function ($query) use ($ownerId, $serviceId) {
                 $query->where('owner_id', $ownerId)
@@ -332,7 +338,7 @@ public function store(Request $request, $serviceId)
         if ($bookings->isEmpty()) {
             return response()->json([
                 'message' => 'No bookings found for this service.',
-                'service' => $service, // Still show service even if no bookings
+                'service' => $service,
                 'related_bookings_stats' => [
                     'total_booking_count' => 0,
                     'unique_users_count' => 0,
@@ -344,18 +350,12 @@ public function store(Request $request, $serviceId)
     
         $basePrice = $service->base_price ?? 0;
     
-        // Group bookings by user_id
+        // Group bookings by user
         $groupedByUser = $bookings->groupBy('user_id');
     
-        // Prepare user bookings summary
+        // Map grouped bookings
         $userBookings = $groupedByUser->map(function ($bookings, $userId) use ($basePrice) {
             $firstBooking = $bookings->first();
-    
-            // Count of bookings by this user
-            $userBookingCount = $bookings->count();
-    
-            // Total price for this user
-            $userTotalPrice = $userBookingCount * $basePrice;
     
             // Format user image
             if ($firstBooking->user && $firstBooking->user->image) {
@@ -366,32 +366,25 @@ public function store(Request $request, $serviceId)
     
             return [
                 'user' => $firstBooking->user,
-                'booking_count' => $userBookingCount,
-                'total_price' => $userTotalPrice,
+                'booking_count' => $bookings->count(),
+                'total_price' => $bookings->count() * $basePrice,
             ];
         })->values();
-    
-        // Calculate totals
-        $totalBookingCount = $bookings->count();
-        $totalBasePrice = $userBookings->sum('total_price');
     
         return response()->json([
             'owner_id' => $ownerId,
             'service_id' => $serviceId,
             'service' => $service,
             'related_bookings_stats' => [
-                'total_booking_count' => $totalBookingCount,
+                'total_booking_count' => $bookings->count(),
                 'unique_users_count' => $userBookings->count(),
-                'total_base_price' => $totalBasePrice,
+                'total_base_price' => $userBookings->sum('total_price'),
             ],
             'user_bookings' => $userBookings,
         ]);
     }
     
 
-    
-
-    
     /**
      * Update the specified resource in storage.
      */

@@ -11,6 +11,9 @@ export const useBookingStoreFetch = create(
       error: null,
       bookedSlots: [],
       loadingSlots: false,
+      service: null,
+      stats: null,
+      userBookings: [],
 
       // ✅ Fetch all bookings by userId & serviceId
       fetchBookingsByUserAndService: async (userId, serviceId) => {
@@ -62,8 +65,40 @@ export const useBookingStoreFetch = create(
         }
       },
 
+      fetchServiceBookings: async (ownerId, serviceId) => {
+        set({ loading: true, error: null });
+
+        try {
+          const response = await request(
+            `/owner/bookings/by-owner/${ownerId}/service/${serviceId}`,
+            "GET"
+          );
+
+          set({
+            service: response.service,
+            stats: response.related_bookings_stats,
+            userBookings: response.user_bookings,
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error?.response?.data?.message || "Something went wrong",
+            loading: false,
+          });
+        }
+      },
+
       // ✅ Clear all bookings and errors
-      clearBookings: () => set({ bookings: [], error: null }),
+      clearBookings: () =>
+        set({
+          bookings: [],
+          error: null,
+          service: null,
+          stats: null,
+          userBookings: [],
+          loading: false,
+          error: null,
+        }),
     }),
     {
       name: "booking-storage", // key in localStorage
