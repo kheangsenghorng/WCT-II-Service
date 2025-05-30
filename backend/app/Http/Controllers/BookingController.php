@@ -190,6 +190,32 @@ public function store(Request $request, $serviceId)
             'booking' => $booking,
         ]);
     }
+    public function showid($userId, $serviceId, $bookingId)
+{
+    // Fetch the booking by ID and ensure it matches the user and service
+    $booking = Booking::with('user', 'service')
+        ->where('id', $bookingId)
+        ->where('user_id', $userId)
+        ->where('service_id', $serviceId)
+        ->firstOrFail();
+
+    // Append full image URL to the user image
+    if ($booking->user && $booking->user->image) {
+        $booking->user->image = asset('storage/' . $booking->user->image);
+    }
+
+    // Append full URLs to all service images if they exist
+    if ($booking->service && is_array($booking->service->images)) {
+        $booking->service->images = array_map(function ($image) {
+            return asset('storage/' . $image);
+        }, $booking->service->images);
+    }
+
+    return response()->json([
+        'booking' => $booking,
+    ]);
+}
+
     
     public function showownerid($id)
     {
@@ -386,39 +412,6 @@ public function store(Request $request, $serviceId)
         ]);
     }
     
-    
-
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, string $id)
-    // {
-    //     $booking = Booking::findOrFail($id);
-
-    //     $validated = $request->validate([
-    //         'scheduled_date' => 'sometimes|date',
-    //         'scheduled_time' => 'sometimes',
-    //         'location' => 'sometimes|string',
-    //         'status' => 'nullable|in:pending,paid,cancel',
-    //     ]);
-
-    //     $booking->update($validated);
-    //     $booking->load('user', 'service');
-
-    //     // Transform image URLs
-    //     if ($booking->user && $booking->user->image) {
-    //         $booking->user->image = asset('storage/' . $booking->user->image);
-    //     }
-
-    //     if ($booking->service && is_array($booking->service->images)) {
-    //         $booking->service->images = array_map(function ($image) {
-    //             return asset('storage/' . $image);
-    //         }, $booking->service->images);
-    //     }
-
-    //     return response()->json($booking);
-    // }
-
 
 public function update(Request $request, string $id)
 {
