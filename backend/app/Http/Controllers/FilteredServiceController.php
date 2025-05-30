@@ -63,8 +63,6 @@ class FilteredServiceController extends Controller
 
         return response()->json($bookings);
     }
-
-
 //     public function show($userId, $serviceId)
 // {
 //     $booking = Booking::with('user', 'service')
@@ -120,6 +118,49 @@ public function show($userId, $serviceId)
     ]);
 }
 
+public function showByIduser($userId)
+{
+    // Fetch all bookings for the user, along with related service & user
+    $bookings = Booking::with(['user', 'service.category', 'service.type'])
+        ->where('user_id', $userId)
+        ->get();
+
+    if ($bookings->isEmpty()) {
+        return response()->json([
+            'message' => 'No bookings found for this user.',
+            'bookings' => [],
+        ], 404);
+    }
+
+    // Process each booking
+    $bookings->transform(function ($booking) {
+        // Format user image
+        if ($booking->user && $booking->user->image && !preg_match('/^http/', $booking->user->image)) {
+            $booking->user->image = asset('storage/' . $booking->user->image);
+        }
+
+        // Format service images
+        if ($booking->service && is_array($booking->service->images)) {
+            $booking->service->images = array_map(function ($image) {
+                return preg_match('/^http/', $image) ? $image : asset('storage/' . $image);
+            }, $booking->service->images);
+        }
+
+        // Add service_category_id and type_id directly
+        if ($booking->service) {
+            $booking->service->service_category_id = $booking->service->category_id ?? null;
+            $booking->service->type_id = $booking->service->type_id ?? null;
+        }
+
+        return $booking;
+    });
+
+    return response()->json([
+        'user_id' => $userId,
+        'total_bookings' => $bookings->count(),
+        'bookings' => $bookings,
+    ]);
+}
 public function showById($id)
 {
     $booking = Booking::with('user', 'service')->findOrFail($id);
@@ -173,9 +214,5 @@ public function getBookedSlots($serviceId, Request $request)
 
     return response()->json($bookings);
 }
-
-
-
-
 
 }
