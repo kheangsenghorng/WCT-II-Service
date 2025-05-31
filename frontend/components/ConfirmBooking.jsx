@@ -42,6 +42,7 @@ const ConfirmBooking = () => {
 
   const [showMap, setShowMap] = useState(false);
   const [location, setLocation] = useState("");
+  const [locationLink, setLocationLink] = useState("");
 
   const servicesId = searchParams.get("servicesId");
   const date = searchParams.get("date");
@@ -107,11 +108,14 @@ const ConfirmBooking = () => {
       return;
     }
 
+    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${latlng.lat},${latlng.lng}`;
+
     console.log("Selected location:", latlng, address);
 
     setFormData({
       ...formData,
-      location: address, // or `${latlng.lat}, ${latlng.lng}` if needed
+      location: address, // human-readable address
+      locationLink: mapsLink, // for clickable map link
     });
 
     setShowMap(false);
@@ -175,7 +179,7 @@ const ConfirmBooking = () => {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* User Details Section */}
-        <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="border-0 shadow-sm ">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl text-gray-900">
               <User className="w-6 h-6 text-blue-600" />
@@ -279,13 +283,25 @@ const ConfirmBooking = () => {
                     Pick on map
                   </button>
                 </label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  readOnly
-                  placeholder="Lat, Lng"
-                  className="w-full border p-2 mt-1"
-                />
+
+                {formData.locationLink ? (
+                  <a
+                    href={formData.locationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-1 text-blue-600 underline"
+                  >
+                    {formData.location}
+                  </a>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.location}
+                    readOnly
+                    placeholder="Lat, Lng"
+                    className="w-full border p-2 mt-1"
+                  />
+                )}
               </div>
 
               {showMap && (
@@ -302,7 +318,7 @@ const ConfirmBooking = () => {
         </Card>
 
         {/* Payment Section */}
-        <Card className="border-0 shadow-sm bg-gradient-to-r from-emerald-50 to-teal-50">
+        <Card className="border-0 shadow-sm ">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl text-gray-900">
               <CreditCard className="w-6 h-6 text-emerald-600" />
@@ -544,7 +560,7 @@ const ConfirmBooking = () => {
               <Button
                 onClick={() => {
                   setShowSuccessModal(false);
-                  router.push(`/profile/${id}/bookings`);
+                  router.push(`/profile/${id}/service-booked`);
                 }}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >

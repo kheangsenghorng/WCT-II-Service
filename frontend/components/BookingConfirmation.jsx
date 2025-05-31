@@ -4,7 +4,7 @@ import BookingSummary from "@/components/BookingSummary"
 
 const BookingConfirmation = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen ">
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Header */}
         <div className="text-center mb-8 lg:mb-12">
