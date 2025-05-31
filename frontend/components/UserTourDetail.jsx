@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useBookingStoreFetch } from "../store/bookingStore";
 import { Eye } from "lucide-react";
-import Link from "next/link"; // make sure this is imported at the top
+import Link from "next/link";
 
 export default function UserTourHistory({ userId }) {
   const { id, serviesId } = useParams();
@@ -18,24 +18,53 @@ export default function UserTourHistory({ userId }) {
     }
   }, [userId, serviesId]);
 
-  // Staff
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
 
-  const handleViewStaff = (staff) => {
-    setSelectedStaff(
-      staff || {
-        name: "John Doe",
-        profile: "/images/default-profile.jpg",
-        company: "CleanPro Ltd.",
-        contact: "012 345 678",
-      }
-    );
+  const handleViewStaff = (staffArray) => {
+    if (!Array.isArray(staffArray) || staffArray.length === 0) {
+      setSelectedStaff([
+        {
+          name: "John Doe",
+          profile: "/images/default-avatar.png",
+          company: "CleanPro Ltd.",
+          contact: "012 345 678",
+        },
+        {
+          name: "Jane Smith",
+          profile: "/images/default-avatar.png",
+          company: "ShinySpark Cleaning Co.",
+          contact: "098 765 432",
+        },
+        {
+          name: "Alex Chan",
+          profile: "/images/default-avatar.png",
+          company: "GreenClean Services",
+          contact: "011 223 344",
+        },
+      ]);
+    } else {
+      setSelectedStaff(staffArray);
+    }
     setShowStaffModal(true);
   };
 
   const closeModal = () => {
     setShowStaffModal(false);
+    setSelectedStaff(null);
+  };
+
+  const removeStaff = () => {
+    console.log("Removing staff...");
+    alert("Staff removed successfully.");
+    setSelectedStaff(null);
+    setShowStaffModal(false);
+  };
+
+  // ✅ Delete individual staff from modal
+  const handleDeleteStaff = (indexToRemove) => {
+    const updatedStaff = selectedStaff.filter((_, index) => index !== indexToRemove);
+    setSelectedStaff(updatedStaff);
   };
 
   const totalPrice = Array.isArray(bookings)
@@ -64,18 +93,10 @@ export default function UserTourHistory({ userId }) {
         <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b">
             <tr>
-              <th className="px-4 py-3 font-semibold text-green-600">
-                Service
-              </th>
-              <th className="px-4 py-3 font-semibold text-green-600 w-48">
-                Location
-              </th>
-              <th className="px-4 py-3 font-semibold text-green-600">
-                Booked Date
-              </th>
-              <th className="px-4 py-3 font-semibold text-green-600">
-                Scheduled Time
-              </th>
+              <th className="px-4 py-3 font-semibold text-green-600">Service</th>
+              <th className="px-4 py-3 font-semibold text-green-600 w-48">Location</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Booked Date</th>
+              <th className="px-4 py-3 font-semibold text-green-600">Scheduled Time</th>
               <th className="px-4 py-3 font-semibold text-green-600">Status</th>
               <th className="px-4 py-3 font-semibold text-green-600">Price</th>
               <th className="px-4 py-3 font-semibold text-green-600">Staff</th>
@@ -91,9 +112,7 @@ export default function UserTourHistory({ userId }) {
                       className="flex items-center gap-3"
                     >
                       <img
-                        src={
-                          booking?.service?.images?.[0] || "/placeholder.jpg"
-                        }
+                        src={booking?.service?.images?.[0] || "/placeholder.jpg"}
                         alt={booking?.service?.name || "Service Image"}
                         className="w-12 h-12 rounded-md object-cover"
                       />
@@ -105,18 +124,13 @@ export default function UserTourHistory({ userId }) {
                       </div>
                     </Link>
                   </td>
-                  <td
-                    className="px-4 py-3 max-w-[12rem] truncate"
-                    title={booking?.location}
-                  >
+                  <td className="px-4 py-3 max-w-[12rem] truncate" title={booking?.location}>
                     {booking?.location}
                   </td>
                   <td className="px-4 py-3">{booking?.scheduled_date}</td>
                   <td className="px-4 py-3">
                     {booking?.scheduled_time
-                      ? new Date(
-                          `1970-01-01T${booking.scheduled_time}`
-                        ).toLocaleTimeString([], {
+                      ? new Date(`1970-01-01T${booking.scheduled_time}`).toLocaleTimeString([], {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
@@ -159,9 +173,8 @@ export default function UserTourHistory({ userId }) {
         </table>
 
         {showStaffModal && selectedStaff && (
-          <div className="fixed inset-0  shadow-lg bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
-              {/* Close button */}
+          <div className="fixed inset-0  bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 relative overflow-y-auto max-h-[90vh]">
               <button
                 onClick={closeModal}
                 className="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold"
@@ -169,28 +182,45 @@ export default function UserTourHistory({ userId }) {
                 &times;
               </button>
 
-              {/* Modal content */}
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src={selectedStaff.profile || "/placeholder.jpg"}
-                  alt={selectedStaff.name}
-                  className="w-24 h-24 rounded-full object-cover mb-4 border border-gray-300"
-                />
+              <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                Staff Details
+              </h2>
 
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  {selectedStaff.name}
-                </h3>
-
-                <p className="text-gray-600 mb-1">
-                  <span className="font-medium text-gray-800">From:</span>{" "}
-                  {selectedStaff.company}
-                </p>
-
-                <p className="text-gray-600">
-                  <span className="font-medium text-gray-800">Contact:</span>{" "}
-                  {selectedStaff.contact}
-                </p>
-              </div>
+              <table className="w-full text-sm text-left text-gray-600">
+                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3  text-green-500">Name</th>
+                    <th className="px-4 py-3  text-green-500">Profile</th>
+                    <th className="px-4 py-3  text-green-500">From (Company)</th>
+                    <th className="px-4 py-3  text-green-500">Contact</th>
+                    <th className="px-4 py-3  text-green-500">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedStaff.map((staff, index) => (
+                    <tr key={index} className="bg-white border-b hover:bg-gray-50">
+                      <td className="px-4 py-3 font-bold text-gray-900">{staff.name}</td>
+                      <td className="px-4 py-3">
+                        <img
+                          src={staff.profile || "/images/default-profile.jpg"}
+                          alt={staff.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{staff.company}</td>
+                      <td className="px-4 py-3 text-gray-600">{staff.contact}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleDeleteStaff(index)}
+                          className="text-red-600 hover:underline font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
