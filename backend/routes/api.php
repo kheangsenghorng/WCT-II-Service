@@ -13,8 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\BlogController;
-
-
+use App\Http\Controllers\BookingStaffController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -74,7 +73,7 @@ Route::middleware('auth:api')->group(function () {
 
           // Blog Routes
           Route::prefix('blogs')->group(function () {
-            Route::get('/', [BlogController::class, 'index']);          // Get all blogs
+            Route::get('/', [BlogController::class, 'index']);   // Get all blogs
             Route::post('/{id}', [BlogController::class, 'store']);         // Create a new blog
             Route::get('/{id}', [BlogController::class, 'show']);       // Get blog by id
             Route::put('/edit/{id}', [BlogController::class, 'update']);     // Update blog by id
@@ -104,8 +103,6 @@ Route::middleware('auth:api')->group(function () {
 
 } );
 
-
-
 Route::put('bookingtest/{id}', [BookingController::class, 'update']); // PUT update booking by ID
 //owner
 
@@ -132,7 +129,6 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [ServiceCategoryController::class, 'index']);
         Route::get('/{slug}', [ServiceCategoryController::class, 'show']);
-
 
     });
 
@@ -180,7 +176,19 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
     Route::get('/bookings/user', [BookingController::class, 'getUserBookings']);
     Route::get('/by-owner/{ownerId}', [BookingController::class, 'getByIdOwner']);
 
+
+Route::post('/{ownerId}/booking-staff/assign', [BookingStaffController::class, 'assign']);
+Route::get('/booking-staff/{bookingId}', [BookingStaffController::class, 'getStaffByBooking']);
+Route::delete('/booking-staff/{bookingId}/staff/{staffId}', [BookingStaffController::class, 'unassign']);
+//show no complete staff by owner
+Route::get('/booking-staff/by-owner/{ownerId}', [BookingStaffController::class, 'getStaffByOwner']);
+//show all staff by owner
+Route::get('/booking-staff/show/{ownerId}', [BookingStaffController::class, 'getShowStaff']);
 });
+
+Route::get('/categories', [ServiceCategoryController::class, 'index']);
+Route::get('blogs', [BlogController::class, 'index']);   
+Route::get('/type', [TypeController::class, 'index']);  
 
 //ServiceController
 Route::get('/services', [ServiceController::class, 'index']);
