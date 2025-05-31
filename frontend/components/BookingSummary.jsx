@@ -137,7 +137,7 @@ const BookingSummary = () => {
 
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Base Rate</span>
+                <span className="text-gray-600">Price Details</span>
                 <span>{service?.base_price ? `$${service.base_price}/hour` : "N/A"}</span>
               </div>
 
@@ -157,7 +157,7 @@ const BookingSummary = () => {
             <div className="flex justify-between text-lg font-semibold">
               <span className="flex items-center gap-1">
                 <DollarSign className="w-5 h-5" />
-                Price Details
+                Total Price 
               </span>
               <span>{service?.base_price ? `$${service.base_price}/hour` : "N/A"}</span>
             </div>
