@@ -13,7 +13,7 @@ export const useBlogStore = create((set) => ({
   fetchBlogs: async () => {
     set({ loading: true, error: null });
     try {
-      const blogs = await request("/admin/blogs", "GET");
+      const blogs = await request("/blogs", "GET");
       set({ blogs });
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
