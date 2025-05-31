@@ -1,7 +1,7 @@
 # Use official PHP image with required extensions
 FROM php:8.2-fpm
 
-# Set working directory
+# Set working directory inside the container
 WORKDIR /var/www
 
 # Install system dependencies
@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Copy project files
-COPY . .
+# Copy only backend folder contents into working directory
+COPY backend/ .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -33,11 +33,8 @@ RUN chown -R www-data:www-data \
     /var/www/storage \
     /var/www/bootstrap/cache
 
-# Generate app key (optional: override in env)
-# RUN php artisan key:generate
-
 # Expose port 8000
 EXPOSE 8000
 
-# Start Laravel server
+# Start Laravel server binding to all interfaces and Railway port
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
