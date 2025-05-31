@@ -12,7 +12,7 @@ export const useCategoryStore = create((set) => ({
   fetchCategories: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await request("/admin/categories", "GET");
+      const response = await request("/categories", "GET");
       set({ categories: response });
     } catch (err) {
       set({ error: `Error fetching categories: ${err.message}` });

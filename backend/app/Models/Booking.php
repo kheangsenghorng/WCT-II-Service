@@ -42,5 +42,12 @@ public function owner()
 {
     return $this->belongsTo(User::class, 'owner_id');
 }
+public function staff()
+{
+    return $this->belongsToMany(User::class, 'booking_staff', 'booking_id', 'staff_id')
+                ->withPivot('assigned_at')
+                ->withTimestamps();
+}
+
 }
 

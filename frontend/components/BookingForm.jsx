@@ -89,7 +89,14 @@ const BookingForm = () => {
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-gray-700 dark:text-gray-300">
-                  {selectedTime}
+                  {new Date(`1970-01-01T${selectedTime}`).toLocaleTimeString(
+                    [],
+                    {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    }
+                  )}
                 </span>
               </div>
             </motion.div>

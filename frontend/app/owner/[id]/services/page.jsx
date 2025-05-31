@@ -125,6 +125,19 @@ export default function ServicesPage() {
       })
     : services;
 
+
+  if (servicesError || categoriesError || typesError)
+    return (
+      <div className="w-full p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {servicesError ||
+            categoriesError ||
+            typesError ||
+            "An error occurred while fetching data."}
+        </div>
+      </div>
+    );
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="flex-1 p-4 md:p-6">

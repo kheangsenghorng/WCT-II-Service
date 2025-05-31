@@ -195,9 +195,182 @@
 //   },
 // }));
 
+// import { create } from "zustand";
+// import { persist } from "zustand/middleware";
+// import { request } from "@/util/request";
+
+// export const useServicesStore = create(
+//   persist(
+//     (set) => ({
+//       services: [],
+//       service: null,
+//       loading: false,
+//       error: null,
+//       creatingService: false,
+//       createError: null,
+//       createdService: null,
+//       serviceCount: 0,
+//       setService: (data) => set({ service: data }),
+
+//       fetchServicesByOwner: async (ownerId) => {
+//         set({ loading: true, error: null });
+//         try {
+//           const data = await request(`/owner/${ownerId}/services`, "GET");
+//           set({ services: data, serviceCount: data.length, loading: false });
+//         } catch (error) {
+//           set({
+//             error: error.message || "Failed to load services",
+//             loading: false,
+//           });
+//         }
+//       },
+
+//       fetchAllServices: async () => {
+//         set({ loading: true, error: null });
+//         try {
+//           const data = await request(`/services`, "GET");
+//           set({
+//             services: data,
+//             serviceCount: data.length,
+//             loading: false,
+//           });
+//         } catch (error) {
+//           set({
+//             error: error.message || "Failed to load services",
+//             loading: false,
+//           });
+//         }
+//       },
+
+//       createService: async (ownerId, formData) => {
+//         set({ creatingService: true, createError: null });
+
+//         try {
+//           const res = await request(
+//             `/owner/${ownerId}/services`,
+//             "POST",
+//             formData
+//           );
+//           set({ createdService: res });
+//           return res;
+//         } catch (err) {
+//           let errorMessage = "Failed to add service.";
+//           if (err.response) {
+//             errorMessage = `Failed to add service: Status ${err.response.status}`;
+//             if (err.response.data?.message) {
+//               errorMessage += `, Message: ${err.response.data.message}`;
+//             }
+//           } else if (err.request) {
+//             errorMessage = "Failed to add service: No response from server.";
+//           } else {
+//             errorMessage = `Failed to add service: ${err.message}`;
+//           }
+//           set({ createError: errorMessage, createdService: null });
+//           throw err;
+//         } finally {
+//           set({ creatingService: false });
+//         }
+//       },
+
+//       updateService: async (ownerId, serviceId, formData) => {
+//         set({ loading: true, error: null });
+//         try {
+//           formData.append("_method", "PUT");
+//           const updated = await request(
+//             `/owner/${ownerId}/services/${serviceId}`,
+//             "POST",
+//             formData
+//           );
+//           set({ service: updated, loading: false });
+//           return updated;
+//         } catch (error) {
+//           set({
+//             error: error.response?.data?.message || "Update failed",
+//             loading: false,
+//           });
+//           throw error;
+//         }
+//       },
+
+//       deleteService: async (ownerId, serviceId) => {
+//         try {
+//           await request(`/owner/${ownerId}/services/${serviceId}`, "DELETE");
+//           set((state) => ({
+//             services: state.services.filter((s) => s.id !== serviceId),
+//           }));
+//         } catch (err) {
+//           throw err.response?.data || err;
+//         }
+//       },
+
+//       deleteServiceImage: async (serviceId, imagePath) => {
+//         try {
+//           const response = await request(
+//             `/owner/services/${serviceId}/image`,
+//             "DELETE",
+//             { image_path: imagePath }
+//           );
+//           set((state) => ({
+//             service: {
+//               ...state.service,
+//               images: response.images,
+//             },
+//           }));
+//           return response;
+//         } catch (error) {
+//           console.error("Failed to delete image:", error);
+//           throw error;
+//         }
+//       },
+
+//       fetchService: async (ownerId, serviceId) => {
+//         set({ loading: true, error: null });
+//         try {
+//           const data = await request(
+//             `/owner/${ownerId}/services/${serviceId}`,
+//             "GET"
+//           );
+//           set({ service: data, loading: false });
+//         } catch (error) {
+//           set({
+//             error: error.response?.data?.message || "Failed to fetch service",
+//             loading: false,
+//           });
+//         }
+//       },
+
+//       fetchServiceById: async (id) => {
+//         set({ loading: true, error: null });
+//         try {
+//           const data = await request(`/services/${id}`, "GET");
+//           set({ service: data, loading: false });
+//         } catch (error) {
+//           set({
+//             error: error?.response?.data?.message || "Failed to fetch service",
+//             loading: false,
+//           });
+//         }
+//       },
+
+//     }),
+//     {
+//       name: "services-store", // Key used in localStorage
+//     }
+//   )
+// );
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { request } from "@/util/request";
+
+// ✅ Utility function to handle API errors & clear localStorage on "Unauthenticated."
+const handleApiError = (error) => {
+  const message = error?.response?.data?.message;
+  if (message === "Unauthenticated.") {
+    localStorage.removeItem("services-store");
+  }
+  return message || error.message || "Something went wrong";
+};
 
 export const useServicesStore = create(
   persist(
@@ -218,10 +391,8 @@ export const useServicesStore = create(
           const data = await request(`/owner/${ownerId}/services`, "GET");
           set({ services: data, serviceCount: data.length, loading: false });
         } catch (error) {
-          set({
-            error: error.message || "Failed to load services",
-            loading: false,
-          });
+          const errorMsg = handleApiError(error, set);
+          set({ error: errorMsg, loading: false });
         }
       },
 
@@ -235,16 +406,13 @@ export const useServicesStore = create(
             loading: false,
           });
         } catch (error) {
-          set({
-            error: error.message || "Failed to load services",
-            loading: false,
-          });
+          const errorMsg = handleApiError(error, set);
+          set({ error: errorMsg, loading: false });
         }
       },
 
       createService: async (ownerId, formData) => {
         set({ creatingService: true, createError: null });
-
         try {
           const res = await request(
             `/owner/${ownerId}/services`,
@@ -253,20 +421,10 @@ export const useServicesStore = create(
           );
           set({ createdService: res });
           return res;
-        } catch (err) {
-          let errorMessage = "Failed to add service.";
-          if (err.response) {
-            errorMessage = `Failed to add service: Status ${err.response.status}`;
-            if (err.response.data?.message) {
-              errorMessage += `, Message: ${err.response.data.message}`;
-            }
-          } else if (err.request) {
-            errorMessage = "Failed to add service: No response from server.";
-          } else {
-            errorMessage = `Failed to add service: ${err.message}`;
-          }
-          set({ createError: errorMessage, createdService: null });
-          throw err;
+        } catch (error) {
+          const errorMsg = handleApiError(error, set);
+          set({ createError: errorMsg, createdService: null });
+          throw error;
         } finally {
           set({ creatingService: false });
         }
@@ -284,10 +442,8 @@ export const useServicesStore = create(
           set({ service: updated, loading: false });
           return updated;
         } catch (error) {
-          set({
-            error: error.response?.data?.message || "Update failed",
-            loading: false,
-          });
+          const errorMsg = handleApiError(error, set);
+          set({ error: errorMsg, loading: false });
           throw error;
         }
       },
@@ -298,8 +454,10 @@ export const useServicesStore = create(
           set((state) => ({
             services: state.services.filter((s) => s.id !== serviceId),
           }));
-        } catch (err) {
-          throw err.response?.data || err;
+        } catch (error) {
+          const errorMsg = handleApiError(error, set);
+          console.error(errorMsg);
+          throw error;
         }
       },
 
@@ -318,7 +476,8 @@ export const useServicesStore = create(
           }));
           return response;
         } catch (error) {
-          console.error("Failed to delete image:", error);
+          const errorMsg = handleApiError(error, set);
+          console.error("Failed to delete image:", errorMsg);
           throw error;
         }
       },
@@ -332,10 +491,8 @@ export const useServicesStore = create(
           );
           set({ service: data, loading: false });
         } catch (error) {
-          set({
-            error: error.response?.data?.message || "Failed to fetch service",
-            loading: false,
-          });
+          const errorMsg = handleApiError(error, set);
+          set({ error: errorMsg, loading: false });
         }
       },
 
@@ -345,13 +502,10 @@ export const useServicesStore = create(
           const data = await request(`/services/${id}`, "GET");
           set({ service: data, loading: false });
         } catch (error) {
-          set({
-            error: error?.response?.data?.message || "Failed to fetch service",
-            loading: false,
-          });
+          const errorMsg = handleApiError(error, set);
+          set({ error: errorMsg, loading: false });
         }
       },
-      
     }),
     {
       name: "services-store", // Key used in localStorage

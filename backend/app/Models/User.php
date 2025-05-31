@@ -92,4 +92,15 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
+    public function assignedBookings()
+{
+    return $this->belongsToMany(Booking::class, 'booking_staff', 'staff_id', 'booking_id')
+                ->withPivot('assigned_at')
+                ->withTimestamps();
+}
+public function bookingStaffs()
+{
+    return $this->hasMany(BookingStaff::class, 'staff_id');
+}
+
 }

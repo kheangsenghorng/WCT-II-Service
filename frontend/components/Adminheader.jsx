@@ -17,11 +17,13 @@ import { useUserStore } from "@/store/useUserStore";
 import { AnimatePresence, motion } from "framer-motion";
 import NotificationsPanel from "./NotificationsPanel";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useAuthStore } from "@/store/authStore"; // Adjust the import path as needed
 
 const Navbar = () => {
   const { id } = useParams();
   const { notifications, fetchMyNotifications } = useNotificationStore();
   const { fetchUserById, user } = useUserStore();
+  const { logout } = useAuthStore();
 
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -75,8 +77,10 @@ const Navbar = () => {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
-    window.location.href = "/login";
+  // 🟡 Your confirmLogout function here
+  const confirmLogout = async () => {
+    await logout(); // Call your logout function
+    window.location.href = "/login"; // Redirect to login
   };
 
   const hasAdminAccess = user?.role === "admin" || user?.role === "owner";
