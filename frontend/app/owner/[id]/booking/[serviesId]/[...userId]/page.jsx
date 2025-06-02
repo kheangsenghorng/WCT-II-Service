@@ -7,10 +7,10 @@ import UserTourDetail from "@/components/UserTourDetail";
 import { useParams } from "next/navigation";
 export default function Profile() {
   const { id, serviesId, userId } = useParams();
-
+  const bookingId = userId?.[1];
   // console.log(id);
 
-  console.log(serviesId);
+  // console.log(serviesId);
   // console.log(userId);
 
   return (
@@ -19,7 +19,11 @@ export default function Profile() {
         <ProfileDetail userId={userId?.[1]} />
         <ImageDetail userId={userId?.[1]} />
       </div>
-      <UserTourDetail userId={userId?.[0]} serviesId={serviesId} />
+      <UserTourDetail
+        userId={userId?.[0]}
+        serviesId={serviesId}
+        bookingId={bookingId}
+      />
     </div>
   );
 }

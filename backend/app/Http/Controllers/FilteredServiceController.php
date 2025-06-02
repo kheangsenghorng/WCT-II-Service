@@ -118,19 +118,19 @@ public function show($userId, $serviceId)
     ]);
 }
 
-public function showByIduser($userId)
+public function showByIduser(Request $request,$userId)
 {
     // Fetch all bookings for the user, along with related service & user
     $bookings = Booking::with(['user', 'service.category', 'service.type'])
         ->where('user_id', $userId)
         ->get();
 
-    if ($bookings->isEmpty()) {
-        return response()->json([
-            'message' => 'No bookings found for this user.',
-            'bookings' => [],
-        ], 404);
-    }
+    // if ($bookings->isEmpty()) {
+    //     return response()->json([
+    //         'message' => 'No bookings found for this user.',
+    //         'bookings' => [],
+    //     ], 404);
+    // }
 
     // Process each booking
     $bookings->transform(function ($booking) {

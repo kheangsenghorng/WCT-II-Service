@@ -31,18 +31,14 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      const { user } = await login(email, password);
+      const { user, token } = await login(email, password);
 
-      if (!user) {
-        throw new Error("Invalid email or password");
+      if (!user || !token) {
+        throw new Error("Invalid login response. Please try again.");
       }
 
       toast.success("Login successful!");
 
-      // OPTIONAL: Delay before redirect
-      //     // await new Promise((resolve) => setTimeout(resolve, 2500)); // wait 1.5 seconds
-
-      // Use setTimeout for delayed redirect
       setTimeout(() => {
         const { role, id } = user;
         const redirectMap = {
@@ -55,14 +51,25 @@ export default function LoginForm() {
         router.push(redirectMap[role] || "/");
       }, 2500);
     } catch (err) {
-      const msg = err?.message || "Login failed. Please try again.";
+      let msg = "Login failed. Please try again.";
+
+      // Display specific error messages from backend
+      if (err.message.toLowerCase().includes("email")) {
+        msg = "Invalid login email. Please try again.";
+      } else if (err.message.toLowerCase().includes("password")) {
+        msg = "Invalid password. Please try again.";
+      } else if (err.message.toLowerCase().includes("credentials")) {
+        msg = "Invalid email or password.";
+      } else {
+        msg = err.message;
+      }
+
       setError(msg);
       toast.error(msg);
     } finally {
-      // Set loading to false right away or after 2.5s to match redirect delay
       setTimeout(() => {
         setLoading(false);
-      }, 2500); // Match the delay
+      }, 2500);
     }
   };
 

@@ -16,6 +16,7 @@ import { useBookingStoreFetch } from "@/store/bookingStore";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+
 export default function ViewDetail() {
   const { id, viewdetailid } = useParams();
   const router = useRouter();
@@ -33,6 +34,8 @@ export default function ViewDetail() {
       fetchBookingDetail(userId, serviceId, bookingId);
     }
   }, [userId, serviceId, bookingId]);
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

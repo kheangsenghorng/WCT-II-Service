@@ -1,10 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin, User } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Plus, Search } from "lucide-react";
 import { useBookingStoreFetch } from "@/store/bookingStore";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const BookedServiceCard = () => {
   const { id } = useParams();
@@ -12,8 +16,9 @@ const BookedServiceCard = () => {
   const { bookings, loading, error, fetchBookingsByUserId } =
     useBookingStoreFetch();
 
-  // NEW: Pagination state
+  // State for pagination and search
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const bookingsPerPage = 3;
 
   useEffect(() => {
@@ -32,29 +37,84 @@ const BookedServiceCard = () => {
     return colors[category] || "bg-gray-500";
   };
 
-  console.log("Bookings:", bookings);
+  // Filter bookings based on search term
+  const filteredBookings = bookings.filter((booking) => {
+    const service = booking.service;
+    if (!service) return false;
 
-  // Compute pagination
-  const totalBookings = bookings?.length || 0;
+    return (
+      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  // Compute pagination with filtered results
+  const totalBookings = filteredBookings?.length || 0;
   const totalPages = Math.ceil(totalBookings / bookingsPerPage);
   const startIndex = (currentPage - 1) * bookingsPerPage;
   const endIndex = startIndex + bookingsPerPage;
-  const currentBookings = bookings.slice(startIndex, endIndex);
+  const currentBookings = filteredBookings.slice(startIndex, endIndex);
 
-  if (loading) return <p className="text-center">Loading...</p>;
-  if (error) return <p className="text-center text-red-500">{error}</p>;
-  if (!bookings || bookings.length === 0)
-    return <p className="text-center">No bookings found.</p>;
+  // if (loading) return <p className="text-center">Loading...</p>;
+  // if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <div className="space-y-6 max-w-[1100px] mx-auto">
+      {/* Search Input */}
+      <div className="relative">
+        <Input
+          placeholder="Search bookings..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // Reset to first page when searching
+          }}
+          className="pl-10"
+        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+      </div>
+
+      {/* Empty State */}
+      {filteredBookings.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <div className="text-gray-400 dark:text-gray-600 mb-4">
+            <Calendar className="h-16 w-16 mx-auto mb-4 opacity-50" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No bookings found
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {searchTerm
+              ? "No bookings match your search criteria"
+              : "You don't have any bookings yet"}
+          </p>
+          {!searchTerm && (
+            <Link href="/services">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Browse Services
+              </Button>
+            </Link>
+          )}
+        </motion.div>
+      )}
+
+      {/* Bookings List */}
       {currentBookings.map((booking, index) => {
         const service = booking.service;
         if (!service) return null;
 
         return (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden gap-x-8 hover:shadow-lg transition-shadow duration-300 flex"
           >
             {/* Service Image */}
@@ -181,48 +241,50 @@ const BookedServiceCard = () => {
                 </Link>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
 
-      {/* Pagination controls */}
-      <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-        <div>
-          Showing {startIndex + 1}–{Math.min(endIndex, totalBookings)} of{" "}
-          {totalBookings} bookings
-        </div>
-        <div>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`py-1 px-2 rounded-lg mr-1 ${
-              currentPage === 1
-                ? "bg-gray-200 text-gray-400"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
-          >
-            Previous
-          </button>
+      {/* Pagination controls - Only show if there are bookings */}
+      {filteredBookings.length > 0 && (
+        <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+          <div>
+            Showing {startIndex + 1}–{Math.min(endIndex, totalBookings)} of{" "}
+            {totalBookings} bookings
+          </div>
+          <div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`py-1 px-2 rounded-lg mr-1 ${
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+            >
+              Previous
+            </button>
 
-          <button className="py-1 px-3 rounded-lg bg-blue-500 text-white mr-1">
-            {currentPage}
-          </button>
+            <button className="py-1 px-3 rounded-lg bg-blue-500 text-white mr-1">
+              {currentPage}
+            </button>
 
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className={`py-1 px-2 rounded-lg ${
-              currentPage === totalPages
-                ? "bg-gray-200 text-gray-400"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
-          >
-            Next
-          </button>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className={`py-1 px-2 rounded-lg ${
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

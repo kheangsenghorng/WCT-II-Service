@@ -1,125 +1,84 @@
-"use client"
-import { useEffect, useState } from "react"
-import { useBookingStoreFetch } from "../store/bookingStore"
-import { Calendar, MapPin } from "lucide-react"
+"use client";
+import { use, useEffect, useState } from "react";
+import { useBookingStoreFetch } from "../store/bookingStore";
+import { Calendar, MapPin } from "lucide-react";
+import { useStaffAssignmentStore } from "@/store/useStaffAssignmentStore";
+import { useParams } from "next/navigation";
 
 // Format date
 const formatDate = (isoString) => {
-  if (!isoString) return "N/A"
-  const date = new Date(isoString)
+  if (!isoString) return "N/A";
+  const date = new Date(isoString);
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-  })
-}
+  });
+};
 
 export default function ProfileDetail({ userId }) {
-  const { booking, loading, error, fetchBookingById } = useBookingStoreFetch()
+  const { id } = useParams();
+  const ownerId = id;
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [staffName, setStaffName] = useState("")
-  const [staffEmail, setStaffEmail] = useState("")
-  const [staffRole, setStaffRole] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
+  const { booking, loading, error, fetchBookingById } = useBookingStoreFetch();
 
-  const [staffList, setStaffList] = useState([
-    {
-      id: 1,
-      firstName: "Samnisa",
-      lastName: "",
-      email: "samnisa@cleanpro.com",
-      image: "/profile.jpg",
-      from: "CleanPro Ltd.",
-      contact: "012 345 678",
-      role: "Supervisor",
-      phone: "012 345 678",
-      createdAt: "2025-05-31",
-    },
-    {
-      id: 2,
-      firstName: "Dara",
-      lastName: "Sok",
-      email: "dara.sok@cleanpro.com",
-      image: "/profile.jpg",
-      from: "CleanPro Ltd.",
-      contact: "011 222 333",
-      role: "Cleaner",
-      phone: "011 222 333",
-      createdAt: "2025-05-31",
-    },
-    {
-      id: 3,
-      firstName: "Malis",
-      lastName: "Chan",
-      email: "malis.chan@cleanpro.com",
-      image: "/profile.jpg",
-      from: "CleanPro Ltd.",
-      contact: "099 888 777",
-      role: "Technician",
-      phone: "099 888 777",
-      createdAt: "2025-05-31",
-    },
-    {
-      id: 4,
-      firstName: "Vutha",
-      lastName: "Lim",
-      email: "vutha.lim@cleanpro.com",
-      image: "/profile.jpg",
-      from: "CleanPro Ltd.",
-      contact: "010 666 555",
-      role: "Driver",
-      phone: "010 666 555",
-      createdAt: "2025-05-31",
-    },
-  ])
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [staffName, setStaffName] = useState("");
+  const [staffEmail, setStaffEmail] = useState("");
+  const [staffRole, setStaffRole] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (userId) {
-      fetchBookingById(userId)
+      fetchBookingById(userId);
     }
-  }, [userId])
+  }, [userId]);
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div className="text-red-500">Error: {error}</div>
-  if (!booking || !booking.service) return <div>No booking found.</div>
+  const {
+    assignedStaff,
+    fetchAssignedStaff,
+    assignStaff,
+    loading: staffLoading,
+  } = useStaffAssignmentStore();
 
-  const { user, service, scheduled_date, scheduled_time, location } = booking
+  useEffect(() => {
+    fetchAssignedStaff(ownerId);
+  }, [ownerId]);
 
-  const handleAddStaff = (e) => {
-    e.preventDefault()
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (!booking || !booking.service) return <div>No booking found.</div>;
 
-    const staffExists = staffList.some((staff) => staff.email.toLowerCase() === staffEmail.toLowerCase())
+  const { user, service, scheduled_date, scheduled_time, location } = booking;
 
-    if (staffExists) {
-      alert("A staff member with this email already exists.")
-      return
+  const handleAssignStaff = async (staffId) => {
+    try {
+      if (!userId || !ownerId) return;
+
+      const assignmentPayload = [
+        {
+          booking_id: userId,
+          staff_id: staffId,
+        },
+      ];
+
+      await assignStaff(assignmentPayload, ownerId);
+      alert("Staff assigned successfully!");
+
+      // Optional: refresh assigned staff
+      fetchAssignedStaff(ownerId);
+    } catch (error) {
+      console.error("Error assigning staff:", error);
+      alert("Failed to assign staff.");
     }
-
-    const newStaff = {
-      id: staffList.length + 1,
-      image: "/profile.jpg",
-      firstName: staffName.split(" ")[0] || "",
-      lastName: staffName.split(" ")[1] || "",
-      email: staffEmail,
-      phone: "N/A",
-      role: staffRole,
-      createdAt: new Date().toLocaleDateString("en-US"),
-    }
-
-    setStaffList([...staffList, newStaff])
-    alert(`Staff Added:\nName: ${staffName}\nEmail: ${staffEmail}\nRole: ${staffRole}`)
-
-    setStaffName("")
-    setStaffEmail("")
-    setStaffRole("")
-    setIsModalOpen(false)
-  }
+  };
 
   // Filtered staff list based on search
-  const filteredStaffList = staffList.filter((staff) =>
-    `${staff.firstName} ${staff.lastName} ${staff.email}`.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredStaffList = assignedStaff.filter((staff) =>
+    `${staff.firstName} ${staff.lastName} ${staff.email}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="w-[600px] mx-auto bg-white rounded-xl shadow-md p-4 space-y-4 border my-5">
@@ -155,10 +114,13 @@ export default function ProfileDetail({ userId }) {
               {service?.name || "Home"}
             </a>
             <p className="text-sm text-gray-400">
-              {service?.description || "We provide good service for cleaning Home"}
+              {service?.description ||
+                "We provide good service for cleaning Home"}
             </p>
           </div>
-          <span className="text-green-600 text-sm bg-green-100 px-2 py-0.5 rounded-full">${service?.base_price}</span>
+          <span className="text-green-600 text-sm bg-green-100 px-2 py-0.5 rounded-full">
+            ${service?.base_price}
+          </span>
         </div>
 
         <div className="flex justify-between items-center border-t pt-3">
@@ -167,7 +129,9 @@ export default function ProfileDetail({ userId }) {
             <div className="flex items-center gap-2 text-gray-700">
               <MapPin className="text-blue-600" size={18} />
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location || "Phnom Penh")}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  location || "Phnom Penh"
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-blue-600 hover:underline"
@@ -193,11 +157,14 @@ export default function ProfileDetail({ userId }) {
             <Calendar className="text-blue-600" size={18} />
             <div className="text-sm text-gray-500">
               {scheduled_time
-                ? new Date(`1970-01-01T${scheduled_time}`).toLocaleTimeString([], {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  })
+                ? new Date(`1970-01-01T${scheduled_time}`).toLocaleTimeString(
+                    [],
+                    {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    }
+                  )
                 : "N/A"}
             </div>
           </div>
@@ -209,8 +176,13 @@ export default function ProfileDetail({ userId }) {
         <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-green-500">Manage Staff</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+              <h3 className="text-lg font-semibold text-green-500">
+                Manage Staff
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6 text-black"
@@ -218,14 +190,21 @@ export default function ProfileDetail({ userId }) {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
 
             {/* Search Input */}
             <div className="px-4 pt-4 flex items-center space-x-4">
-              <span className="text-gray-700 font-medium whitespace-nowrap">Search to find staff</span>
+              <span className="text-gray-700 font-medium whitespace-nowrap">
+                Search to find staff
+              </span>
 
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
@@ -268,12 +247,12 @@ export default function ProfileDetail({ userId }) {
                   </tr>
                 </thead>
                 <tbody className="bg-white text-sm text-gray-800">
-                  {filteredStaffList.map((staff) => (
-                    <tr key={staff.id} className="border-t">
+                  {filteredStaffList.map((staff, index) => (
+                    <tr key={index} className="border-t">
                       <td className="px-4 py-3">
                         <div className="flex items-center">
                           <span className="mr-2">#</span>
-                          {staff.id}
+                          {index + 1}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -292,7 +271,8 @@ export default function ProfileDetail({ userId }) {
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             />
                           </svg>
-                          {staff.firstName} {staff.lastName}
+                          {staff.first_name || "FirstName"}{" "}
+                          {staff.last_name || "LastName"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -321,68 +301,71 @@ export default function ProfileDetail({ userId }) {
                           {staff.from || "CleanPro Ltd."}
                         </div>
                       </td>
-<td className="px-4 py-3">
-  <div className="flex flex-col">
-    <div className="flex items-center mb-1">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-2 text-blue-500"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-        />
-      </svg>
-      {staff.email}
-    </div>
-    <div className="flex items-center">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-2 text-green-500"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-.586 1.414L7.414 9.414a16.016 16.016 0 006.172 6.172l.586-.586A2 2 0 0115 14h2a2 2 0 012 2v2a2 2 0 01-2 2h-1C8.82 20 4 15.18 4 9V8a2 2 0 01-1-1V5z"
-        />
-      </svg>
-      {staff.phone}
-    </div>
-  </div>
-</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col">
+                          <div className="flex items-center mb-1">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 mr-2 text-blue-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                            {staff.email}
+                          </div>
+                          <div className="flex items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 mr-2 text-green-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-.586 1.414L7.414 9.414a16.016 16.016 0 006.172 6.172l.586-.586A2 2 0 0115 14h2a2 2 0 012 2v2a2 2 0 01-2 2h-1C8.82 20 4 15.18 4 9V8a2 2 0 01-1-1V5z"
+                              />
+                            </svg>
+                            {staff.phone}
+                          </div>
+                        </div>
+                      </td>
 
                       <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
+                        <button
+                          onClick={() => handleAssignStaff(staff.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded"
+                        >
+                          Assign
+                        </button>
                       </td>
                     </tr>
                   ))}
                   {filteredStaffList.length === 0 && (
                     <tr>
-                      <td colSpan="6" className="text-center text-gray-400 py-4">
+                      <td
+                        colSpan="6"
+                        className="text-center text-gray-400 py-4"
+                      >
                         No staff found.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
-
-
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

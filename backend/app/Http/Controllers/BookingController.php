@@ -120,7 +120,7 @@ public function store(Request $request, $serviceId)
             'scheduled_date' => 'required|date',
             'scheduled_time' => 'required',
             'location' => 'required|string',
-            'status' => 'nullable|in:pending,paid,cancel',
+            'status' => 'nullable|in:pending,approve,complete,cancel',
         ]);
 
         // ✅ Attach service ID to booking data
@@ -421,7 +421,7 @@ public function update(Request $request, string $id)
         'scheduled_date' => 'sometimes|date',
         'scheduled_time' => 'sometimes',
         'location' => 'sometimes|string',
-        'status' => 'nullable|in:pending,paid,cancel',
+        'status' => 'nullable|in:pending,approve,complete,cancel',
     ]);
 
     $booking->update($validated);

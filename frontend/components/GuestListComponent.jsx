@@ -40,7 +40,8 @@ export default function GuestListPage() {
     // Optional: Prevent default if needed
   };
 
-  console.log(userBookings);
+  console.log(paginatedBookings);
+
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-8xl mx-auto bg-white rounded-2xl shadow-md p-6">
@@ -98,7 +99,7 @@ export default function GuestListPage() {
                   <div className="col-span-1">${guest.total_price || 0}</div>
                   <div className="col-span-3">
                     <Link
-                      href={`/owner/${ownerId}/booking/${serviceId}/${guestUserId}`}
+                      href={`/owner/${ownerId}/booking/${serviceId}/${guestUserId}/${guest?.bookings[0]?.id}`}
                       onClick={handleClick}
                       className="inline-flex"
                     >
