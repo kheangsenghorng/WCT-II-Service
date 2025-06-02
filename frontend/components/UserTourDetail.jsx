@@ -1,12 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useBookingStoreFetch } from "../store/bookingStore";
+import { useStaffAssignmentStore } from "../store/useStaffAssignmentStore";
 import { Eye } from "lucide-react";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
-export default function UserTourHistory({ userId }) {
+export default function UserTourHistory({ userId, bookingId }) {
   const { id, serviesId } = useParams();
 
   const { bookings, loading, error, fetchBookingsByUserAndService } =
@@ -18,35 +20,63 @@ export default function UserTourHistory({ userId }) {
     }
   }, [userId, serviesId]);
 
+  const {
+    staffByBooking,
+    fetchStaffByBooking,
+    unassignStaff,
+    loading: staffLoading,
+  } = useStaffAssignmentStore();
+
+  useEffect(() => {
+    fetchStaffByBooking(bookingId);
+  }, [bookingId]);
+
+
+
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
 
-  const handleViewStaff = (staffArray) => {
-    if (!Array.isArray(staffArray) || staffArray.length === 0) {
-      setSelectedStaff([
-        {
-          name: "John Doe",
-          profile: "/images/default-avatar.png",
-          company: "CleanPro Ltd.",
-          contact: "012 345 678",
-        },
-        {
-          name: "Jane Smith",
-          profile: "/images/default-avatar.png",
-          company: "ShinySpark Cleaning Co.",
-          contact: "098 765 432",
-        },
-        {
-          name: "Alex Chan",
-          profile: "/images/default-avatar.png",
-          company: "GreenClean Services",
-          contact: "011 223 344",
-        },
-      ]);
+  // ✅ View staff from booking
+  const handleViewStaff = (staffArrayFromBooking) => {
+    const sourceArray =
+      Array.isArray(staffByBooking) && staffByBooking.length > 0
+        ? staffByBooking
+        : staffArrayFromBooking;
+
+    if (sourceArray && sourceArray.length > 0) {
+      const formattedStaff = sourceArray.map((staff) => ({
+        id: staff.id, // Include real staff ID for unassign
+        name: `${staff.first_name} ${staff.last_name}`,
+        profile: staff.image || "/images/default-avatar.png",
+        company: staff.role === "staff" ? "Internal Team" : "External Partner",
+        contact: staff.phone || "N/A",
+      }));
+      setSelectedStaff(formattedStaff);
     } else {
-      setSelectedStaff(staffArray);
+      setSelectedStaff([]);
     }
     setShowStaffModal(true);
+  };
+
+  const handleDeleteStaff = async (indexToRemove) => {
+    const staffToRemove = selectedStaff[indexToRemove];
+    if (!staffToRemove || !staffToRemove.id || !bookingId) return;
+
+    // const confirmDelete = window.confirm(
+    //   `Are you sure you want to remove ${staffToRemove.name}?`
+    // );
+    // if (!confirmDelete) return;
+
+    try {
+      await unassignStaff(bookingId, staffToRemove.id); // Call backend
+      const updatedStaff = selectedStaff.filter((_, i) => i !== indexToRemove);
+      setSelectedStaff(updatedStaff);
+
+      toast.success(`${staffToRemove.name} removed from booking.`);
+    } catch (err) {
+      console.error("Failed to unassign staff:", err);
+      toast.error("Failed to unassign staff. Please try again.");
+    }
   };
 
   const closeModal = () => {
@@ -59,12 +89,6 @@ export default function UserTourHistory({ userId }) {
     alert("Staff removed successfully.");
     setSelectedStaff(null);
     setShowStaffModal(false);
-  };
-
-  // ✅ Delete individual staff from modal
-  const handleDeleteStaff = (indexToRemove) => {
-    const updatedStaff = selectedStaff.filter((_, index) => index !== indexToRemove);
-    setSelectedStaff(updatedStaff);
   };
 
   const totalPrice = Array.isArray(bookings)
@@ -93,10 +117,18 @@ export default function UserTourHistory({ userId }) {
         <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b">
             <tr>
-              <th className="px-4 py-3 font-semibold text-green-600">Service</th>
-              <th className="px-4 py-3 font-semibold text-green-600 w-48">Location</th>
-              <th className="px-4 py-3 font-semibold text-green-600">Booked Date</th>
-              <th className="px-4 py-3 font-semibold text-green-600">Scheduled Time</th>
+              <th className="px-4 py-3 font-semibold text-green-600">
+                Service
+              </th>
+              <th className="px-4 py-3 font-semibold text-green-600 w-48">
+                Location
+              </th>
+              <th className="px-4 py-3 font-semibold text-green-600">
+                Booked Date
+              </th>
+              <th className="px-4 py-3 font-semibold text-green-600">
+                Scheduled Time
+              </th>
               <th className="px-4 py-3 font-semibold text-green-600">Status</th>
               <th className="px-4 py-3 font-semibold text-green-600">Price</th>
               <th className="px-4 py-3 font-semibold text-green-600">Staff</th>
@@ -112,7 +144,9 @@ export default function UserTourHistory({ userId }) {
                       className="flex items-center gap-3"
                     >
                       <img
-                        src={booking?.service?.images?.[0] || "/placeholder.jpg"}
+                        src={
+                          booking?.service?.images?.[0] || "/placeholder.jpg"
+                        }
                         alt={booking?.service?.name || "Service Image"}
                         className="w-12 h-12 rounded-md object-cover"
                       />
@@ -124,13 +158,18 @@ export default function UserTourHistory({ userId }) {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 max-w-[12rem] truncate" title={booking?.location}>
+                  <td
+                    className="px-4 py-3 max-w-[12rem] truncate"
+                    title={booking?.location}
+                  >
                     {booking?.location}
                   </td>
                   <td className="px-4 py-3">{booking?.scheduled_date}</td>
                   <td className="px-4 py-3">
                     {booking?.scheduled_time
-                      ? new Date(`1970-01-01T${booking.scheduled_time}`).toLocaleTimeString([], {
+                      ? new Date(
+                          `1970-01-01T${booking.scheduled_time}`
+                        ).toLocaleTimeString([], {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
@@ -191,15 +230,22 @@ export default function UserTourHistory({ userId }) {
                   <tr>
                     <th className="px-4 py-3  text-green-500">Name</th>
                     <th className="px-4 py-3  text-green-500">Profile</th>
-                    <th className="px-4 py-3  text-green-500">From (Company)</th>
+                    <th className="px-4 py-3  text-green-500">
+                      From (Company)
+                    </th>
                     <th className="px-4 py-3  text-green-500">Contact</th>
                     <th className="px-4 py-3  text-green-500">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedStaff.map((staff, index) => (
-                    <tr key={index} className="bg-white border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 font-bold text-gray-900">{staff.name}</td>
+                    <tr
+                      key={index}
+                      className="bg-white border-b hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-3 font-bold text-gray-900">
+                        {staff.name}
+                      </td>
                       <td className="px-4 py-3">
                         <img
                           src={staff.profile || "/images/default-profile.jpg"}
@@ -207,8 +253,12 @@ export default function UserTourHistory({ userId }) {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{staff.company}</td>
-                      <td className="px-4 py-3 text-gray-600">{staff.contact}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {staff.company}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {staff.contact}
+                      </td>
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleDeleteStaff(index)}

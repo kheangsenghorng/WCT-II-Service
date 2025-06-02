@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\FilteredServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ServiceCategoryController;
@@ -79,11 +80,14 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/edit/{id}', [BlogController::class, 'update']);     // Update blog by id
             Route::delete('/{id}', [BlogController::class, 'destroy']); // Delete blog by id
         });
-        
+      
         
     });
     
     Route::get('type', [TypeController::class, 'index']);  
+    Route::get('/company-info/show', [CompanyInfoController::class, 'show']);
+    Route::post('/company-info', [CompanyInfoController::class, 'store']);
+    
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
     Route::get('users/{id}', [UserController::class, 'show']); // Get user by id (admin only)
@@ -100,6 +104,9 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [BookingController::class, 'update']); // PUT update booking by ID
         Route::delete('/{id}', [BookingController::class, 'destroy']); // DELETE booking by ID
     });
+
+    //saff booking router user 
+    Route::get('/user/booking-staff/{bookingId}', [BookingStaffController::class, 'getStaffByBooking']);
 
 } );
 
