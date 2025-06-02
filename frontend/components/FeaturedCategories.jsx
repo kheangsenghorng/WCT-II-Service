@@ -25,7 +25,6 @@ const FeaturedCategories = () => {
     fetchTypes();
   }, []);
   console.log(services[0]);
-  
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -111,7 +110,7 @@ const FeaturedCategories = () => {
             setSelectedCategory(null);
             setSelectedType(null);
           }}
-          className={`px-4 py-2 rounded-full text-sm font-medium border ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${
             selectedCategory === null
               ? "bg-emerald-600 text-white"
               : "bg-white text-gray-700 border-gray-300 hover:bg-emerald-50"
@@ -119,6 +118,7 @@ const FeaturedCategories = () => {
         >
           All Categories
         </button>
+
         {categories.map((category) => (
           <button
             key={category.id}
@@ -127,12 +127,17 @@ const FeaturedCategories = () => {
               setSelectedCategory(isSelected ? null : category.slug);
               setSelectedType(null);
             }}
-            className={`px-4 py-2 rounded-full text-sm font-medium border ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${
               selectedCategory === category.slug
                 ? "bg-emerald-600 text-white"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-emerald-50"
             }`}
           >
+            <img
+              src={category.image || "/placeholder.jpg"}
+              alt={category.name}
+              className="w-6 h-6 rounded-full object-cover"
+            />
             {category.name}
           </button>
         ))}
@@ -143,7 +148,7 @@ const FeaturedCategories = () => {
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           <button
             onClick={() => setSelectedType(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium border ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${
               selectedType === null
                 ? "bg-teal-600 text-white"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-teal-50"
@@ -151,18 +156,24 @@ const FeaturedCategories = () => {
           >
             All Types
           </button>
+
           {filteredTypes.map((type) => (
             <button
               key={type.id}
               onClick={() =>
                 setSelectedType((prev) => (prev === type.id ? null : type.id))
               }
-              className={`px-4 py-2 rounded-full text-sm font-medium border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${
                 selectedType === type.id
                   ? "bg-teal-600 text-white"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-teal-50"
               }`}
             >
+              <img
+                src={type.image_url || "/placeholder.jpg"}
+                alt={type.name}
+                className="w-6 h-6 rounded-full object-cover"
+              />
               {type.name}
             </button>
           ))}

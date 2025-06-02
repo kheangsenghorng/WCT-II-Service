@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { request } from "@/util/request";
 
-export const useUserStore = create((set) => ({
+export const useUserStore = create((set, get) => ({
   user: null,
   users: [],
   staff: null,
@@ -59,22 +59,26 @@ export const useUserStore = create((set) => ({
       set({ error: message, loading: false });
     }
   },
+
   updateUserOwner: async (ownerId, userId, formData) => {
     set({ loading: true, error: null });
 
     try {
-      formData.append("_method", "PUT");
-      // Laravel expects PUT, but when sending FormData, use POST with _method=PUT spoofing
+      formData.append('_method', 'PUT');
+
       const data = await request(
         `/owner/${ownerId}/user/${userId}`,
-        "POST",
+        'POST',
         formData
       );
 
-      // Update user in local state
       const updatedUser = data.user;
-      const users = get().users.map((u) => (u.id === userId ? updatedUser : u));
-      set({ users, loading: false });
+
+      const updatedUsers = get().users.map((u) =>
+        u.id === userId ? updatedUser : u
+      );
+
+      set({ users: updatedUsers, loading: false });
     } catch (error) {
       set({
         error: error.response?.data?.message || error.message,
@@ -82,6 +86,8 @@ export const useUserStore = create((set) => ({
       });
     }
   },
+
+
   deleteUser: async (ownerId, userId) => {
     set({ loading: true, error: null });
     try {
