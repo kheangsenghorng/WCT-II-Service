@@ -26,18 +26,21 @@ export default function UserTourHistory({ userId, bookingId }) {
     unassignStaff,
     loading: staffLoading,
   } = useStaffAssignmentStore();
+  console.log(bookings);
 
-  useEffect(() => {
-    fetchStaffByBooking(bookingId);
-  }, [bookingId]);
-
-
+  // useEffect(() => {
+  //   fetchStaffByBooking(bookingId);
+  // }, [bookingId]);
 
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
 
   // ✅ View staff from booking
-  const handleViewStaff = (staffArrayFromBooking) => {
+  const handleViewStaff = async (staffArrayFromBooking) => {
+    // Directly call the API to ensure you have the latest staff assigned
+    await fetchStaffByBooking(bookingId);
+
+    // Determine which source of staff data to use
     const sourceArray =
       Array.isArray(staffByBooking) && staffByBooking.length > 0
         ? staffByBooking
@@ -45,7 +48,7 @@ export default function UserTourHistory({ userId, bookingId }) {
 
     if (sourceArray && sourceArray.length > 0) {
       const formattedStaff = sourceArray.map((staff) => ({
-        id: staff.id, // Include real staff ID for unassign
+        id: staff.id,
         name: `${staff.first_name} ${staff.last_name}`,
         profile: staff.image || "/images/default-avatar.png",
         company: staff.role === "staff" ? "Internal Team" : "External Partner",
@@ -192,7 +195,7 @@ export default function UserTourHistory({ userId, bookingId }) {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => handleViewStaff(booking.staff)}
+                      onClick={() => handleViewStaff(booking.id)}
                       className="flex items-center gap-1 text-blue-600 hover:underline"
                     >
                       <Eye size={16} />
