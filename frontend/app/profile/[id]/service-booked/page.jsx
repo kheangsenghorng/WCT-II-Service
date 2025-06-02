@@ -1,14 +1,10 @@
-"use client";
+"use client"
 
 import React, { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin, User, Plus, Search } from "lucide-react";
+import { Calendar, Clock, MapPin, User } from "lucide-react";
 import { useBookingStoreFetch } from "@/store/bookingStore";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const BookedServiceCard = () => {
   const { id } = useParams();
@@ -16,16 +12,15 @@ const BookedServiceCard = () => {
   const { bookings, loading, error, fetchBookingsByUserId } =
     useBookingStoreFetch();
 
-  // State for pagination and search
+  // NEW: Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
   const bookingsPerPage = 3;
 
   useEffect(() => {
     if (userId) {
-      fetchBookingsByUserId(userId);
+      fetchBookingsByUserId(userId)
     }
-  }, [userId]);
+  }, [userId])
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -37,84 +32,29 @@ const BookedServiceCard = () => {
     return colors[category] || "bg-gray-500";
   };
 
-  // Filter bookings based on search term
-  const filteredBookings = bookings.filter((booking) => {
-    const service = booking.service;
-    if (!service) return false;
+  console.log("Bookings:", bookings);
 
-    return (
-      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  // Compute pagination with filtered results
-  const totalBookings = filteredBookings?.length || 0;
+  // Compute pagination
+  const totalBookings = bookings?.length || 0;
   const totalPages = Math.ceil(totalBookings / bookingsPerPage);
   const startIndex = (currentPage - 1) * bookingsPerPage;
   const endIndex = startIndex + bookingsPerPage;
-  const currentBookings = filteredBookings.slice(startIndex, endIndex);
+  const currentBookings = bookings.slice(startIndex, endIndex);
 
-  // if (loading) return <p className="text-center">Loading...</p>;
-  // if (error) return <p className="text-center text-red-500">{error}</p>;
+  if (loading) return <p className="text-center">Loading...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
+  if (!bookings || bookings.length === 0)
+    return <p className="text-center">No bookings found.</p>;
 
   return (
     <div className="space-y-6 max-w-[1100px] mx-auto">
-      {/* Search Input */}
-      <div className="relative">
-        <Input
-          placeholder="Search bookings..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // Reset to first page when searching
-          }}
-          className="pl-10"
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-      </div>
-
-      {/* Empty State */}
-      {filteredBookings.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
-          <div className="text-gray-400 dark:text-gray-600 mb-4">
-            <Calendar className="h-16 w-16 mx-auto mb-4 opacity-50" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No bookings found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {searchTerm
-              ? "No bookings match your search criteria"
-              : "You don't have any bookings yet"}
-          </p>
-          {!searchTerm && (
-            <Link href="/services">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Browse Services
-              </Button>
-            </Link>
-          )}
-        </motion.div>
-      )}
-
-      {/* Bookings List */}
       {currentBookings.map((booking, index) => {
         const service = booking.service;
         if (!service) return null;
 
         return (
-          <motion.div
+          <div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
             className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden gap-x-8 hover:shadow-lg transition-shadow duration-300 flex"
           >
             {/* Service Image */}
@@ -130,85 +70,94 @@ const BookedServiceCard = () => {
               />
             </div>
 
-            {/* Content */}
-            <div className="p-6 w-2/3 flex flex-col justify-between">
-              {/* Category and Title */}
-              <div className="mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${getCategoryColor(
-                      service.category?.name || "Other"
-                    )}`}
-                  ></div>
-                  <span className="text-sm text-gray-500 font-medium">
-                    {service.category?.name || "Category Name"}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {service.name || "Service Name"}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {service.description || "No description available."}
-                </p>
-              </div>
+                      {/* Content */}
+                      <div className="flex-1 p-6 lg:p-8">
+                        {/* Service Info */}
+                        <div className="mb-6">
+                          <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {service.name || "Service Name"}
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base line-clamp-2">
+                            {service.description || "No description available."}
+                          </p>
+                        </div>
 
-              {/* Created and Provider */}
-              <div className="flex items-center gap-6 mb-4 text-gray-600 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    Created:{" "}
-                    {new Date(service?.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
+                        {/* Service Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-500">Service Created</p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {new Date(service?.created_at).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                            </div>
 
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>{service.provider}</span>
-                </div>
-              </div>
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                                <User className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-500">Provider</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{service.provider}</p>
+                              </div>
+                            </div>
+                          </div>
 
-              {/* Booking Date & Time */}
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      Booking:{" "}
-                      {new Date(booking.scheduled_date).toLocaleDateString(
-                        "en-US",
-                        {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        }
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      {new Date(
-                        `1970-01-01T${booking.scheduled_time}`
-                      ).toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </span>
-                  </div>
-                </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                                <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-500">Booking Date</p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {new Date(booking.scheduled_date).toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                            </div>
 
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{booking.location}</span>
-                </div>
-              </div>
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-500">Time</p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {new Date(`1970-01-01T${booking.scheduled_time}`).toLocaleTimeString([], {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Location */}
+                        <div className="flex items-center gap-3 mb-6 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-500">Location</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{booking.location}</p>
+                          </div>
+                        </div>
 
               {/* Price and View Detail */}
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
@@ -241,52 +190,50 @@ const BookedServiceCard = () => {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </div>
         );
       })}
 
-      {/* Pagination controls - Only show if there are bookings */}
-      {filteredBookings.length > 0 && (
-        <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-          <div>
-            Showing {startIndex + 1}–{Math.min(endIndex, totalBookings)} of{" "}
-            {totalBookings} bookings
-          </div>
-          <div>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`py-1 px-2 rounded-lg mr-1 ${
-                currentPage === 1
-                  ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-            >
-              Previous
-            </button>
-
-            <button className="py-1 px-3 rounded-lg bg-blue-500 text-white mr-1">
-              {currentPage}
-            </button>
-
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`py-1 px-2 rounded-lg ${
-                currentPage === totalPages
-                  ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-            >
-              Next
-            </button>
-          </div>
+      {/* Pagination controls */}
+      <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+        <div>
+          Showing {startIndex + 1}–{Math.min(endIndex, totalBookings)} of{" "}
+          {totalBookings} bookings
         </div>
-      )}
-    </div>
-  );
-};
+        <div>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`py-1 px-2 rounded-lg mr-1 ${
+              currentPage === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            Previous
+          </button>
 
-export default BookedServiceCard;
+          <button className="py-1 px-3 rounded-lg bg-blue-500 text-white mr-1">
+            {currentPage}
+          </button>
+
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className={`py-1 px-2 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default BookedServiceCard
