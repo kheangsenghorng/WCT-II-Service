@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ProfileDetail from "../../../../../../components/ProfileDetail";
+import ProfileDetail from "@/components/ProfileDetail";
 import ImageDetail from "@/components/ImgaeDetail";
 import UserTourDetail from "@/components/UserTourDetail";
 import { useParams } from "next/navigation";
