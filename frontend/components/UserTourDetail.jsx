@@ -26,37 +26,37 @@ export default function UserTourHistory({ userId, bookingId }) {
     unassignStaff,
     loading: staffLoading,
   } = useStaffAssignmentStore();
-  console.log(bookings);
+
 
 
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
 
   // ✅ View staff from booking
-  const handleViewStaff = async (staffArrayFromBooking) => {
-    // Directly call the API to ensure you have the latest staff assigned
-    await fetchStaffByBooking(bookingId);
+  // const handleViewStaff = async (staffArrayFromBooking) => {
+  //   // Directly call the API to ensure you have the latest staff assigned
+  //   await fetchStaffByBooking(bookingId);
 
-    // Determine which source of staff data to use
-    const sourceArray =
-      Array.isArray(staffByBooking) && staffByBooking.length > 0
-        ? staffByBooking
-        : staffArrayFromBooking;
+  //   // Determine which source of staff data to use
+  //   const sourceArray =
+  //     Array.isArray(staffByBooking) && staffByBooking.length > 0
+  //       ? staffByBooking
+  //       : staffArrayFromBooking;
 
-    if (sourceArray && sourceArray.length > 0) {
-      const formattedStaff = sourceArray.map((staff) => ({
-        id: staff.id,
-        name: `${staff.first_name} ${staff.last_name}`,
-        profile: staff.image || "/images/default-avatar.png",
-        company: staff.role === "staff" ? "Internal Team" : "External Partner",
-        contact: staff.phone || "N/A",
-      }));
-      setSelectedStaff(formattedStaff);
-    } else {
-      setSelectedStaff([]);
-    }
-    setShowStaffModal(true);
-  };
+  //   if (sourceArray && sourceArray.length > 0) {
+  //     const formattedStaff = sourceArray.map((staff) => ({
+  //       id: staff.id,
+  //       name: `${staff.first_name} ${staff.last_name}`,
+  //       profile: staff.image || "/images/default-avatar.png",
+  //       company: staff.role === "staff" ? "Internal Team" : "External Partner",
+  //       contact: staff.phone || "N/A",
+  //     }));
+  //     setSelectedStaff(formattedStaff);
+  //   } else {
+  //     setSelectedStaff([]);
+  //   }
+  //   setShowStaffModal(true);
+  // };
 
   const handleDeleteStaff = async (indexToRemove) => {
     const staffToRemove = selectedStaff[indexToRemove];
@@ -131,7 +131,7 @@ export default function UserTourHistory({ userId, bookingId }) {
               </th>
               <th className="px-4 py-3 font-semibold text-green-600">Status</th>
               <th className="px-4 py-3 font-semibold text-green-600">Price</th>
-              <th className="px-4 py-3 font-semibold text-green-600">Staff</th>
+              {/* <th className="px-4 py-3 font-semibold text-green-600">Staff</th> */}
             </tr>
           </thead>
           <tbody>
@@ -190,7 +190,7 @@ export default function UserTourHistory({ userId, bookingId }) {
                   <td className="px-4 py-3">
                     ${parseFloat(booking?.service?.base_price || "0")}
                   </td>
-                  <td className="px-4 py-3">
+                  {/* <td className="px-4 py-3">
                     <button
                       onClick={() => handleViewStaff(booking.id)}
                       className="flex items-center gap-1 text-blue-600 hover:underline"
@@ -198,7 +198,7 @@ export default function UserTourHistory({ userId, bookingId }) {
                       <Eye size={16} />
                       View Staff
                     </button>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (
