@@ -4,12 +4,12 @@ import { useUserBooking } from "@/store/useUserBooking";
 import { Calendar, CreditCard, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import Link from "next/link";
 
 export default function AllBookingsPage() {
   const params = useParams();
+  const router = useRouter();
   const ownerId = params?.id;
 
   const {
@@ -23,13 +23,14 @@ export default function AllBookingsPage() {
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(""); // <-- Added search query
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchBookingsByOwnerId(ownerId);
   }, [ownerId, fetchBookingsByOwnerId]);
 
-  const handleConfirmCancel = (id) => {
+  const handleConfirmCancel = (e, id) => {
+    e.stopPropagation(); // Prevent row click when clicking delete button
     setSelectedBookingId(id);
     setShowConfirm(true);
   };
@@ -39,6 +40,12 @@ export default function AllBookingsPage() {
       cancelBooking(selectedBookingId);
       setShowConfirm(false);
       setSelectedBookingId(null);
+    }
+  };
+
+  const handleRowClick = (booking) => {
+    if (booking.service?.id) {
+      router.push(`/owner/${ownerId}/booking/${booking.service.id}`);
     }
   };
 
@@ -95,6 +102,12 @@ export default function AllBookingsPage() {
     );
   }
 
+  const filteredBookings = bookings.filter((booking) =>
+    booking.service?.name
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase().trim())
+  );
+
   return (
     <div className="w-full p-4">
       <Card className="border-0 shadow-sm">
@@ -102,6 +115,9 @@ export default function AllBookingsPage() {
           <CardTitle className="text-2xl font-bold">
             All Users Bookings List
           </CardTitle>
+          <p className="text-sm text-gray-500 mt-2">
+            Click on any row to view booking details
+          </p>
         </CardHeader>
 
         <CardContent>
@@ -123,23 +139,23 @@ export default function AllBookingsPage() {
 
           <div className="overflow-x-auto mt-4">
             <table className="min-w-full divide-y dark:divide-gray-700">
-              <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm ">
+              <thead className="dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
                 <tr>
                   {[
                     "ID",
                     "Images",
                     "Name",
                     "Price",
-                    "Scheduled ",
+                    "Scheduled",
                     "Category",
                     "Type",
-                    "total Price",
+                    "Total Price",
                     "Total Guests",
                     "Actions",
                   ].map((header) => (
                     <th
                       key={header}
-                      className="px-2 py-2 text-left text-sm  font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase whitespace-nowrap"
+                      className="px-2 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase whitespace-nowrap"
                     >
                       {header}
                     </th>
@@ -148,21 +164,17 @@ export default function AllBookingsPage() {
               </thead>
 
               <tbody>
-                {bookings
-                  .filter((booking) =>
-                    booking.service?.name
-                      ?.toLowerCase()
-                      .includes(searchQuery.toLowerCase().trim())
-                  )
-                  .map((booking, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-2 py-1 text-[14px] text-gray-700 whitespace-nowrap">
-                        {index + 1}
-                      </td>
-                      <td className="p-3">
+                {filteredBookings.map((booking, index) => (
+                  <tr
+                    key={index}
+                    onClick={() => handleRowClick(booking)}
+                    className="border-b border-gray-100 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer group"
+                  >
+                    <td className="px-2 py-1 text-[14px] text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {index + 1}
+                    </td>
+                    <td className="p-3">
+                      <div className="relative overflow-hidden rounded-md group-hover:scale-105 transition-transform duration-200">
                         <img
                           src={
                             booking.service?.images?.[0] || "/placeholder.png"
@@ -170,122 +182,118 @@ export default function AllBookingsPage() {
                           alt={booking.service?.name || "Service Image"}
                           className="w-16 h-16 object-cover rounded-md"
                         />
-                      </td>
-                      <td className="p-3 text-gray-700 font-medium whitespace-nowrap">
-                        <Link
-                          href={`/owner/${ownerId}/booking/${booking.service?.id}`}
+                        <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
+                      </div>
+                    </td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                      {booking.service?.name || "Unknown Service"}
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="h-4 w-4 text-blue-400 group-hover:text-blue-600 transition-colors duration-200" />
+                        <span className="text-gray-700 dark:text-gray-300">
+                          ${booking.service?.base_price || "N/A"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-4 w-4 text-blue-400 group-hover:text-blue-600 transition-colors duration-200" />
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {formatDate(booking?.scheduled_date)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      {booking.service?.category ? (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                            booking.service.category.name
+                          )} group-hover:shadow-md transition-shadow duration-200`}
                         >
-                          {booking.service?.name || "Unknown Service"}
-                        </Link>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <CreditCard className="h-4 w-4 text-blue-400" />
-                          <span className="text-gray-700">
-                            {booking.service?.base_price || "N/A"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-4 w-4 text-blue-400" />
-                          <span className="text-gray-700">
-                            {formatDate(booking?.scheduled_date)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        {booking.service?.category ? (
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                              booking.service.category.name
-                            )}`}
-                          >
-                            <Tag className="h-3 w-3" />
-                            {booking.service.category.name}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        {booking.service?.type ? (
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                              booking.service.type.name
-                            )}`}
-                          >
-                            <Tag className="h-3 w-3" />
-                            {booking.service.type.name}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
+                          <Tag className="h-3 w-3" />
+                          {booking.service.category.name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      {booking.service?.type ? (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                            booking.service.type.name
+                          )} group-hover:shadow-md transition-shadow duration-200`}
+                        >
+                          <Tag className="h-3 w-3" />
+                          {booking.service.type.name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+                      <span className="group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-200">
                         ${Number(booking?.service_total_price).toLocaleString()}
-                      </td>
-                      <td className="p-10 text-gray-700 font-medium whitespace-nowrap">
-                        {booking?.service_booking_count || "Unknown Service"}
-                      </td>
+                      </span>
+                    </td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+                      <span className="group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
+                        {booking?.service_booking_count || "0"}
+                      </span>
+                    </td>
 
-                      <td className="p-3 whitespace-nowrap">
-                        <button
-                          onClick={() => handleConfirmCancel(booking.id)}
-                          className="text-red-500 font-bold py-2 rounded inline-flex items-center"
-                        >
-                          <Trash2 className="w-8" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                    <td className="p-3 whitespace-nowrap">
+                      <button
+                        onClick={(e) => handleConfirmCancel(e, booking.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold py-2 px-2 rounded-md inline-flex items-center transition-all duration-200 hover:scale-110"
+                        title="Cancel booking"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
 
-          <div className="mt-4 text-sm text-gray-500">
-            Showing{" "}
-            {
-              bookings.filter((booking) =>
-                booking.service?.name
-                  ?.toLowerCase()
-                  .includes(searchQuery.toLowerCase().trim())
-              ).length
-            }{" "}
-            booking
-            {bookings.filter((booking) =>
-              booking.service?.name
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase().trim())
-            ).length !== 1
-              ? "s"
-              : ""}
+          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            Showing {filteredBookings.length} booking
+            {filteredBookings.length !== 1 ? "s" : ""} of {bookings.length}{" "}
+            total
           </div>
         </CardContent>
       </Card>
 
+      {/* Enhanced Confirmation Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">
-              Cancel Booking
-            </h2>
-            <p className="text-gray-600 mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mr-4">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                Cancel Booking
+              </h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
               Are you sure you want to cancel this booking? This action cannot
-              be undone.
+              be undone and may affect the customer's plans.
             </p>
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowConfirm(false)}
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
               >
-                Cancel
+                Keep Booking
               </Button>
               <Button
                 onClick={confirmDelete}
-                className="bg-red-500 text-white hover:bg-red-600"
+                className="bg-red-500 text-white hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Confirm
+                Cancel Booking
               </Button>
             </div>
           </div>
