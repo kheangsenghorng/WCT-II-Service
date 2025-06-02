@@ -28,9 +28,6 @@ export default function UserTourHistory({ userId, bookingId }) {
   } = useStaffAssignmentStore();
   console.log(bookings);
 
-  // useEffect(() => {
-  //   fetchStaffByBooking(bookingId);
-  // }, [bookingId]);
 
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
