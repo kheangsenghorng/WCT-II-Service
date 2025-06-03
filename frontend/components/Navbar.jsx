@@ -88,7 +88,7 @@ const Navbar = ({ id }) => {
             >
               <Avatar>
                 <AvatarImage
-                  src={user?.image || "/default-user.svg"}
+                  src={user?.image || "/default-avatar.png"}
                   alt={`${user.first_name} ${user.last_name}`}
                 />
                 <AvatarFallback>
