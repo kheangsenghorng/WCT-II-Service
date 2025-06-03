@@ -24,6 +24,9 @@ export default function AllBookingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState("table"); // Default view mode
+  // const [viewMode, setViewMode] = useState("cards"); // Uncomment this line to default to cards view
+ 
 
   useEffect(() => {
     fetchBookingsByOwnerId(ownerId);
@@ -76,27 +79,59 @@ export default function AllBookingsPage() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="w-full p-8 flex justify-center">
-        <div className="animate-pulse text-lg">Loading bookings...</div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="w-full p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+      <div className="min-h-screen py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl shadow-md p-6 animate-pulse"
+                >
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-3 bg-gray-200 rounded"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-md p-6 animate-pulse">
+              <div className="space-y-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
+  }
 
-  if (!bookings || bookings.length === 0) {
+  if (error) {
     return (
-      <div className="w-full p-8">
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-          No bookings found.
+      <div className="min-h-screen py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
+            <h3 className="font-semibold mb-2">Error Loading booking...</h3>
+            <p>{error.message}</p>
+          </div>
         </div>
       </div>
     );
@@ -177,7 +212,7 @@ export default function AllBookingsPage() {
                       <div className="relative overflow-hidden rounded-md group-hover:scale-105 transition-transform duration-200">
                         <img
                           src={
-                            booking.service?.images?.[0] || "/placeholder.png"
+                            booking.service?.images?.[0] || "/default-avatar.png"
                           }
                           alt={booking.service?.name || "Service Image"}
                           className="w-16 h-16 object-cover rounded-md"
