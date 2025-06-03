@@ -1,11 +1,16 @@
+import { useUserStore } from "@/store/useUserStore";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-const EditUserModal = ({ user, onClose, onSave }) => {
+const EditUserModal = ({ user, onClose }) => {
+  const { id: ownerId } = useParams();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const { updateUserOwner, fetchUsersByOwner } = useUserStore();
 
   useEffect(() => {
     if (user) {
@@ -13,7 +18,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
       setLastName(user.last_name || "");
       setPhone(user.phone || "");
       setSelectedImage(null);
-      setImagePreview(user.image || null); // URL string for old image
+      setImagePreview(user.image || null);
     }
   }, [user]);
 
@@ -25,44 +30,38 @@ const EditUserModal = ({ user, onClose, onSave }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSaveUser = async (e) => {
     e.preventDefault();
-  
-    if (!firstName.trim() || !lastName.trim()) {
-      alert("First and last names are required.");
-      return;
-    }
-  
-    if (selectedImage) {
+
+    try {
       const formData = new FormData();
-      formData.append("id", user.id);
       formData.append("first_name", firstName);
       formData.append("last_name", lastName);
-      formData.append("phone", phone);
-      formData.append("image", selectedImage);
-  
-      onSave(formData); // Pass to parent
-    } else {
-      // ✅ Include existing image if no new one is selected
-      const updatedUser = {
-        ...user,
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-        image: user.image, // 👈 Include existing image
-      };
-  
-      onSave(updatedUser);
+      formData.append("phone", phone || "");
+
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
+      if (!user?.id) {
+        console.error("User ID missing for update.");
+        return;
+      }
+
+      await updateUserOwner(ownerId, user.id, formData);
+      await fetchUsersByOwner(ownerId);
+
+      onClose();
+    } catch (error) {
+      console.error("Update failed:", error);
     }
   };
-  
-  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg">
         <h2 className="text-xl font-semibold mb-4">Edit User</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSaveUser} className="space-y-4">
           <div>
             <label className="block mb-1">Image</label>
             <input type="file" accept="image/*" onChange={handleImageChange} />

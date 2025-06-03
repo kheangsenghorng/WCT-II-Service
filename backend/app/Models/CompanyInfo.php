@@ -21,7 +21,9 @@ class CompanyInfo extends Model
         'country',
     ];
 
-    // Relationship to User
+    /**
+     * The user that owns this company info.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

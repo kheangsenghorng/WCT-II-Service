@@ -64,21 +64,25 @@ export const useUserStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      formData.append('_method', 'PUT');
+      formData.append("_method", "PUT");
 
       const data = await request(
         `/owner/${ownerId}/user/${userId}`,
-        'POST',
+        "POST",
         formData
       );
 
       const updatedUser = data.user;
 
+      // Update local users array for immediate UI feedback
       const updatedUsers = get().users.map((u) =>
         u.id === userId ? updatedUser : u
       );
 
       set({ users: updatedUsers, loading: false });
+
+      // Refresh the entire list to ensure it's up to date
+      await get().fetchUsersByOwner(ownerId);
     } catch (error) {
       set({
         error: error.response?.data?.message || error.message,
@@ -86,7 +90,6 @@ export const useUserStore = create((set, get) => ({
       });
     }
   },
-
 
   deleteUser: async (ownerId, userId) => {
     set({ loading: true, error: null });

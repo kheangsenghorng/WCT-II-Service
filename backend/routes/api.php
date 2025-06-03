@@ -85,8 +85,7 @@ Route::middleware('auth:api')->group(function () {
     });
     
     Route::get('type', [TypeController::class, 'index']);  
-    Route::get('/company-info/show', [CompanyInfoController::class, 'show']);
-    Route::post('/company-info', [CompanyInfoController::class, 'store']);
+;
     
     // Users can update their own profile
     Route::put('users/{id}', [UserController::class, 'update']); // Update own profile
@@ -124,6 +123,10 @@ Route::middleware('auth:api')->group(function () {
 
        // Owner-specific service management
        Route::get('/{ownerId}/users/{userId}', [UserController::class, 'getUserUnderOwner']);
+
+
+       Route::get('/company-info/show', [CompanyInfoController::class, 'show']);
+       Route::post('/company-info/{id}', [CompanyInfoController::class, 'store']); // Create company info
        
     });
       
