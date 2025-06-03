@@ -64,8 +64,6 @@ const Users = () => {
   const [phoneAvailable, setPhoneAvailable] = useState(null);
   const [errors, setErrors] = useState({});
 
-  
-
   useEffect(() => {
     if (ownerId) fetchUsersByOwner(ownerId);
   }, [ownerId]);
@@ -93,7 +91,6 @@ const Users = () => {
     setUserToEdit(user);
     setShowEditUserModal(true);
   };
-  
 
   const handleDeleteUser = (user) => {
     setUserToDelete(user); // store the user to delete
@@ -166,7 +163,7 @@ const Users = () => {
       setSuccessMessage("User deleted successfully");
       setShowConfirmDelete(false);
       setUserToDelete(null);
-      setDeletingUserId(null)
+      setDeletingUserId(null);
       await fetchUsersByOwner(ownerId);
       setErrorMessage(""); // clear any previous errors
     } catch (error) {
@@ -177,7 +174,7 @@ const Users = () => {
   const cancelDelete = () => {
     setShowConfirmDelete(false);
     setUserToDelete(null);
-    setDeletingUserId(null)
+    setDeletingUserId(null);
     setErrorMessage("");
   };
 
@@ -277,35 +274,27 @@ const Users = () => {
     setUserToDelete(null);
   };
 
-
-
   const handleSaveUser = async (updatedUser) => {
     try {
       const { id, first_name, last_name, phone, image } = updatedUser;
-  
+
       const formData = new FormData();
       formData.append("first_name", first_name);
       formData.append("last_name", last_name);
       formData.append("phone", phone || "");
-  
+
       // Only append image if it's a new File (not a string URL)
       if (image instanceof File) {
         formData.append("image", image);
       }
-  
+
       await updateUserOwner(ownerId, id, formData); // ← make sure ownerId is in scope
-  
+
       setShowEditUserModal(false);
     } catch (error) {
       console.error("Update failed:", error);
     }
   };
-  
-
-
-  
-  
-  
 
   return (
     <motion.div
@@ -399,7 +388,7 @@ const Users = () => {
                         className="text-blue-500 font-bold py-2 rounded mr-2 inline-flex items-center"
                       >
                         <Edit className="w-8" />
-                        </button>
+                      </button>
 
                       <button
                         onClick={() => handleDeleteUser(user)}
@@ -422,24 +411,23 @@ const Users = () => {
         </div>
       )}
 
-{showEditUserModal && userToEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6"
-            >
-              <EditUserModal
-                user={userToEdit}
-                onClose={() => setShowEditUserModal(false)}
-                onSave={handleSaveUser}
-              />
-            </motion.div>
-          </div>
-        )}
-
+      {showEditUserModal && userToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6"
+          >
+            <EditUserModal
+              user={userToEdit}
+              onClose={() => setShowEditUserModal(false)}
+              onSave={handleSaveUser}
+            />
+          </motion.div>
+        </div>
+      )}
 
       <AddUserModal
         isOpen={showAddUserModal}

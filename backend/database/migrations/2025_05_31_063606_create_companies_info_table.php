@@ -17,9 +17,10 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('website_url', 255)->nullable();
             $table->text('business_hours')->nullable();
-            $table->text('address')->nullable(); 
+            $table->text('address')->nullable();
             $table->text('city')->nullable();
             $table->text('country')->nullable();
+            $table->timestamps(); // 👈 This line creates `created_at` and `updated_at`
         });
     }
 

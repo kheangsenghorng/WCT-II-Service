@@ -28,7 +28,7 @@ class CompanyInfoController extends Controller
      * Store a newly created resource in storage.
      */
     // Create or update company info
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
         $validated = $request->validate([
             'description' => 'nullable|string',
@@ -38,17 +38,27 @@ class CompanyInfoController extends Controller
             'city' => 'nullable|string',
             'country' => 'nullable|string',
         ]);
-
+    
+        // Ensure the user_id is set based on the route parameter
+        $validated['user_id'] = $id;
+    
+        // Save or update the record
         $company = CompanyInfo::updateOrCreate(
-            ['user_id' => Auth::id()],
+            ['user_id' => $id],
             $validated
         );
-
+    
+        // Load the related user
+        $company->load('user');
+    
         return response()->json([
             'message' => 'Company info saved successfully.',
             'data' => $company
         ], 201);
     }
+    
+    
+    
 
     /**
      * Display the specified resource.
