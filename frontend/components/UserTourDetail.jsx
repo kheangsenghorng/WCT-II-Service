@@ -14,6 +14,10 @@ import {
   ChevronDown,
   ChevronRight,
   ImageIcon,
+  Check,
+  X,
+  AlertCircle,
+  Hourglass,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +25,10 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function UserTourHistory({ userId, bookingId }) {
   const { id, serviesId } = useParams();
   const [viewMode, setViewMode] = useState("table"); // "cards" or "table"
-  const [statusDropdowns, setStatusDropdowns] = useState({});
+  const [statusModal, setStatusModal] = useState({
+    isOpen: false,
+    booking: null,
+  });
 
   const {
     bookings,
@@ -42,56 +49,112 @@ export default function UserTourHistory({ userId, bookingId }) {
   const [selectedStaff, setSelectedStaff] = useState(null);
 
   useEffect(() => {
-    if (userId && serviesId) {
-      fetchBookingsByUserAndService(userId, serviesId);
-    }
+    const fetchData = async () => {
+      if (userId && serviesId) {
+        try {
+          await fetchBookingsByUserAndService(userId, serviesId);
+        } catch (error) {
+          if (error.response?.status === 401) {
+            toast.error("Authentication required. Please log in again.");
+          } else {
+            toast.error("Failed to load bookings");
+          }
+          console.error("Fetch error:", error);
+        }
+      }
+    };
+
+    fetchData();
   }, [userId, serviesId, fetchBookingsByUserAndService]);
 
   const statusOptions = [
     {
       value: "pending",
       label: "Pending",
-      color: "bg-yellow-100 text-yellow-700",
+      color: "bg-amber-100 text-amber-700 border-amber-200",
+      hoverColor: "hover:bg-amber-50",
+      icon: Hourglass,
+      iconColor: "text-amber-500",
+      description: "Waiting for approval",
     },
     {
       value: "approved",
       label: "Approved",
-      color: "bg-green-100 text-green-700",
+      color: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      hoverColor: "hover:bg-emerald-50",
+      icon: Check,
+      iconColor: "text-emerald-500",
+      description: "Ready to proceed",
     },
     {
       value: "completed",
       label: "Completed",
-      color: "bg-blue-100 text-blue-700",
+      color: "bg-blue-100 text-blue-700 border-blue-200",
+      hoverColor: "hover:bg-blue-50",
+      icon: Check,
+      iconColor: "text-blue-500",
+      description: "Service finished",
     },
     {
       value: "cancelled",
       label: "Cancelled",
-      color: "bg-red-100 text-red-700",
+      color: "bg-red-100 text-red-700 border-red-200",
+      hoverColor: "hover:bg-red-50",
+      icon: X,
+      iconColor: "text-red-500",
+      description: "Booking cancelled",
     },
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     const statusOption = statusOptions.find(
       (option) => option.value === status.toLowerCase()
     );
-    return statusOption?.color || "bg-gray-100 text-gray-700";
+    return (
+      statusOption || {
+        color: "bg-gray-100 text-gray-700 border-gray-200",
+        hoverColor: "hover:bg-gray-50",
+        icon: AlertCircle,
+        iconColor: "text-gray-500",
+        description: "Unknown status",
+      }
+    );
   };
 
   const handleStatusChange = async (bookingId, newStatus) => {
+    console.log("Attempting to change status:", { bookingId, newStatus });
+
     try {
+      // Show loading state
+      toast.loading("Updating status...", { id: "status-update" });
+
       await updateBookingStatus(bookingId, newStatus);
-      toast.success(`Status updated to ${newStatus}`);
-      setStatusDropdowns({});
+
+      // Success feedback
+      toast.success(`Status updated to ${newStatus}`, { id: "status-update" });
+      setStatusModal({ isOpen: false, booking: null });
+
+      // Refresh the bookings to get updated data
+      if (userId && serviesId) {
+        await fetchBookingsByUserAndService(userId, serviesId);
+      }
     } catch (error) {
-      toast.error("Failed to update status");
+      console.error("Status update failed:", error);
+      toast.error(
+        `Failed to update status: ${
+          error.response?.data?.message || error.message
+        }`,
+        { id: "status-update" }
+      );
     }
   };
 
-  const toggleStatusDropdown = (bookingId) => {
-    setStatusDropdowns((prev) => ({
-      ...prev,
-      [bookingId]: !prev[bookingId],
-    }));
+  const openStatusModal = (booking) => {
+    setStatusModal({ isOpen: true, booking });
+  };
+
+  const closeStatusModal = () => {
+    setStatusModal({ isOpen: false, booking: null });
   };
 
   const handleCardClick = (booking) => {
@@ -133,6 +196,120 @@ export default function UserTourHistory({ userId, bookingId }) {
         ease: "easeInOut",
       },
     },
+  };
+
+  const StatusButton = ({ booking }) => {
+    const statusConfig = getStatusConfig(booking?.status || "pending");
+    const IconComponent = statusConfig.icon;
+
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          openStatusModal(booking);
+        }}
+        className={`flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 border shadow-sm hover:shadow-md transform hover:scale-105 ${statusConfig.color}`}
+      >
+        <IconComponent className={`w-3 h-3 ${statusConfig.iconColor}`} />
+        <span className="capitalize">{booking?.status || "pending"}</span>
+        <ChevronDown className="w-3 h-3" />
+      </button>
+    );
+  };
+
+  // Status Change Modal
+  const StatusModal = () => {
+    if (!statusModal.isOpen || !statusModal.booking) return null;
+
+    const currentStatus = statusModal.booking?.status || "pending";
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        >
+          {/* Status Options */}
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-800">Update Status</h3>
+              <button
+                onClick={closeStatusModal}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {statusOptions.map((option, index) => {
+                const OptionIcon = option.icon;
+                const isCurrent = currentStatus.toLowerCase() === option.value;
+
+                return (
+                  <motion.button
+                    key={option.value}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={async () => {
+                      console.log(
+                        "Clicking status:",
+                        option.value,
+                        "for booking:",
+                        statusModal.booking.id
+                      );
+                      try {
+                        await handleStatusChange(
+                          statusModal.booking.id,
+                          option.value
+                        );
+                      } catch (error) {
+                        console.error("Status change error:", error);
+                        toast.error(
+                          `Failed to update status: ${error.message}`
+                        );
+                      }
+                    }}
+                    disabled={isCurrent}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 flex items-center space-x-4 ${
+                      isCurrent
+                        ? "border-blue-300 bg-blue-50 cursor-not-allowed opacity-75"
+                        : "border-gray-200 hover:border-gray-300 hover:shadow-md transform hover:scale-105 cursor-pointer"
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${option.color}`}>
+                      <OptionIcon className={`w-5 h-5 ${option.iconColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-gray-800">
+                          {option.label}
+                        </span>
+                        {isCurrent && (
+                          <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {option.description}
+                      </p>
+                    </div>
+                    {!isCurrent && (
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -304,54 +481,8 @@ export default function UserTourHistory({ userId, bookingId }) {
                             </span>
                           </div>
 
-                          {/* Status Dropdown */}
-                          <div className="relative">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleStatusDropdown(booking.id);
-                              }}
-                              className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:shadow-md ${getStatusColor(
-                                booking?.status || "pending"
-                              )}`}
-                            >
-                              <span className="capitalize">
-                                {booking?.status || "pending"}
-                              </span>
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-
-                            <AnimatePresence>
-                              {statusDropdowns[booking.id] && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                  className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 min-w-[120px]"
-                                >
-                                  {statusOptions.map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleStatusChange(
-                                          booking.id,
-                                          option.value
-                                        );
-                                      }}
-                                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
-                                    >
-                                      <span
-                                        className={`px-2 py-1 rounded-full text-xs ${option.color}`}
-                                      >
-                                        {option.label}
-                                      </span>
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
+                          {/* Status Button */}
+                          <StatusButton booking={booking} />
                         </div>
                       </div>
 
@@ -426,7 +557,7 @@ export default function UserTourHistory({ userId, bookingId }) {
                             <img
                               src={
                                 booking?.service?.images?.[0] ||
-                                "/placeholder.jpg"
+                                "/placeholder.svg"
                               }
                               alt={booking?.service?.name || "Service Image"}
                               className="w-12 h-12 rounded-md object-cover group-hover:scale-105 transition-transform duration-200"
@@ -460,53 +591,8 @@ export default function UserTourHistory({ userId, bookingId }) {
                             : "N/A"}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="relative">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleStatusDropdown(booking.id);
-                              }}
-                              className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:shadow-md ${getStatusColor(
-                                booking?.status || "pending"
-                              )}`}
-                            >
-                              <span className="capitalize">
-                                {booking?.status || "pending"}
-                              </span>
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-
-                            <AnimatePresence>
-                              {statusDropdowns[booking.id] && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                  className="absolute left-0 top-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 min-w-[120px]"
-                                >
-                                  {statusOptions.map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleStatusChange(
-                                          booking.id,
-                                          option.value
-                                        );
-                                      }}
-                                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
-                                    >
-                                      <span
-                                        className={`px-2 py-1 rounded-full text-xs ${option.color}`}
-                                      >
-                                        {option.label}
-                                      </span>
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
+                          {/* Status Button for Table */}
+                          <StatusButton booking={booking} />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-1">
@@ -545,6 +631,9 @@ export default function UserTourHistory({ userId, bookingId }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Status Change Modal */}
+      <StatusModal />
 
       {/* Staff Modal (keeping existing functionality) */}
       {showStaffModal && selectedStaff && (
