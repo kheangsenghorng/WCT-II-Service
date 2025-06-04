@@ -41,6 +41,12 @@ export default function ViewDetail() {
       bgColor: "bg-green-100",
       badgeColor: "bg-blue-600 text-white", // New property for badge
     },
+    complete: {
+      icon: CheckCircle, // Green check for confirmed
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+      badgeColor: "bg-blue-600 text-white", // New property for badge
+    },
     default: {
       icon: MapPin, // Gray pin for default/unknown
       color: "text-gray-500",
@@ -79,7 +85,7 @@ export default function ViewDetail() {
       animate="visible"
     >
       {/* Title & Back */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-4 mb-4">
         <motion.button
           onClick={() => router.back()}
           className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full p-2 flex items-center justify-center transition-colors duration-200"
@@ -160,8 +166,11 @@ export default function ViewDetail() {
                   </span>
                 </div>
                 <span className="font-semibold text-gray-900 dark:text-gray-100">
-                  {booking?.user?.name || "N/A"}
+                  {booking?.service?.owner?.company_info?.company_name || "N/A"}
                 </span>
+                {booking?.service?.owner?.first_name || "N/A"}
+
+                {booking?.service?.owner?.last_name || "N/A"}
               </div>
 
               {/* Status with icon and color */}

@@ -18,6 +18,7 @@ import {
   Award,
 } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
+import { useCompanyInfoStore } from "@/store/usecompanyInfoStory";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +30,14 @@ import { Textarea } from "@/components/ui/textarea";
 export default function SettingsPage() {
   const { user, updateUser, fetchUserById } = useUserStore();
   const { id } = useParams();
+  const ownerId = id; // Assuming the ownerId is the same as the user id in this context
   const router = useRouter();
 
   // Basic Information
   const [companyName, setCompanyName] = useState("");
   const [employeeCount, setEmployeeCount] = useState("");
   const [description, setDescription] = useState("");
+
 
   // Contact Information
   const [email, setEmail] = useState("");
@@ -54,49 +57,54 @@ export default function SettingsPage() {
   const [linkedin, setLinkedin] = useState("");
 
   // Other states
-  const [avatarPreview, setAvatarPreview] = useState("/default-company.svg");
+  const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const fileInputRef = useRef(null);
+  const { fetchUsersByOwner, count } = useUserStore();
+  const { companyInfo, fetchCompanyInfo, saveCompanyInfo, loading, error } =
+    useCompanyInfoStore();
 
   useEffect(() => {
     if (id) {
       fetchUserById(id);
+      fetchCompanyInfo(id);
     }
-  }, [id, fetchUserById]);
+  }, [id, fetchUserById, fetchCompanyInfo]);
+
+  console.log(companyInfo);
 
   useEffect(() => {
-    if (user) {
+    if (user && companyInfo) {
       // Basic Information
-      setCompanyName(user.company_name || "");
-      setEmployeeCount(user.employee_count || "");
-      setDescription(user.description || "");
+      setCompanyName(companyInfo?.company_name || "");
+      setDescription(companyInfo?.description || "");
 
       // Contact Information
       setEmail(user.email || "");
       setPhone(user.phone || "");
-      setWebsite(user.website || "");
-      setAddress(user.address || "");
-      setCity(user.city || "");
-      setCountry(user.country || "");
+      setWebsite(companyInfo?.website_url || "");
+      setAddress(companyInfo?.address || "");
+      setCity(companyInfo?.city || "");
+      setCountry(companyInfo?.country || "");
 
       // Business Details
-      setBusinessHours(user.business_hours || "");
+      setBusinessHours(companyInfo?.business_hours || "");
       setServices(user.services || "");
 
       // Social Media
-      setFacebook(user.facebook || "");
-      setInstagram(user.instagram || "");
-      setTwitter(user.twitter || "");
-      setLinkedin(user.linkedin || "");
+      setFacebook(companyInfo?.facebook_url || "");
+      setInstagram(companyInfo?.instagram_url || "");
+      setTwitter(companyInfo?.twitter_url || "");
+      setLinkedin(companyInfo?.linkedin_url || "");
 
       setAvatarPreview(
-        user.logo?.startsWith("http")
-          ? user.logo
-          : user.logo
-          ? `/${user.logo}`
-          : "/default-company.svg"
+        user.image?.startsWith("http")
+          ? user.image
+          : user.image
+          ? `/${user.image}`
+          : "/default-avatar.png"
       );
     }
   }, [user]);
@@ -121,36 +129,44 @@ export default function SettingsPage() {
     setIsLoading(true);
     const formData = new FormData();
 
+    // Append helper to skip empty/null/undefined
+    const safeAppend = (key, value) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value);
+      }
+    };
+
     // Basic Information
-    formData.append("company_name", companyName);
-    formData.append("employee_count", employeeCount);
-    formData.append("description", description);
+    safeAppend("company_name", companyName);
+    safeAppend("description", description);
 
     // Contact Information
-    formData.append("phone", phone);
-    formData.append("website", website);
-    formData.append("address", address);
-    formData.append("city", city);
-    formData.append("country", country);
+    safeAppend("phone", phone);
+    safeAppend("website_url", website);
+    safeAppend("address", address);
+    safeAppend("city", city);
+    safeAppend("country", country);
 
     // Business Details
-    formData.append("business_hours", businessHours);
-    formData.append("services", services);
+    safeAppend("business_hours", businessHours);
+    // safeAppend("services", services); // Uncomment if services used
 
     // Social Media
-    formData.append("facebook", facebook);
-    formData.append("instagram", instagram);
-    formData.append("twitter", twitter);
-    formData.append("linkedin", linkedin);
+    safeAppend("facebook_url", facebook);
+    safeAppend("instagram_url", instagram);
+    safeAppend("twitter_url", twitter);
+    safeAppend("linkedin_url", linkedin);
 
+    // Optional Avatar File Upload
     if (avatarFile) {
-      formData.append("logo", avatarFile);
+      formData.append("image", avatarFile);
     }
 
     try {
-      await updateUser(user.id, formData);
-      await fetchUserById(id);
-      router.push(`/owner/${id}/dashboard`);
+      await updateUser(user.id, formData); // Update user profile
+      await saveCompanyInfo(user.id, formData); // Save company info
+      await fetchUserById(id); // Refresh user state
+      router.push(`/owner/${id}/dashboard`); // Redirect
     } catch (error) {
       console.error("Update failed:", error);
     } finally {
@@ -175,6 +191,44 @@ export default function SettingsPage() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };
+
+  const [stats, setStats] = useState([
+    {
+      id: "user",
+      label: "Total User",
+      value: 0,
+      change: 25,
+      isPositive: true,
+    },
+  ]);
+
+  // Fetch users when ownerId is available
+  // Fetch users when ownerId is available
+  useEffect(() => {
+    if (!ownerId) return;
+
+    const fetch = async () => {
+      try {
+        const users = await fetchUsersByOwner(ownerId);
+        if (Array.isArray(users)) {
+          setCount(users.length);
+        }
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+
+    fetch();
+  }, [ownerId, fetchUsersByOwner]);
+
+  // Update user stat count when `count` changes
+  useEffect(() => {
+    setStats((prevStats) =>
+      prevStats.map((stat) =>
+        stat.id === "user" ? { ...stat, value: count } : stat
+      )
+    );
+  }, [count]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 flex items-center justify-center">
@@ -263,7 +317,7 @@ export default function SettingsPage() {
                       className="border-gray-300 dark:border-gray-600 focus:border-blue-500 transition-colors rounded-lg h-12"
                     />
                   </div>
-
+                  {/* // === UI for employee count input === */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="employeeCount"
@@ -274,10 +328,10 @@ export default function SettingsPage() {
                     </Label>
                     <Input
                       id="employeeCount"
-                      value={employeeCount}
-                      onChange={(e) => setEmployeeCount(e.target.value)}
+                      value={count}
                       placeholder="e.g., 1-5, 6-10, 11-25"
                       className="border-gray-300 dark:border-gray-600 focus:border-indigo-500 transition-colors rounded-lg h-12"
+                      disabled
                     />
                   </div>
                 </div>

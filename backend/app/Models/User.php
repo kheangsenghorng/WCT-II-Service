@@ -103,4 +103,9 @@ public function bookingStaffs()
     return $this->hasMany(BookingStaff::class, 'staff_id');
 }
 
+public function companyInfo()
+{
+    return $this->hasOne(CompanyInfo::class, 'user_id');
+}
+
 }

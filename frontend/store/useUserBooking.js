@@ -106,4 +106,19 @@ export const useUserBooking = create((set) => ({
       set({ loading: false });
     }
   },
+
+  updateBooking: async (bookingId, newStatus) => {
+    try {
+      const updatedBooking = await request(
+        `/bookings/${bookingId}`,
+        "PUT",
+        newStatus
+      );
+      return updatedBooking;
+    } catch (error) {
+      // Handle validation errors or auth issues
+      console.error("Failed to update booking:", error);
+      throw error;
+    }
+  },
 }));

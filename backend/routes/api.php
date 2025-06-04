@@ -124,10 +124,14 @@ Route::middleware('auth:api')->group(function () {
        // Owner-specific service management
        Route::get('/{ownerId}/users/{userId}', [UserController::class, 'getUserUnderOwner']);
 
-
-       Route::get('/company-info/show', [CompanyInfoController::class, 'show']);
-       Route::post('/company-info/{id}', [CompanyInfoController::class, 'store']); // Create company info
-       
+       // Company Info routes
+       Route::prefix('company-info')->controller(CompanyInfoController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/show', 'show');
+        Route::post('/{id}', 'store');
+        Route::put('/{id}', 'update');
+    });
+       Route::delete('/users/{userId}/company-info', [CompanyInfoController::class, 'destroy']); // Delete company info by user ID
     });
       
 
@@ -196,6 +200,7 @@ Route::get('/booking-staff/by-owner/{ownerId}', [BookingStaffController::class, 
 Route::get('/booking-staff/show/{ownerId}', [BookingStaffController::class, 'getShowStaff']);
 });
 
+// Public routes
 Route::get('/categories', [ServiceCategoryController::class, 'index']);
 Route::get('blogs', [BlogController::class, 'index']);   
 Route::get('/type', [TypeController::class, 'index']);  

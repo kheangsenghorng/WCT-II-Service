@@ -121,7 +121,7 @@ public function show($userId, $serviceId)
 public function showByIduser(Request $request,$userId)
 {
     // Fetch all bookings for the user, along with related service & user
-    $bookings = Booking::with(['user', 'service.category', 'service.type'])
+    $bookings = Booking::with(['user', 'service.category', 'service.type','service.owner.companyInfo'])
         ->where('user_id', $userId)
         ->get();
 
