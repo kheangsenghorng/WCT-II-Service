@@ -30,50 +30,113 @@ class CompanyInfoController extends Controller
     // Create or update company info
 
     
-    public function store(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'company_name'   => 'nullable|string|max:255',
-            'description'    => 'nullable|string',
-            'website_url'    => 'nullable|url|max:255',
-            'business_hours' => 'nullable|string|max:255',
-            'address'        => 'nullable|string|max:255',
-            'city'           => 'nullable|string|max:255',
-            'country'        => 'nullable|string|max:255',
-            'facebook_url'   => 'nullable|url|max:255',
-            'instagram_url'  => 'nullable|url|max:255',
-            'twitter_url'    => 'nullable|url|max:255',
-            'linkedin_url'   => 'nullable|url|max:255',
-        ]);
+    // public function store(Request $request, $id)
+    // {
+    //     $validated = $request->validate([
+    //         'company_name'   => 'nullable|string|max:255',
+    //         'description'    => 'nullable|string',
+    //         'website_url'    => 'nullable|url|max:255',
+    //         'business_hours' => 'nullable|string|max:255',
+    //         'address'        => 'nullable|string|max:255',
+    //         'city'           => 'nullable|string|max:255',
+    //         'country'        => 'nullable|string|max:255',
+    //         'facebook_url'   => 'nullable|url|max:255',
+    //         'instagram_url'  => 'nullable|url|max:255',
+    //         'twitter_url'    => 'nullable|url|max:255',
+    //         'linkedin_url'   => 'nullable|url|max:255',
+    //         // 'services'       => 'nullable|string|max:1000',
+    //         // 'image'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    //     ]);
     
-        $validated['user_id'] = $id;
+    //     $validated['user_id'] = $id;
     
-        $company = CompanyInfo::updateOrCreate(
-            ['user_id' => $id],
-            $validated
-        );
+    //     // if ($request->hasFile('image')) {
+    //     //     $path = $request->file('image')->store('company_images', 'public');
+    //     //     $validated['image'] = $path;
+    //     // }
     
-        $company->load('user');
+    //     $company = CompanyInfo::updateOrCreate(
+    //         ['user_id' => $id],
+    //         $validated
+    //     );
     
-        return response()->json([
-            'message' => 'Company info saved successfully.',
-            'data' => $company,
-        ], 201);
-    }
+    //     $company->load('user');
+    
+    //     return response()->json([
+    //         'message' => 'Company info saved successfully.',
+    //         'data' => $company,
+    //     ], 201);
+    // }
+    
 
     /**
      * Display the specified resource.
      */
-    public function show()
-    {
-        $company = CompanyInfo::where('user_id', Auth::id())->first();
 
-        if (!$company) {
-            return response()->json(['message' => 'Company info not found.'], 404);
-        }
+     public function store(Request $request, $id)
+{
+    // Define all fields
+    $fields = [
+        'company_name', 'description', 'website_url', 'business_hours',
+        'address', 'city', 'country',
+        'facebook_url', 'instagram_url', 'twitter_url', 'linkedin_url',
+    ];
 
-        return response()->json($company);
+    // Set defaults to null if not present
+    $data = [];
+    foreach ($fields as $field) {
+        $data[$field] = $request->has($field) ? $request->input($field) : null;
     }
+
+    // Optionally validate (you can skip validation if you're accepting nulls)
+    $validated = validator($data, [
+        'company_name'   => 'nullable|string|max:255',
+        'description'    => 'nullable|string',
+        'website_url'    => 'nullable|url|max:255',
+        'business_hours' => 'nullable|string|max:255',
+        'address'        => 'nullable|string|max:255',
+        'city'           => 'nullable|string|max:255',
+        'country'        => 'nullable|string|max:255',
+        'facebook_url'   => 'nullable|url|max:255',
+        'instagram_url'  => 'nullable|url|max:255',
+        'twitter_url'    => 'nullable|url|max:255',
+        'linkedin_url'   => 'nullable|url|max:255',
+    ])->validate();
+
+    $validated['user_id'] = $id;
+
+    // Optional image handling
+    // if ($request->hasFile('image')) {
+    //     $path = $request->file('image')->store('avatars', 'public');
+    //     $validated['image'] = $path;
+    // }
+
+    $company = CompanyInfo::updateOrCreate(
+        ['user_id' => $id],
+        $validated
+    );
+
+    return response()->json([
+        'message' => 'Company info saved.',
+        'data' => $company,
+    ]);
+}
+
+    public function show($id)
+    {
+        $company = CompanyInfo::where('user_id', $id)->with('user')->first();
+    
+        if (!$company) {
+            return response()->json(['message' => 'Company info not found.']);
+        }
+    
+        return response()->json([
+            'message' => 'Company info retrieved successfully.',
+            'company' => $company, // ✅ change this key to "company"
+        ], 200);
+    }
+    
+    
     /**
      * Update the specified resource in storage.
      */

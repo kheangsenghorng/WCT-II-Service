@@ -32,12 +32,12 @@ export default function SettingsPage() {
   const { id } = useParams();
   const ownerId = id; // Assuming the ownerId is the same as the user id in this context
   const router = useRouter();
+  const userId = user?.id || id; // Fallback to id if user is not available
 
   // Basic Information
   const [companyName, setCompanyName] = useState("");
   const [employeeCount, setEmployeeCount] = useState("");
   const [description, setDescription] = useState("");
-
 
   // Contact Information
   const [email, setEmail] = useState("");
@@ -49,7 +49,7 @@ export default function SettingsPage() {
 
   // Business Details
   const [businessHours, setBusinessHours] = useState("");
-  const [services, setServices] = useState("");
+  // const [services, setServices] = useState("");
   // Social Media & Online Presence
   const [facebook, setFacebook] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -63,51 +63,74 @@ export default function SettingsPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const fileInputRef = useRef(null);
   const { fetchUsersByOwner, count } = useUserStore();
-  const { companyInfo, fetchCompanyInfo, saveCompanyInfo, loading, error } =
-    useCompanyInfoStore();
+  const {
+    companyInfo,
+    fetchCompanyInfo,
+    saveCompanyInfo,
+    updateCompanyInfo,
+    loading,
+    error,
+  } = useCompanyInfoStore();
 
   useEffect(() => {
     if (id) {
       fetchUserById(id);
       fetchCompanyInfo(id);
     }
-  }, [id, fetchUserById, fetchCompanyInfo]);
+  }, [id, fetchUserById]);
 
-  console.log(companyInfo);
 
   useEffect(() => {
-    if (user && companyInfo) {
-      // Basic Information
-      setCompanyName(companyInfo?.company_name || "");
-      setDescription(companyInfo?.description || "");
+    if (!user) return;
 
-      // Contact Information
-      setEmail(user.email || "");
-      setPhone(user.phone || "");
-      setWebsite(companyInfo?.website_url || "");
-      setAddress(companyInfo?.address || "");
-      setCity(companyInfo?.city || "");
-      setCountry(companyInfo?.country || "");
+    // User Info
+    setEmail(user.email || "");
+    setPhone(user.phone || "");
 
-      // Business Details
-      setBusinessHours(companyInfo?.business_hours || "");
-      setServices(user.services || "");
+    setAvatarPreview(
+      user.image?.startsWith("http")
+        ? user.image
+        : user.image
+        ? `/${user.image}`
+        : "/default-avatar.png"
+    );
 
-      // Social Media
-      setFacebook(companyInfo?.facebook_url || "");
-      setInstagram(companyInfo?.instagram_url || "");
-      setTwitter(companyInfo?.twitter_url || "");
-      setLinkedin(companyInfo?.linkedin_url || "");
+    // Company Info
+    if (companyInfo) {
+      // Basic Info
+      setCompanyName(companyInfo.company_name ?? "");
+      setDescription(companyInfo.description ?? "");
 
-      setAvatarPreview(
-        user.image?.startsWith("http")
-          ? user.image
-          : user.image
-          ? `/${user.image}`
-          : "/default-avatar.png"
-      );
+      // Contact Info
+      setWebsite(companyInfo.website_url ?? "");
+      setAddress(companyInfo.address ?? "");
+      setCity(companyInfo.city ?? "");
+      setCountry(companyInfo.country ?? "");
+
+      // Business Info
+      setBusinessHours(companyInfo.business_hours ?? "");
+      // setServices(companyInfo.services ?? ""); // Uncomment if using
+
+      // Socials
+      setFacebook(companyInfo.facebook_url ?? "");
+      setInstagram(companyInfo.instagram_url ?? "");
+      setTwitter(companyInfo.twitter_url ?? "");
+      setLinkedin(companyInfo.linkedin_url ?? "");
+    } else {
+      // Reset all company-related fields if no info
+      setCompanyName("");
+      setDescription("");
+      setWebsite("");
+      setAddress("");
+      setCity("");
+      setCountry("");
+      setBusinessHours("");
+      setFacebook("");
+      setInstagram("");
+      setTwitter("");
+      setLinkedin("");
     }
-  }, [user]);
+  }, [user, companyInfo]); // ✅ Depend on both
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -127,46 +150,52 @@ export default function SettingsPage() {
 
   const confirmUpdate = async () => {
     setIsLoading(true);
-    const formData = new FormData();
-
-    // Append helper to skip empty/null/undefined
-    const safeAppend = (key, value) => {
-      if (value !== undefined && value !== null && value !== "") {
-        formData.append(key, value);
-      }
-    };
-
-    // Basic Information
-    safeAppend("company_name", companyName);
-    safeAppend("description", description);
-
-    // Contact Information
-    safeAppend("phone", phone);
-    safeAppend("website_url", website);
-    safeAppend("address", address);
-    safeAppend("city", city);
-    safeAppend("country", country);
-
-    // Business Details
-    safeAppend("business_hours", businessHours);
-    // safeAppend("services", services); // Uncomment if services used
-
-    // Social Media
-    safeAppend("facebook_url", facebook);
-    safeAppend("instagram_url", instagram);
-    safeAppend("twitter_url", twitter);
-    safeAppend("linkedin_url", linkedin);
-
-    // Optional Avatar File Upload
-    if (avatarFile) {
-      formData.append("image", avatarFile);
-    }
 
     try {
-      await updateUser(user.id, formData); // Update user profile
-      await saveCompanyInfo(user.id, formData); // Save company info
-      await fetchUserById(id); // Refresh user state
-      router.push(`/owner/${id}/dashboard`); // Redirect
+      // --- 1. Update User Data ---
+      const userFormData = new FormData();
+
+      userFormData.append("phone", phone ?? "");
+      if (avatarFile) {
+        userFormData.append("image", avatarFile);
+      }
+
+      await updateUser(user.id, userFormData);
+
+      // --- 2. Save or Update Company Info ---
+      const companyFormData = new FormData();
+
+      const safeAppend = (key, value) => {
+        companyFormData.append(key, value ?? "");
+      };
+
+      // Basic Information
+      safeAppend("company_name", companyName);
+      safeAppend("description", description);
+
+      // Contact Information
+      safeAppend("website_url", website);
+      safeAppend("address", address);
+      safeAppend("city", city);
+      safeAppend("country", country);
+
+      // Business Details
+      safeAppend("business_hours", businessHours);
+      // safeAppend("services", services); // Uncomment if needed
+
+      // Social Media
+      safeAppend("facebook_url", facebook);
+      safeAppend("instagram_url", instagram);
+      safeAppend("twitter_url", twitter);
+      safeAppend("linkedin_url", linkedin);
+
+      await saveCompanyInfo(user.id, companyFormData);
+
+      // --- 3. Refresh Data ---
+      await fetchUserById(user.id);
+      await fetchCompanyInfo(user.id);
+
+      router.push(`/owner/${user.id}/dashboard`);
     } catch (error) {
       console.error("Update failed:", error);
     } finally {
@@ -265,8 +294,11 @@ export default function SettingsPage() {
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-blue-200 shadow-lg">
                   <AvatarImage
-                    src={avatarPreview || "/placeholder.svg"}
+                    src={avatarPreview || "/default-avatar.png"}
                     alt="Company Logo"
+                    width={64}
+                    height={64}
+                   
                   />
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                     {companyName?.[0] || "C"}
@@ -490,7 +522,7 @@ export default function SettingsPage() {
               </motion.div>
 
               {/* Business Details */}
-              <motion.div variants={itemVariants}>
+              {/* <motion.div variants={itemVariants}>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                   <Award className="w-5 h-5 text-purple-600" />
                   Business Details
@@ -514,7 +546,7 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
-              </motion.div>
+              </motion.div> */}
 
               {/* Social Media */}
               <motion.div variants={itemVariants}>

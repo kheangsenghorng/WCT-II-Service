@@ -124,14 +124,6 @@ Route::middleware('auth:api')->group(function () {
        // Owner-specific service management
        Route::get('/{ownerId}/users/{userId}', [UserController::class, 'getUserUnderOwner']);
 
-       // Company Info routes
-       Route::prefix('company-info')->controller(CompanyInfoController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/show', 'show');
-        Route::post('/{id}', 'store');
-        Route::put('/{id}', 'update');
-    });
-       Route::delete('/users/{userId}/company-info', [CompanyInfoController::class, 'destroy']); // Delete company info by user ID
     });
       
 
@@ -191,13 +183,20 @@ Route::middleware('auth:api')->prefix('owner')->group(function () {
     Route::get('/by-owner/{ownerId}', [BookingController::class, 'getByIdOwner']);
 
 
-Route::post('/{ownerId}/booking-staff/assign', [BookingStaffController::class, 'assign']);
-Route::get('/booking-staff/{bookingId}', [BookingStaffController::class, 'getStaffByBooking']);
-Route::delete('/booking-staff/{bookingId}/staff/{staffId}', [BookingStaffController::class, 'unassign']);
-//show no complete staff by owner
-Route::get('/booking-staff/by-owner/{ownerId}', [BookingStaffController::class, 'getStaffByOwner']);
-//show all staff by owner
-Route::get('/booking-staff/show/{ownerId}', [BookingStaffController::class, 'getShowStaff']);
+    Route::post('/{ownerId}/booking-staff/assign', [BookingStaffController::class, 'assign']);
+    Route::get('/booking-staff/{bookingId}', [BookingStaffController::class, 'getStaffByBooking']);
+    Route::delete('/booking-staff/{bookingId}/staff/{staffId}', [BookingStaffController::class, 'unassign']);
+    //show no complete staff by owner
+    Route::get('/booking-staff/by-owner/{ownerId}', [BookingStaffController::class, 'getStaffByOwner']);
+    //show all staff by owner
+    Route::get('/booking-staff/show/{ownerId}', [BookingStaffController::class, 'getShowStaff']);
+
+    // routes/api.php
+    Route::get('/company-info/{id}', [CompanyInfoController::class, 'show']);
+    Route::post('/company-info/{id}', [CompanyInfoController::class, 'store']); // create or update
+    Route::put('/company-info/{id}', [CompanyInfoController::class, 'update']); // dedicated update
+    Route::delete('/company-info/{id}', [CompanyInfoController::class, 'destroy']); // delete company info
+
 });
 
 // Public routes
