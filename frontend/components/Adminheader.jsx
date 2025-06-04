@@ -203,14 +203,14 @@ const Navbar = () => {
                   <div className="border-t border-gray-200" />
                   <ul className="py-1 text-sm text-gray-700">
                     <li>
-                      <a
+                      <Link
                         href={`/${user?.role}/${id}/edit-profile`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200"
                         onClick={() => setIsOpen(false)}
                       >
                         <User className="h-5 w-5" />
                         Profile
-                      </a>
+                      </Link>
                     </li>
                     {hasAdminAccess && (
                       <>

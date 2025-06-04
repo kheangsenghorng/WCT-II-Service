@@ -6,11 +6,11 @@ export const useCompanyInfoStore = create((set) => ({
   loading: false,
   error: null,
 
-  fetchCompanyInfo: async () => {
+  fetchCompanyInfo: async (id) => {
     set({ loading: true, error: null });
     try {
-      const data = await request(`/owner/company-info/show`, "GET");
-      set({ companyInfo: data });
+      const data = await request(`/owner/company-info/${id}`, "GET");
+      set({ companyInfo: data.company }); // ✅ this now works correctly
     } catch (err) {
       set({
         error: err?.response?.data?.message || "Failed to fetch company info",
@@ -20,11 +20,17 @@ export const useCompanyInfoStore = create((set) => ({
     }
   },
 
-  saveCompanyInfo: async (userId, data) => {
+  saveCompanyInfo: async (userId, formData) => {
     set({ loading: true, error: null });
     try {
-      const res = await request(`/owner/company-info/${userId}`, "POST", data);
-      set({ companyInfo: res.data });
+      const res = await request(
+        `/owner/company-info/${userId}`, // must match the Laravel route
+        "POST",
+        formData
+      );
+      console.log("Company info saved successfully:", res.data); // Log the response for debugging
+
+      set({ companyInfo: res.data.data }); // access res.data.data, not just res.data
     } catch (err) {
       set({
         error: err?.response?.data?.message || "Failed to save company info",
@@ -34,19 +40,23 @@ export const useCompanyInfoStore = create((set) => ({
     }
   },
 
-  updateCompanyInfo: async (userId, data) => {
-    set({ loading: true, error: null });
-    try {
-      const res = await request(`/owner/company-info/${userId}`, "PUT", data);
-      set({ companyInfo: res.data });
-    } catch (err) {
-      set({
-        error: err?.response?.data?.message || "Failed to update company info",
-      });
-    } finally {
-      set({ loading: false });
-    }
-  },
+  //   updateCompanyInfo: async (userId, formData) => {
+  //     set({ loading: true, error: null });
+  //     try {
+  //       const res = await request(
+  //         `/owner/company-info/${userId}`,
+  //         "PUT",
+  //         formData
+  //       );
+  //       set({ companyInfo: res.data });
+  //     } catch (err) {
+  //       set({
+  //         error: err?.response?.data?.message || "Failed to update company info",
+  //       });
+  //     } finally {
+  //       set({ loading: false });
+  //     }
+  //   },
 
   deleteCompanyInfo: async (userId) => {
     set({ loading: true, error: null });
