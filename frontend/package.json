@@ -38,6 +38,7 @@
     "laravel-echo": "^2.1.4",
     "leaflet": "^1.9.4",
     "leaflet-control-geocoder": "^3.2.0",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.487.0",
     "next": "15.2.4",
     "next-auth": "^4.24.11",

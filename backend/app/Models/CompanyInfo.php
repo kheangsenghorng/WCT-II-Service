@@ -13,12 +13,17 @@ class CompanyInfo extends Model
 
     protected $fillable = [
         'user_id',
+        'company_name',
         'description',
         'website_url',
         'business_hours',
         'address',
         'city',
         'country',
+        'facebook_url',
+        'instagram_url',
+        'twitter_url',
+        'linkedin_url',
     ];
 
     /**

@@ -190,31 +190,42 @@ public function store(Request $request, $serviceId)
             'booking' => $booking,
         ]);
     }
+
+    /**
+     * Display the specified resource by ID.
+     */
     public function showid($userId, $serviceId, $bookingId)
-{
-    // Fetch the booking by ID and ensure it matches the user and service
-    $booking = Booking::with('user', 'service')
-        ->where('id', $bookingId)
-        ->where('user_id', $userId)
-        ->where('service_id', $serviceId)
-        ->firstOrFail();
-
-    // Append full image URL to the user image
-    if ($booking->user && $booking->user->image) {
-        $booking->user->image = asset('storage/' . $booking->user->image);
+    {
+        $booking = Booking::with([
+                'user.companyInfo',         // booking user + their company info
+                'service.owner.companyInfo' // service owner + their company info
+            ])
+            ->where('id', $bookingId)
+            ->where('user_id', $userId)
+            ->where('service_id', $serviceId)
+            ->firstOrFail();
+    
+        // Fix image URL for booking user
+        if ($booking->user && $booking->user->image) {
+            $booking->user->image = asset('storage/' . $booking->user->image);
+        }
+    
+        // Fix image URLs for service images
+        if ($booking->service && is_array($booking->service->images)) {
+            $booking->service->images = array_map(fn($img) => asset('storage/' . $img), $booking->service->images);
+        }
+    
+        // Fix image URL for service owner
+        if ($booking->service && $booking->service->owner && $booking->service->owner->image) {
+            $booking->service->owner->image = asset('storage/' . $booking->service->owner->image);
+        }
+    
+        return response()->json([
+            'booking' => $booking,
+        ]);
     }
-
-    // Append full URLs to all service images if they exist
-    if ($booking->service && is_array($booking->service->images)) {
-        $booking->service->images = array_map(function ($image) {
-            return asset('storage/' . $image);
-        }, $booking->service->images);
-    }
-
-    return response()->json([
-        'booking' => $booking,
-    ]);
-}
+    
+    
 
     
     public function showownerid($id)
@@ -427,10 +438,10 @@ public function update(Request $request, string $id)
     $booking->update($validated);
     $booking->load('user', 'service');
 
-    // Send email notification
-    if ($booking->user && $booking->user->email) {
-        Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking));
-    }
+    // // Send email notification
+    // if ($booking->user && $booking->user->email) {
+    //     Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking));
+    // }
 
     // Transform image URLs
     if ($booking->user && $booking->user->image) {

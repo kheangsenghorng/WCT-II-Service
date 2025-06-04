@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Calendar, Clock, MapPin, User } from "lucide-react";
@@ -18,9 +18,9 @@ const BookedServiceCard = () => {
 
   useEffect(() => {
     if (userId) {
-      fetchBookingsByUserId(userId)
+      fetchBookingsByUserId(userId);
     }
-  }, [userId])
+  }, [userId]);
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -70,94 +70,121 @@ const BookedServiceCard = () => {
               />
             </div>
 
-                      {/* Content */}
-                      <div className="flex-1 p-6 lg:p-8">
-                        {/* Service Info */}
-                        <div className="mb-6">
-                          <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {service.name || "Service Name"}
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base line-clamp-2">
-                            {service.description || "No description available."}
-                          </p>
-                        </div>
+            {/* Content */}
+            <div className="flex-1 p-6 lg:p-8">
+              {/* Service Info */}
+              <div className="mb-6">
+                <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {service.name || "Service Name"}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base line-clamp-2">
+                  {service.description || "No description available."}
+                </p>
+              </div>
 
-                        {/* Service Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">Service Created</p>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {new Date(service?.created_at).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </p>
-                              </div>
-                            </div>
+              {/* Service Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Service Created
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {new Date(service?.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                                <User className="w-4 h-4 text-green-600 dark:text-green-400" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">Provider</p>
-                                <p className="font-medium text-gray-900 dark:text-white">{service.provider}</p>
-                              </div>
-                            </div>
-                          </div>
+                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                      <User className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Provider
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {booking?.service?.owner?.last_name ||
+                          "Unknown Provider"}
+                        {booking?.service?.owner?.first_name ||
+                          "Unknown Provider"}
+                      </p>
+                      {booking?.service?.owner?.company_info?.company_name ||
+                        "Unknown Provider"}
+                    </div>
+                  </div>
+                </div>
 
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                                <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">Booking Date</p>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {new Date(booking.scheduled_date).toLocaleDateString("en-US", {
-                                    weekday: "short",
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </p>
-                              </div>
-                            </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Booking Date
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {new Date(booking.scheduled_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">Time</p>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {new Date(`1970-01-01T${booking.scheduled_time}`).toLocaleTimeString([], {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
+                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Time
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {new Date(
+                          `1970-01-01T${booking.scheduled_time}`
+                        ).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                        {/* Location */}
-                        <div className="flex items-center gap-3 mb-6 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
-                            <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs text-gray-500 dark:text-gray-500">Location</p>
-                            <p className="font-medium text-gray-900 dark:text-white">{booking.location}</p>
-                          </div>
-                        </div>
+              {/* Location */}
+              <div className="flex items-center gap-3 mb-6 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    Location
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {booking.location}
+                  </p>
+                </div>
+              </div>
 
               {/* Price and View Detail */}
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
@@ -233,7 +260,7 @@ const BookedServiceCard = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BookedServiceCard
+export default BookedServiceCard;

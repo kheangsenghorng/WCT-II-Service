@@ -58,14 +58,36 @@ export default function ProfileDetail({ userId }) {
       fetchStaffByBooking(bookingId);
     }
   }, [ownerId, bookingId, fetchAssignedStaff, fetchStaffByBooking]);
+  // Debounce helper
+  function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
 
+  // Debounced refresh function
+  const debouncedRefresh = debounce((ownerId, bookingId) => {
+    fetchAssignedStaff(ownerId);
+    fetchStaffByBooking(bookingId);
+  }, 500);
+
+  // Staff assignment handler
   const handleAssignStaff = async (staffId) => {
     try {
-      if (!userId || !ownerId) return;
-      const assignmentPayload = [{ booking_id: userId, staff_id: staffId }];
+      if (!bookingId || !ownerId) {
+        toast.error("Missing booking or owner ID.");
+        return;
+      }
+
+      const assignmentPayload = [{ booking_id: bookingId, staff_id: staffId }];
       await assignStaff(assignmentPayload, ownerId);
+
       toast.success("Staff assigned successfully!");
-      fetchAssignedStaff(ownerId);
+
+      // ✅ Debounced refresh
+      debouncedRefresh(ownerId, bookingId);
     } catch (err) {
       console.error("Error assigning staff:", err);
       toast.error("Failed to assign staff.");
@@ -79,7 +101,7 @@ export default function ProfileDetail({ userId }) {
     try {
       await unassignStaff(bookingId, staffToRemove.id);
       toast.success(`${staffToRemove.first_name} removed from booking.`);
-      fetchStaffByBooking(bookingId);
+      await fetchStaffByBooking(bookingId);
     } catch (err) {
       console.error("Failed to unassign staff:", err);
       toast.error("Failed to unassign staff. Please try again.");

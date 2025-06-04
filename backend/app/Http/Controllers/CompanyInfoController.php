@@ -28,37 +28,38 @@ class CompanyInfoController extends Controller
      * Store a newly created resource in storage.
      */
     // Create or update company info
+
+    
     public function store(Request $request, $id)
     {
         $validated = $request->validate([
-            'description' => 'nullable|string',
-            'website_url' => 'nullable|url|max:255',
-            'business_hours' => 'nullable|string',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string',
-            'country' => 'nullable|string',
+            'company_name'   => 'nullable|string|max:255',
+            'description'    => 'nullable|string',
+            'website_url'    => 'nullable|url|max:255',
+            'business_hours' => 'nullable|string|max:255',
+            'address'        => 'nullable|string|max:255',
+            'city'           => 'nullable|string|max:255',
+            'country'        => 'nullable|string|max:255',
+            'facebook_url'   => 'nullable|url|max:255',
+            'instagram_url'  => 'nullable|url|max:255',
+            'twitter_url'    => 'nullable|url|max:255',
+            'linkedin_url'   => 'nullable|url|max:255',
         ]);
     
-        // Ensure the user_id is set based on the route parameter
         $validated['user_id'] = $id;
     
-        // Save or update the record
         $company = CompanyInfo::updateOrCreate(
             ['user_id' => $id],
             $validated
         );
     
-        // Load the related user
         $company->load('user');
     
         return response()->json([
             'message' => 'Company info saved successfully.',
-            'data' => $company
+            'data' => $company,
         ], 201);
     }
-    
-    
-    
 
     /**
      * Display the specified resource.
@@ -73,28 +74,52 @@ class CompanyInfoController extends Controller
 
         return response()->json($company);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(CompanyInfo $companyInfo)
-    {
-        //
-    }
-
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CompanyInfo $companyInfo)
+    public function update(Request $request, $userId)
     {
-        //
-    }
+        $validated = $request->validate([
+            'company_name'   => 'nullable|string|max:255',
+            'description'    => 'nullable|string',
+            'website_url'    => 'nullable|url|max:255',
+            'business_hours' => 'nullable|string|max:255',
+            'address'        => 'nullable|string|max:255',
+            'city'           => 'nullable|string|max:255',
+            'country'        => 'nullable|string|max:255',
+            'facebook_url'   => 'nullable|url|max:255',
+            'instagram_url'  => 'nullable|url|max:255',
+            'twitter_url'    => 'nullable|url|max:255',
+            'linkedin_url'   => 'nullable|url|max:255',
+        ]);
+
+        // Find the company info based on the user_id
+        $companyInfo = CompanyInfo::where('user_id', $userId)->firstOrFail();
+
+        // Update the company info
+        $companyInfo->update($validated);
+
+        $companyInfo->load('user');
+
+        return response()->json([
+            'message' => 'Company info updated successfully.',
+            'data' => $companyInfo,
+        ], 200);
+    }           
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CompanyInfo $companyInfo)
+    public function destroy($userId)
     {
-        //
+        // Find the company info by user_id
+        $companyInfo = CompanyInfo::where('user_id', $userId)->firstOrFail();
+    
+        // Delete the company info record
+        $companyInfo->delete();
+    
+        return response()->json([
+            'message' => 'Company info deleted successfully.',
+        ], 200);
     }
 }

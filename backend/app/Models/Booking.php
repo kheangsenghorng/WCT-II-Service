@@ -28,26 +28,29 @@ class Booking extends Model
         return $this->belongsTo(Service::class);
     }
 
-    public function serviceCategory()
-{
-    return $this->belongsTo(ServiceCategory::class, 'service_categories_id');
-}
+        public function serviceCategory()
+    {
+        return $this->belongsTo(ServiceCategory::class, 'service_categories_id');
+    }
 
-public function type()
-{
-    return $this->belongsTo(Type::class, 'type_id');
-}
+    public function type()
+    {
+        return $this->belongsTo(Type::class, 'type_id');
+    }
 
-public function owner()
-{
-    return $this->belongsTo(User::class, 'owner_id');
-}
-public function staff()
-{
-    return $this->belongsToMany(User::class, 'booking_staff', 'booking_id', 'staff_id')
-                ->withPivot('assigned_at')
-                ->withTimestamps();
-}
-
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+    public function staff()
+    {
+        return $this->belongsToMany(User::class, 'booking_staff', 'booking_id', 'staff_id')
+                    ->withPivot('assigned_at')
+                    ->withTimestamps();
+    }
+    public function companyInfo()
+    {
+        return $this->hasOne(CompanyInfo::class, 'user_id');
+    }
 }
 

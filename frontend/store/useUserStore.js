@@ -105,13 +105,19 @@ export const useUserStore = create((set, get) => ({
     }
   },
 
-  updateUser: async (id, formData) => {
-    formData.append("_method", "PUT"); // Laravel needs this for method spoofing on POST
+  updateUser: async (userId, formData) => {
+    formData.append("_method", "PUT"); // Laravel expects this for method spoofing
 
     try {
-      const updatedUser = await request(`/users/${id}`, "POST", formData);
+      const updatedUser = await request(`/users/${userId}`, "POST", formData);
+      // Update users array in Zustand store (if needed)
+      const users = get().users || [];
+      const updatedUsers = users.map((u) =>
+        u.id === updatedUser.id ? updatedUser : u
+      );
 
-      set({ user: updatedUser }); // Update Zustand store
+      set({ users: updatedUsers, user: updatedUser }); // update both individual user and user list
+
       return updatedUser;
     } catch (err) {
       console.error("Failed to update user:", err);
