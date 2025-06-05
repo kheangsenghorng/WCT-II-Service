@@ -318,7 +318,7 @@ const ConfirmBooking = () => {
         </Card>
 
         {/* Payment Section */}
-        <Card className="border-0 shadow-sm ">
+        {/* <Card className="border-0 shadow-sm ">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl text-gray-900">
               <CreditCard className="w-6 h-6 text-emerald-600" />
@@ -326,7 +326,11 @@ const ConfirmBooking = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Payment Method Selection */}
+
+
+          
+          
+
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
                 Payment Method
@@ -477,7 +481,7 @@ const ConfirmBooking = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Security Notice */}
         <div className="bg-green-50 border border-green-200 rounded-xl p-4">

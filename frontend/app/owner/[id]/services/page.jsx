@@ -11,6 +11,7 @@ import {
   Edit,
   Trash2,
   Plus,
+  Search,
 } from "lucide-react";
 import { useServicesStore } from "@/store/useServicesStore";
 import { useCategoryStore } from "@/store/useCateroyStore";
@@ -52,16 +53,14 @@ export default function ServicesPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const [stats, setStats] = useState({ total: 0 });
   const [prevStats, setPrevStats] = useState({ total: 0 });
 
   const [filterCategory, setFilterCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (ownerId) {
-      fetchServicesByOwner(ownerId);
-    }
+    if (ownerId) fetchServicesByOwner(ownerId);
   }, [ownerId, fetchServicesByOwner]);
 
   useEffect(() => {
@@ -114,26 +113,22 @@ export default function ServicesPage() {
   const safeCategories = categories || [];
   const safeTypes = types || [];
 
-  const filteredServices = filterCategory
-    ? services.filter((service) => {
-        const category = safeCategories.find(
-          (cat) => cat.id === service.service_categories_id
-        );
-        return category?.name
-          ?.toLowerCase()
-          .includes(filterCategory.toLowerCase());
-      })
-    : services;
-
+  const filteredServices = services.filter((service) => {
+    const category = safeCategories.find((cat) => cat.id === service.service_categories_id);
+    const matchesCategory = filterCategory
+      ? category?.name?.toLowerCase().includes(filterCategory.toLowerCase())
+      : true;
+    const matchesSearch = searchTerm
+      ? service.name.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+    return matchesCategory && matchesSearch;
+  });
 
   if (servicesError || categoriesError || typesError)
     return (
       <div className="w-full p-8">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {servicesError ||
-            categoriesError ||
-            typesError ||
-            "An error occurred while fetching data."}
+          {servicesError || categoriesError || typesError || "An error occurred while fetching data."}
         </div>
       </div>
     );
@@ -170,13 +165,10 @@ export default function ServicesPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-4">
-            <label
-              htmlFor="filterCategory"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0"
-            >
+            <label htmlFor="filterCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
               Filter by Category:
             </label>
-            <div className="relative flex-1">
+            <div className="relative w-full sm:max-w-xs">
               <select
                 id="filterCategory"
                 value={filterCategory}
@@ -190,6 +182,18 @@ export default function ServicesPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:max-w-xs mt-3 sm:mt-0">
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             </div>
           </div>
 
@@ -206,7 +210,6 @@ export default function ServicesPage() {
                 {successMessage}
               </motion.div>
             )}
-
             {errorMessage && (
               <motion.div
                 className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 py-2 px-4 rounded-lg shadow-md z-[100] flex items-center gap-2"
@@ -221,6 +224,7 @@ export default function ServicesPage() {
             )}
           </AnimatePresence>
 
+          {/* Service Table */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border dark:border-gray-700">
             {servicesLoading ? (
               <div className="p-6 text-center text-gray-500">
@@ -231,16 +235,7 @@ export default function ServicesPage() {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 shadow-sm">
                     <tr>
-                      {[
-                        "ID",
-                        "Name",
-                        "Description",
-                        "Price",
-                        "Category",
-                        "Type",
-                        "Image",
-                        "Actions",
-                      ].map((header) => (
+                      {["ID", "Name", "Image", "Price", "Category", "Type", "Actions"].map((header) => (
                         <th
                           key={header}
                           className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase"
@@ -252,57 +247,29 @@ export default function ServicesPage() {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {filteredServices.map((service, index) => {
-                      const category = safeCategories.find(
-                        (cat) => cat.id === service.service_categories_id
-                      );
-                      const type = safeTypes.find(
-                        (t) => t.id === service.type_id
-                      );
+                      const category = safeCategories.find((cat) => cat.id === service.service_categories_id);
+                      const type = safeTypes.find((t) => t.id === service.type_id);
 
                       return (
                         <tr
                           key={service.id}
-                          className={`${
-                            index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
-                          } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                          className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {index + 1}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {service.name}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                            <div
-                              className="truncate"
-                              title={service.description}
-                            >
-                              {service.description}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            ${service.base_price}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {category?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {type?.name || "Unknown"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{index + 1}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{service.name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                             {service.images?.[0] ? (
-                              <img
-                                src={service.images[0]}
-                                alt={service.name}
-                                className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600"
-                              />
+                              <img src={service.images[0]} alt={service.name} className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-600" />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border">
                                 <ImageIcon className="h-5 w-5 text-gray-400" />
                               </div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">${service.base_price}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{category?.name || "Unknown"}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{type?.name || "Unknown"}</td>
+                          <td className="px-6 py-4 text-sm">
                             <div className="flex gap-3">
                               <Link
                                 href={`/owner/${ownerId}/services/${service.id}/edit`}
