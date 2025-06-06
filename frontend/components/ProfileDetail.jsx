@@ -117,7 +117,7 @@ export default function ProfileDetail({ userId }) {
   if (loading) {
     return (
       <div className="w-[700px] mx-auto my-8">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="animate-pulse space-y-6">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-gray-300 rounded-full"></div>

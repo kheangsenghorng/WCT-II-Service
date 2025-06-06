@@ -18,7 +18,7 @@ export default function Gallery({ userId }) {
   if (loading) {
     return (
       <div className="container rounded-2xl mx-auto p-6 w-[700px] my-8">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="animate-pulse">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Main image skeleton */}

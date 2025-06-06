@@ -32,7 +32,7 @@ export default function TourDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const images = service?.images || [];
-  const mainImage = images[0] || "https://picsum.photos/id/1015/400/300";
+  const mainImage = images[0] || "/default-clean.webp"; // Fallback image if no images are available
   const sideImages = images.slice(1, 4);
   const extraImages = images.slice(4);
 
