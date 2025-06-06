@@ -13,14 +13,19 @@ const ProfilePage = () => {
   const router = useRouter()
   const { user, fetchUserById, loading, error } = useUserStore()
   const [showImageModal, setShowImageModal] = useState(false)
-  const { bookings, fetchBookings, loading: bookingsLoading } = useUserBooking()
+  const { bookings, fetchBookingsByUserId, loading: bookingsLoading } = useUserBooking()
 
   useEffect(() => {
     if (id) {
-      fetchUserById(id)
-      fetchBookings()
+      fetchUserById(id);
+      fetchBookingsByUserId(id); // use the new function
     }
-  }, [id, fetchUserById, fetchBookings])
+  }, [id, fetchUserById, fetchBookingsByUserId]);
+
+
+  const totalBookings = bookings.filter(booking => booking.userId === id).length
+
+
 
   const handleOpenImageModal = () => setShowImageModal(true)
   const handleCloseImageModal = () => setShowImageModal(false)
@@ -120,7 +125,7 @@ const ProfilePage = () => {
                       <div className="w-full h-full bg-white dark:bg-gray-800 rounded-full p-1">
                         <div className="relative w-full h-full rounded-full overflow-hidden">
                           <Image
-                            src={user?.image || "/default-user.svg"}
+                            src={user?.image || "/default-avatar.png"}
                             alt={`${user.first_name} ${user.last_name}'s avatar`}
                             fill
                             className="object-cover"
@@ -135,7 +140,7 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Online Status Indicator */}
-                  <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full shadow-lg" />
+                  {/* <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full shadow-lg" /> */}
                 </motion.div>
 
                 {/* User Info */}
@@ -233,8 +238,9 @@ const ProfilePage = () => {
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {bookingsLoading ? <span className="animate-pulse">...</span> : (bookings?.length ?? 0)}
-                        </p>
+  {bookingsLoading ? <span className="animate-pulse">...</span> : totalBookings}
+</p>
+
                       </div>
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Services booked to date</div>
@@ -276,7 +282,7 @@ const ProfilePage = () => {
           >
             <div className="relative w-full aspect-square bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-2xl">
               <Image
-                src={user?.image || "/default-user.svg"}
+                src={user?.image || "/default-avatar.png"}
                 alt="Full Size Avatar"
                 fill
                 className="object-cover"

@@ -8,6 +8,7 @@ import {
   LogOut,
   Tags,
   ChevronLeft,
+  Archive,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -75,7 +76,7 @@ const AdminSidebar = () => {
     { href: `/admin/${id}/dashboard`, icon: Home, label: "Admin Dashboard" },
     { href: `/admin/${id}/users`, icon: Users, label: "Users" },
     { href: `/admin/${id}/category`, icon: FolderKanban, label: "Category" },
-    { href: `/admin/${id}/type`, icon: FolderKanban, label: "Type" },
+    { href: `/admin/${id}/type`, icon: Archive, label: "Type" },
     { href: `/admin/${id}/company`, icon: Building2, label: "Company" },
     { href: `/admin/${id}/blog`, icon: Tags, label: "Blog" },
   ];

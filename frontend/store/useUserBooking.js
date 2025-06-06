@@ -28,6 +28,25 @@ export const useUserBooking = create((set) => ({
     }
   },
 
+
+  fetchBookingsByUserId: async (userId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await request(`/bookings?userId=${userId}`, "GET");
+      set({
+        bookings: response.data,
+        totalBookings: response.data.length,
+      });
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to fetch user bookings.",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  
+
   fetchTotalBookings: async () => {
     set({ loading: true, error: null });
     try {
