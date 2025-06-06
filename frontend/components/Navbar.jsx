@@ -83,23 +83,26 @@ const Navbar = ({ id }) => {
             <div className="text-red-500">{error}</div>
           ) : user ? (
             <Link
-              href={`/profile/${user.id}/myprofile`}
-              className="flex items-center gap-2 cursor-pointer "
-            >
-              <Avatar>
-                <AvatarImage
-                  src={user?.image || "/default-avatar.png"}
-                  alt={`${user.first_name} ${user.last_name}`}
-                />
-                <AvatarFallback>
-                  {user.first_name?.[0]}
-                  {user.last_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden md:inline text-gray-800 font-medium">
-                {user.first_name} {user.last_name}
-              </span>
-            </Link>
+            href={`/profile/${user.id}/myprofile`}
+            className="flex items-center gap-3 p-2 rounded-lg  dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+          >
+            <Avatar className="h-10 w-10 border-2 border-gray-200 dark:border-slate-700 shadow-sm">
+              <AvatarImage
+                src={user?.image || "/default-avatar.png"}
+                alt={`${user.first_name} ${user.last_name}`}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
+                {user.first_name?.[0]}
+                {user.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+          
+            <span className="hidden md:inline text-sm font-medium text-gray-800 dark:text-white">
+              {user.first_name} {user.last_name}
+            </span>
+          </Link>
+          
           ) : (
             <Link
               href="/login"

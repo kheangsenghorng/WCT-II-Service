@@ -34,7 +34,7 @@ export default function SettingsPage() {
       setLastName(user.last_name || "")
       setPhone(user?.phone || "")
       setAvatarPreview(
-        user.image?.startsWith("http") ? user.image : user.image ? `/${user.image}` : "/default-user.svg",
+        user.image?.startsWith("http") ? user.image : user.image ? `/${user.image}` : "/default-avatar.png",
       )
     }
   }, [user])
@@ -154,7 +154,7 @@ export default function SettingsPage() {
                     <div className="w-full h-full bg-white dark:bg-gray-800 rounded-full p-1">
                       <div className="relative w-full h-full rounded-full overflow-hidden">
                         <Image
-                          src={avatarPreview || "/placeholder.svg"}
+                          src={avatarPreview || "/default-avatar.png"}
                           alt="Avatar"
                           fill
                           className="object-cover"

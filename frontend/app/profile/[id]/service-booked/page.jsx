@@ -1,166 +1,155 @@
-"use client";
+"use client"
 
-import React, { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin, User } from "lucide-react";
-import { useBookingStoreFetch } from "@/store/bookingStore";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useEffect, useState } from "react"
+import { Calendar, Clock, MapPin, User, ChevronRight } from "lucide-react"
+import { useBookingStoreFetch } from "@/store/bookingStore"
+import { useParams } from "next/navigation"
+import Link from "next/link"
 
 const BookedServiceCard = () => {
-  const { id } = useParams();
-  const userId = id;
-  const { bookings, loading, error, fetchBookingsByUserId } =
-    useBookingStoreFetch();
+  const { id } = useParams()
+  const userId = id
+  const { bookings, loading, error, fetchBookingsByUserId } = useBookingStoreFetch()
 
-  // NEW: Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const bookingsPerPage = 3;
+  const [currentPage, setCurrentPage] = useState(1)
+  const bookingsPerPage = 3
 
   useEffect(() => {
     if (userId) {
-      fetchBookingsByUserId(userId);
+      fetchBookingsByUserId(userId)
     }
-  }, [userId]);
+  }, [userId])
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      Clear: "bg-purple-500",
-      "Beauty & Wellness": "bg-pink-500",
-      Automotive: "bg-blue-500",
-      "Health & Fitness": "bg-green-500",
-    };
-    return colors[category] || "bg-gray-500";
-  };
+  const getStatusBadge = (date) => {
+    const bookingDate = new Date(date)
+    const today = new Date()
+    const diffTime = bookingDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  console.log("Bookings:", bookings);
+    if (diffDays < 0) {
+      return { text: "Completed", color: "bg-green-100 text-green-700" }
+    } else if (diffDays === 0) {
+      return { text: "Today", color: "bg-orange-100 text-orange-700" }
+    } else if (diffDays <= 7) {
+      return { text: "Upcoming", color: "bg-blue-100 text-blue-700" }
+    } else {
+      return { text: "Scheduled", color: "bg-gray-100 text-gray-700" }
+    }
+  }
 
   // Compute pagination
-  const totalBookings = bookings?.length || 0;
-  const totalPages = Math.ceil(totalBookings / bookingsPerPage);
-  const startIndex = (currentPage - 1) * bookingsPerPage;
-  const endIndex = startIndex + bookingsPerPage;
-  const currentBookings = bookings.slice(startIndex, endIndex);
+  const totalBookings = bookings?.length || 0
+  const totalPages = Math.ceil(totalBookings / bookingsPerPage)
+  const startIndex = (currentPage - 1) * bookingsPerPage
+  const endIndex = startIndex + bookingsPerPage
+  const currentBookings = bookings.slice(startIndex, endIndex)
 
-  if (loading) return <p className="text-center">Loading...</p>;
-  if (error) return <p className="text-center text-red-500">{error}</p>;
-  if (!bookings || bookings.length === 0)
-    return <p className="text-center">No bookings found.</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600 text-sm">Loading...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-sm mx-auto">
+          <p className="text-red-600 text-sm font-medium">Error: {error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!bookings || bookings.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-gray-50 rounded-lg p-6 max-w-sm mx-auto">
+          <Calendar className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-600 text-sm">No bookings found</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6 max-w-[1100px] mx-auto">
+    <div className="space-y-4 max-w-4xl mx-auto px-4">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Your Bookings</h2>
+        <p className="text-gray-600 text-sm">Manage your service appointments</p>
+      </div>
+
       {currentBookings.map((booking, index) => {
-        const service = booking.service;
-        if (!service) return null;
+        const service = booking.service
+        if (!service) return null
+
+        const status = getStatusBadge(booking.scheduled_date)
 
         return (
           <div
             key={index}
-            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden gap-x-8 hover:shadow-lg transition-shadow duration-300 flex"
+            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200 hover:border-gray-200"
           >
-            {/* Service Image */}
-            <div className="relative w-1/3 min-w-[200px] max-w-[300px]">
-              <img
-                src={
-                  service.images && service.images.length > 0
-                    ? service.images[0]
-                    : "/placeholder.jpg"
-                }
-                alt={service.name || "Service Image"}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 p-6 lg:p-8">
-              {/* Service Info */}
-              <div className="mb-6">
-                <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {service.name || "Service Name"}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base line-clamp-2">
-                  {service.description || "No description available."}
-                </p>
+            <div className="flex">
+              {/* Compact Image */}
+              <div className="relative w-42 h-52 flex-shrink-0">
+                <img
+                  src={
+                    service.images && service.images.length > 0
+                      ? service.images[0]
+                      : "/placeholder.svg?height=128&width=128"
+                  }
+                  alt={service.name || "Service"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${status.color}`}>{status.text}</span>
+                </div>
               </div>
 
-              {/* Service Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Service Created
-                      </p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {new Date(service?.created_at).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
+              {/* Compact Content */}
+              <div className="flex-1 p-4 min-w-0">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h3 className="font-semibold text-gray-900 text-base truncate mb-1">
+                      {service.name || "Service Name"}
+                    </h3>
+                    <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed">
+                      {service.description || "No description available."}
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                      <User className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Provider
-                      </p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {booking?.service?.owner?.last_name ||
-                          "Unknown Provider"}
-                        {booking?.service?.owner?.first_name ||
-                          "Unknown Provider"}
-                      </p>
-                      {booking?.service?.owner?.company_info?.company_name ||
-                        "Unknown Provider"}
-                    </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-lg font-bold text-gray-900">${service.base_price || "0.00"}</div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                {/* Compact Details */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-3 h-3 text-blue-600" />
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Booking Date
-                      </p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {new Date(booking.scheduled_date).toLocaleDateString(
-                          "en-US",
-                          {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          }
-                        )}
+                    <div className="min-w-0">
+                      <p className="text-gray-500 text-xs">Date</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {new Date(booking.scheduled_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-3 h-3 text-orange-600" />
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Time
-                      </p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {new Date(
-                          `1970-01-01T${booking.scheduled_time}`
-                        ).toLocaleTimeString([], {
+                    <div className="min-w-0">
+                      <p className="text-gray-500 text-xs">Time</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {new Date(`1970-01-01T${booking.scheduled_time}`).toLocaleTimeString([], {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
@@ -168,99 +157,84 @@ const BookedServiceCard = () => {
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Location */}
-              <div className="flex items-center gap-3 mb-6 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Location
-                  </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    {booking.location}
-                  </p>
-                </div>
-              </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+                      <User className="w-3 h-3 text-green-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-gray-500 text-xs">Provider</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {`${booking?.service?.owner?.first_name || ""} ${booking?.service?.owner?.last_name || ""}`.trim() ||
+                          "Unknown"}
+                      </p>
+                    </div>
+                  </div>
 
-              {/* Price and View Detail */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <span className="text-2xl font-bold text-gray-900">
-                  ${service.base_price || "0.00"}
-                </span>
-                <Link
-                  href={`/profile/${userId}/view-detail/${service.id}/${booking.id}`}
-                >
-                  <button
-                    type="button"
-                    className="text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 font-medium text-sm px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-1"
-                  >
-                    View Detail
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-red-100 rounded-lg flex items-center justify-center">
+                      <MapPin className="w-3 h-3 text-red-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-gray-500 text-xs">Location</p>
+                      <p className="font-medium text-gray-900 truncate">{booking.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compact Action */}
+                <div className="flex justify-end">
+                  <Link href={`/profile/${userId}/view-detail/${service.id}/${booking.id}`}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </Link>
+                      View Details
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        );
+        )
       })}
 
-      {/* Pagination controls */}
-      <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-        <div>
-          Showing {startIndex + 1}–{Math.min(endIndex, totalBookings)} of{" "}
-          {totalBookings} bookings
-        </div>
-        <div>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`py-1 px-2 rounded-lg mr-1 ${
-              currentPage === 1
-                ? "bg-gray-200 text-gray-400"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
-          >
-            Previous
-          </button>
+      {/* Compact Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="text-xs text-gray-600">
+            {startIndex + 1}-{Math.min(endIndex, totalBookings)} of {totalBookings}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 rounded text-xs font-medium ${
+                currentPage === 1 ? "bg-gray-200 text-gray-400" : "bg-white text-gray-700 hover:bg-gray-100 border"
+              }`}
+            >
+              Prev
+            </button>
 
-          <button className="py-1 px-3 rounded-lg bg-blue-500 text-white mr-1">
-            {currentPage}
-          </button>
+            <span className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium">{currentPage}</span>
 
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className={`py-1 px-2 rounded-lg ${
-              currentPage === totalPages
-                ? "bg-gray-200 text-gray-400"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
-          >
-            Next
-          </button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 rounded text-xs font-medium ${
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border"
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default BookedServiceCard;
+export default BookedServiceCard

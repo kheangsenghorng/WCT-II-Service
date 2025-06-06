@@ -83,8 +83,6 @@ export default function SettingsPage() {
   };
 
   const confirmUpdate = async () => {
-    
-
     const formData = new FormData();
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
@@ -147,14 +145,15 @@ export default function SettingsPage() {
             {/* Avatar Section */}
             <motion.div variants={itemVariants} className="flex justify-center">
               <div className="relative group">
-                <Avatar className="w-32 h-32 border-4 border-white dark:border-slate-700 shadow-xl">
+                <Avatar className="relative w-32 h-32 border-4 border-white dark:border-slate-700 shadow-xl transition-transform duration-300 hover:scale-105">
                   <AvatarImage
                     src={avatarPreview || "/placeholder.svg"}
                     alt="Profile"
+                    className="object-cover w-full h-full rounded-full"
                   />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                    {firstName?.[0]}
-                    {lastName?.[0]}
+                  <AvatarFallback className="flex items-center justify-center w-full h-full text-4xl font-semibold bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full">
+                    {firstName?.[0] || ""}
+                    {lastName?.[0] || ""}
                   </AvatarFallback>
                 </Avatar>
 

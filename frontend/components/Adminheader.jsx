@@ -89,24 +89,29 @@ const Navbar = () => {
     <>
       <nav className="bg-white dark:bg-gray-800 shadow-md py-3 px-6 flex items-center justify-between transition-colors duration-300">
         {/* Left Side: Logo */}
-        <div className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="CleaningPro Logo"
-            width={40}
-            height={40}
-            className="mr-2"
-          />
-          <div>
-            <p className="text-2xl font-bold text-gray-800 dark:text-white">
-              Cleaning
-              <span className="text-2xl text-green-600 px-1">Pro</span>
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Cleaning Services Provider
-            </p>
-          </div>
-        </div>
+        {(user?.role === "owner" || user?.role === "admin") && (
+          <Link
+            href={`/${user.role}/${id}/dashboard`}
+            className="flex items-center no-underline hover:opacity-90 transition-opacity"
+          >
+            <Image
+              src="/logo.png"
+              alt="CleaningPro Logo"
+              width={40}
+              height={40}
+              className="mr-2"
+            />
+            <div>
+              <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                Cleaning
+                <span className="text-2xl text-green-600 px-1">Pro</span>
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Cleaning Services Provider
+              </p>
+            </div>
+          </Link>
+        )}
 
         {/* Search Bar */}
         <div className="relative w-1/3">
@@ -151,10 +156,12 @@ const Navbar = () => {
                         : `/${user.image.replace(/^\/+/, "")}`
                       : "/default-user.svg"
                   }
-                  alt={user?.last_name || "USER"}
-                  width={30}
-                  height={30}
-                  className="rounded-full object-cover"
+                  alt={
+                    user?.first_name + " " + user?.last_name || "User Profile"
+                  }
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover ring-2 ring-blue-300 shadow-sm transition-transform duration-300 hover:scale-105"
                 />
 
                 <div className="text-left">
@@ -180,9 +187,10 @@ const Navbar = () => {
                               : `/${user.image.replace(/^\/+/, "")}`
                             : "/default-user.svg"
                         }
-                        alt="profile"
-                        className="h-8 w-8 rounded-full object-cover"
+                        alt={user?.name || "User Profile"}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm transition-transform hover:scale-105"
                       />
+
                       <div className="text-left ms-3">
                         <h1 className="font-semibold text-sm text-gray-800 dark:text-white">
                           {user?.first_name} {user?.last_name}

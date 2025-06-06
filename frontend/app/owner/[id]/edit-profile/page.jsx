@@ -79,7 +79,6 @@ export default function SettingsPage() {
     }
   }, [id, fetchUserById]);
 
-
   useEffect(() => {
     if (!user) return;
 
@@ -292,15 +291,15 @@ export default function SettingsPage() {
             {/* Company Logo Section */}
             <motion.div variants={itemVariants} className="flex justify-center">
               <div className="relative group">
-                <Avatar className="w-32 h-32 border-4 border-blue-200 shadow-lg">
+                <Avatar className="relative w-32 h-32 border-4 border-blue-200 shadow-lg transition-transform duration-300 hover:scale-105">
                   <AvatarImage
                     src={avatarPreview || "/default-avatar.png"}
                     alt="Company Logo"
-                    width={64}
-                    height={64}
-                   
+                    width={128}
+                    height={128}
+                    className="object-cover rounded-full"
                   />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                  <AvatarFallback className="text-3xl font-semibold flex items-center justify-center w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                     {companyName?.[0] || "C"}
                   </AvatarFallback>
                 </Avatar>
