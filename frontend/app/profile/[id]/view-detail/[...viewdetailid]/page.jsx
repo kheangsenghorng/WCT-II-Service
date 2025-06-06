@@ -134,7 +134,7 @@ const ViewDetail = () => {
                 {/* Main large image - spans 2 rows */}
                 <div className="row-span-2">
                   <img
-                    src={booking?.service?.images?.[0] || "default-avatar.png"}
+                    src={booking?.service?.images?.[0] || "/placeholder.svg?height=400&width=400"}
                     alt="Main tour image"
                     className="w-full h-full object-cover rounded-lg"
                   />
@@ -143,7 +143,7 @@ const ViewDetail = () => {
                 {/* Top right image */}
                 <div>
                   <img
-                    src={booking?.service?.images?.[1] || "default-avatar.png"}
+                    src={booking?.service?.images?.[1] || "/placeholder.svg?height=200&width=200"}
                     alt="Tour image 2"
                     className="w-full h-full object-cover rounded-lg"
                   />
@@ -152,7 +152,7 @@ const ViewDetail = () => {
                 {/* Bottom right image with view more overlay */}
                 <div className="relative">
                   <img
-                    src={booking?.service?.images?.[2] || "default-avatar.png"}
+                    src={booking?.service?.images?.[2] || "/placeholder.svg?height=200&width=200"}
                     alt="Tour image 3"
                     className="w-full h-full object-cover rounded-lg"
                   />
@@ -177,14 +177,14 @@ const ViewDetail = () => {
               {/* Enhanced Modal for All Photos */}
               {isModalOpen && (
                 <motion.div
-                  className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-50 p-4"
+                  className="fixed inset-0 bg-white/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsModalOpen(false)}
                 >
                   <motion.div
-                    className="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                    className="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl"
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
@@ -215,7 +215,7 @@ const ViewDetail = () => {
                             transition={{ delay: index * 0.05 }}
                           >
                             <img
-                              src={img || "default-avatar.png"}
+                              src={img || "/placeholder.svg?height=300&width=400"}
                               alt={`Tour photo ${index + 1}`}
                               className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-200 cursor-pointer"
                             />
@@ -230,7 +230,7 @@ const ViewDetail = () => {
           </div>
 
           {/* Right Side: Booking Summary (Narrower - about 30% width) */}
-          <div className="lg:w-80 lg:flex-shrink-0">
+          <div className="lg:w-80 lg:flex-shrink-0 h-auto">
             <motion.div
               className="bg-white dark:bg-gray-800 px-6 pt-3 pb-1 rounded-xl shadow-lg w-full sticky top-6"
               initial={{ opacity: 0, y: 20 }}
@@ -341,7 +341,7 @@ const ViewDetail = () => {
                 </div>
 
                 {/* Total Price */}
-                <div className="border-t pt-4 mt-6">
+                <div className="border-t pt-4 mt-6 py-10">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
                     <div className="flex items-center space-x-2">
                       <CheckCircle size={20} />
