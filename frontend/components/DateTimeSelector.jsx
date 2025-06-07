@@ -25,7 +25,7 @@ const DateTimeSelector = ({ onDateTimeChange, bookedSlots = [] }) => {
 
   // Generate time slots from 6:30 AM to 6:00 PM in 30 min intervals
   const timeSlots = useMemo(() => {
-    const startTime = 6.5; // 6:30 AM
+    const startTime = 8.30; // 6:30 AM
     const endTime = 18; // 6:00 PM
     const interval = 0.5; // 30 minutes
     const slots = [];
