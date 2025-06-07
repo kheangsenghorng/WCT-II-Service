@@ -46,8 +46,6 @@ export default function BlogManagement() {
     fetchBlogs(adminId);
   }, [fetchBlogs, adminId]);
 
-  console.log("Blogs:", blogs);
-
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(null), 3000);
@@ -100,19 +98,6 @@ export default function BlogManagement() {
     const matchesStatus = statusFilter ? blog.status === statusFilter : true;
     return matchesSearch && matchesStatus;
   });
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "published":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "archived":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-      default:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-    }
-  };
 
   const stats = {
     total: filteredBlogs.length,
@@ -343,7 +328,7 @@ export default function BlogManagement() {
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {filteredBlogs.map((blog, index) => (
                     <motion.tr
-                      key={blog.id}
+                      key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
