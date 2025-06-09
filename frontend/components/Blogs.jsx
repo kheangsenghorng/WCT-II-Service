@@ -102,7 +102,7 @@ import { useBlogStore } from "@/store/useBlogStore"
                   >
                     {/* Image */}
                     <div className="relative w-full h-52 overflow-hidden">
-                      <Image
+                      <img
                         src={blog.image_url || "/placeholder.svg?height=300&width=400"}
                         alt={blog.title || "Blog image"}
                         fill

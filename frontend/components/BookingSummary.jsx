@@ -51,7 +51,7 @@ const BookingSummary = () => {
         <div className="p-6 space-y-6">
           {/* Service Image */}
           <div className="relative">
-            <Image
+            <img
               src={service?.images?.[0] || "/default-clean.webp"}
               width={400}
               height={200}

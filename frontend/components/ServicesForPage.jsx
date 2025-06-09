@@ -91,7 +91,7 @@ const ServicesForDetails = () => {
                 >
                   {/* Image Section */}
                   <div className="relative w-full h-55">
-                    <Image
+                    <img
                       src={imageSrc || "/placeholder.svg"}
                       alt={service.name || "Service"}
                       fill

@@ -1,12 +1,11 @@
 import React from "react";
-import Image from 'next/image'
 import Link from "next/link";
 
 const HeroSection = () => {
   return (
     <section className="relative  overflow-hidden">
       <div className="absolute inset-0">
-      <Image
+      <img
   src="/hero.png"
   alt="Hero image"
   fill
