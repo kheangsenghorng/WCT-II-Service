@@ -124,7 +124,7 @@ const ProfilePage = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-1">
                       <div className="w-full h-full bg-white dark:bg-gray-800 rounded-full p-1">
                         <div className="relative w-full h-full rounded-full overflow-hidden">
-                          <Image
+                          <img
                             src={user?.image || "/default-avatar.png"}
                             alt={`${user.first_name} ${user.last_name}'s avatar`}
                             fill

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useServicesStore } from "@/store/useServicesStore";
@@ -91,7 +90,7 @@ const ServicesForDetails = () => {
                 >
                   {/* Image Section */}
                   <div className="relative w-full h-55">
-                    <Image
+                    <img
                       src={imageSrc || "/placeholder.svg"}
                       alt={service.name || "Service"}
                       fill

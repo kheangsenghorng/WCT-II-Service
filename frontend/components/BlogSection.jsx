@@ -94,7 +94,7 @@ const BlogSection = () => {
                   >
                     {/* Image */}
                     <div className="relative w-full h-52">
-                      <Image
+                      <img
                         src={blog.image_url || "/images/placeholder.jpg"}
                         alt={blog.title || "Blog image"}
                         fill

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useServicesStore } from "@/store/useServicesStore";
@@ -80,7 +79,7 @@ const ServicesSection = ({ selectedCategorySlug }) => {
                   whileHover="hover"
                 >
                   <div className="relative w-full h-55">
-                    <Image
+                    <img
                       src={imageSrc}
                       alt={service.name || "Service"}
                       fill

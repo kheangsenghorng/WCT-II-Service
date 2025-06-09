@@ -428,8 +428,8 @@ const Company = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className="relative">
-                            <Image
-                              src={user.image || "/placeholder.svg?height=48&width=48"}
+                            <img
+                              src={user.image || "/default-avatar.png"}
                               alt={`${user.first_name} ${user.last_name}`}
                               className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                               width={48}
