@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react"; // Install lucide-react
 
@@ -9,20 +8,17 @@ const WelcomeSection = () => {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         {/* Image */}
         <div className="relative w-full h-auto flex justify-center">
-  {/* Back Image */}
-  <div className="w-[500px] md:w-[550px] rounded-2xl overflow-hidden border-[6px] border-green-500 z-0">
-    <Image
-      src="/welcome.png"
-      alt="Team"
-      width={350}
-      height={400}
-      className="object-cover w-full h-auto"
-    />
-  </div>
-
- 
-</div>
-
+          {/* Back Image */}
+          <div className="w-[500px] md:w-[550px] rounded-2xl overflow-hidden border-[6px] border-green-500 z-0">
+            <img
+              src="/welcome.png"
+              alt="Team"
+              width={350}
+              height={400}
+              className="object-cover w-full h-auto"
+            />
+          </div>
+        </div>
 
         {/* Content */}
         <div>
@@ -30,7 +26,9 @@ const WelcomeSection = () => {
             Welcome To Our cleaning-Pro Company!
           </h2>
           <p className="text-gray-600 mb-6">
-            We make your space shine! Professional and reliable cleaning service company providing top-notch solutions for homes and businesses. Satisfaction guaranteed!"
+            We make your space shine! Professional and reliable cleaning service
+            company providing top-notch solutions for homes and businesses.
+            Satisfaction guaranteed!"
           </p>
 
           {/* List of Benefits */}
