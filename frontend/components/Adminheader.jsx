@@ -148,21 +148,17 @@ const Navbar = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                <Image
-                  src={
-                    user?.image && user.image.trim() !== ""
-                      ? user.image.startsWith("http")
-                        ? user.image
-                        : `/${user.image.replace(/^\/+/, "")}`
-                      : "/default-user.svg"
-                  }
-                  alt={
-                    user?.first_name + " " + user?.last_name || "User Profile"
-                  }
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover ring-2 ring-blue-300 shadow-sm transition-transform duration-300 hover:scale-105"
-                />
+                <img
+                        src={
+                          user?.image && user.image.trim() !== ""
+                            ? user.image.startsWith("http")
+                              ? user.image
+                              : `/${user.image.replace(/^\/+/, "")}`
+                            : "/default-user.svg"
+                        }
+                        alt={user?.name || "User Profile"}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm transition-transform hover:scale-105"
+                      />
 
                 <div className="text-left">
                   <h1 className="font-semibold text-sm text-gray-800 dark:text-white">

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Edit,
@@ -44,6 +43,8 @@ const Users = () => {
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -369,7 +370,7 @@ const Users = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className="relative">
-                            <Image
+                            <img
                               src={user.image || "/default-avatar.png"}
                               alt={`${user.first_name} ${user.last_name}`}
                               className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
