@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 const heroData = {
-  backgroundImage: "/hero.png",
+  backgroundImage: "/Hero.png",
   tagline: "Quality cleaning at a fair price.",
   title: "Specialized, efficient, and thorough cleaning services",
   description:

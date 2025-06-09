@@ -10,10 +10,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**", // Allow all hostnames
+        hostname: "example.com",
+        pathname: "**",
       },
     ],
-    domains: ["localhost"],
   },
 };
 
