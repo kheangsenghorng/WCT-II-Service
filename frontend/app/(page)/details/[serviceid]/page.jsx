@@ -13,8 +13,12 @@ import ServicesForDetails from "@/components/ServicesForPage";
 function PageTour() {
   const { serviceId } = useParams(); // Access the tour ID
   const servicesId = serviceId;
-  console.log("Tour ID:", servicesId); // Log the tour ID for debugging
 
+  console.log("Service ID:", servicesId);
+  if (!servicesId) {
+    return <div className="p-4 text-red-500">Service ID is not provided.</div>;
+  }
+  // Log the service ID for debugging
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       {/* Gallery component */}
@@ -26,7 +30,7 @@ function PageTour() {
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Main content (left) */}
         <div className="md:col-span-2">
-          <PhnomPenhTour />
+          <PhnomPenhTour servicesId={servicesId} />
           <AdditionalInfo />
           {/* <Reviews /> */}
         </div>
@@ -37,7 +41,7 @@ function PageTour() {
         </div>
       </div>
       <div>
-        <ServicesForDetails servicesId={servicesId}/>
+        <ServicesForDetails servicesId={servicesId} />
       </div>
     </div>
   );
