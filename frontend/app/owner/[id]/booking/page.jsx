@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   Tag,
@@ -16,60 +16,68 @@ import {
   Users,
   DollarSign,
   X,
-} from "lucide-react"
-import { useUserBooking } from "@/store/useUserBooking"
-import { useParams, useRouter } from "next/navigation"
+} from "lucide-react";
+import { useUserBooking } from "@/store/useUserBooking";
+import { useParams, useRouter } from "next/navigation";
 
 export default function AllBookingsPage() {
-  const params = useParams()
-  const router = useRouter()
-  const ownerId = params?.id
+  const params = useParams();
+  const router = useRouter();
+  const ownerId = params?.id;
 
-  const { bookings, loading, error, fetchBookingsByOwnerId, cancelBooking, stats } = useUserBooking()
+  const {
+    bookings,
+    loading,
+    error,
+    fetchBookingsByOwnerId,
+    cancelBooking,
+    stats,
+  } = useUserBooking();
 
   // Modal states
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [selectedBookingId, setSelectedBookingId] = useState(null)
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
 
   // View and filter states
-  const [viewMode, setViewMode] = useState("table")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
-  const [typeFilter, setTypeFilter] = useState("")
-  const [dateFilter, setDateFilter] = useState({ from: "", to: "" })
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" })
-  const [sortBy, setSortBy] = useState("date")
-  const [sortOrder, setSortOrder] = useState("desc")
+  const [viewMode, setViewMode] = useState("table");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState({ from: "", to: "" });
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   useEffect(() => {
     if (ownerId) {
-      fetchBookingsByOwnerId(ownerId)
+      fetchBookingsByOwnerId(ownerId);
     }
-  }, [ownerId, fetchBookingsByOwnerId])
+  }, [ownerId, fetchBookingsByOwnerId]);
 
   const handleConfirmCancel = (e, id) => {
-    e.stopPropagation()
-    setSelectedBookingId(id)
-    setShowConfirm(true)
-  }
+    e.stopPropagation();
+    setSelectedBookingId(id);
+    setShowConfirm(true);
+  };
 
   const confirmDelete = () => {
     if (selectedBookingId) {
-      cancelBooking(selectedBookingId)
-      setShowConfirm(false)
-      setSelectedBookingId(null)
+      cancelBooking(selectedBookingId);
+      setShowConfirm(false);
+      setSelectedBookingId(null);
     }
-  }
+  };
 
   const handleRowClick = (booking) => {
     if (booking.service?.id) {
-      router.push(`/owner/${ownerId}/booking/${booking.service.id}`)
+      router.push(`/owner/${ownerId}/booking/${booking.service.id}`);
     }
-  }
+  };
 
   const getCategoryColor = (name) => {
-    if (!name) return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+    if (!name)
+      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     const colors = [
       "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
       "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -77,125 +85,154 @@ export default function AllBookingsPage() {
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
       "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
       "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-    ]
-    const index = Math.abs(name.charCodeAt(0) % colors.length)
-    return colors[index]
-  }
+    ];
+    const index = Math.abs(name.charCodeAt(0) % colors.length);
+    return colors[index];
+  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "confirmed":
       case "approved":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
       case "completed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
-  }
+  };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "-"
+    if (!dateString) return "-";
     try {
-      const date = new Date(dateString)
+      const date = new Date(dateString);
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
-      })
+      });
     } catch (e) {
-      return dateString
+      return dateString;
     }
-  }
+  };
 
   // Filter and sort bookings
   const filteredBookings = bookings
     .filter((booking) => {
       // Search filter
       const searchMatch = searchQuery
-        ? booking.service?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          booking.user?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          booking.user?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ? booking.service?.name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          booking.user?.first_name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          booking.user?.last_name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           booking.user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-        : true
+        : true;
 
       // Status filter
-      const statusMatch = statusFilter ? booking.status === statusFilter : true
+      const statusMatch = statusFilter ? booking.status === statusFilter : true;
 
       // Category filter
-      const categoryMatch = categoryFilter ? booking.service?.category?.name === categoryFilter : true
+      const categoryMatch = categoryFilter
+        ? booking.service?.category?.name === categoryFilter
+        : true;
 
       // Type filter
-      const typeMatch = typeFilter ? booking.service?.type?.name === typeFilter : true
+      const typeMatch = typeFilter
+        ? booking.service?.type?.name === typeFilter
+        : true;
 
       // Date filter
-      let dateMatch = true
+      let dateMatch = true;
       if (dateFilter.from || dateFilter.to) {
-        const bookingDate = new Date(booking.scheduled_date).getTime()
-        const fromDate = dateFilter.from ? new Date(dateFilter.from).getTime() : 0
-        const toDate = dateFilter.to ? new Date(dateFilter.to).getTime() : Number.POSITIVE_INFINITY
-        dateMatch = bookingDate >= fromDate && bookingDate <= toDate
+        const bookingDate = new Date(booking.scheduled_date).getTime();
+        const fromDate = dateFilter.from
+          ? new Date(dateFilter.from).getTime()
+          : 0;
+        const toDate = dateFilter.to
+          ? new Date(dateFilter.to).getTime()
+          : Number.POSITIVE_INFINITY;
+        dateMatch = bookingDate >= fromDate && bookingDate <= toDate;
       }
 
       // Price filter
-      let priceMatch = true
+      let priceMatch = true;
       if (priceRange.min || priceRange.max) {
-        const price = Number.parseFloat(booking.service?.base_price || 0)
-        const minPrice = priceRange.min ? Number.parseFloat(priceRange.min) : 0
-        const maxPrice = priceRange.max ? Number.parseFloat(priceRange.max) : Number.POSITIVE_INFINITY
-        priceMatch = price >= minPrice && price <= maxPrice
+        const price = Number.parseFloat(booking.service?.base_price || 0);
+        const minPrice = priceRange.min ? Number.parseFloat(priceRange.min) : 0;
+        const maxPrice = priceRange.max
+          ? Number.parseFloat(priceRange.max)
+          : Number.POSITIVE_INFINITY;
+        priceMatch = price >= minPrice && price <= maxPrice;
       }
 
-      return searchMatch && statusMatch && categoryMatch && typeMatch && dateMatch && priceMatch
+      return (
+        searchMatch &&
+        statusMatch &&
+        categoryMatch &&
+        typeMatch &&
+        dateMatch &&
+        priceMatch
+      );
     })
     .sort((a, b) => {
-      let aValue, bValue
+      let aValue, bValue;
       switch (sortBy) {
         case "date":
-          aValue = new Date(a.scheduled_date).getTime()
-          bValue = new Date(b.scheduled_date).getTime()
-          break
+          aValue = new Date(a.scheduled_date).getTime();
+          bValue = new Date(b.scheduled_date).getTime();
+          break;
         case "price":
-          aValue = Number.parseFloat(a.service?.base_price || 0)
-          bValue = Number.parseFloat(b.service?.base_price || 0)
-          break
+          aValue = Number.parseFloat(a.service?.base_price || 0);
+          bValue = Number.parseFloat(b.service?.base_price || 0);
+          break;
         case "name":
-          aValue = a.service?.name?.toLowerCase() || ""
-          bValue = b.service?.name?.toLowerCase() || ""
-          break
+          aValue = a.service?.name?.toLowerCase() || "";
+          bValue = b.service?.name?.toLowerCase() || "";
+          break;
         case "status":
-          aValue = a.status?.toLowerCase() || ""
-          bValue = b.status?.toLowerCase() || ""
-          break
+          aValue = a.status?.toLowerCase() || "";
+          bValue = b.status?.toLowerCase() || "";
+          break;
         default:
-          return 0
+          return 0;
       }
 
       if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1
+        return aValue > bValue ? 1 : -1;
       } else {
-        return aValue < bValue ? 1 : -1
+        return aValue < bValue ? 1 : -1;
       }
-    })
+    });
 
   // Get unique values for filter dropdowns
-  const availableStatuses = [...new Set(bookings.map((b) => b.status))].filter(Boolean)
-  const availableCategories = [...new Set(bookings.map((b) => b.service?.category?.name))].filter(Boolean)
-  const availableTypes = [...new Set(bookings.map((b) => b.service?.type?.name))].filter(Boolean)
+  const availableStatuses = [...new Set(bookings.map((b) => b.status))].filter(
+    Boolean
+  );
+  const availableCategories = [
+    ...new Set(bookings.map((b) => b.service?.category?.name)),
+  ].filter(Boolean);
+  const availableTypes = [
+    ...new Set(bookings.map((b) => b.service?.type?.name)),
+  ].filter(Boolean);
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchQuery("")
-    setStatusFilter("")
-    setCategoryFilter("")
-    setTypeFilter("")
-    setDateFilter({ from: "", to: "" })
-    setPriceRange({ min: "", max: "" })
-  }
+    setSearchQuery("");
+    setStatusFilter("");
+    setCategoryFilter("");
+    setTypeFilter("");
+    setDateFilter({ from: "", to: "" });
+    setPriceRange({ min: "", max: "" });
+  };
 
   // Check if any filter is active
   const isFilterActive =
@@ -206,17 +243,22 @@ export default function AllBookingsPage() {
     dateFilter.from ||
     dateFilter.to ||
     priceRange.min ||
-    priceRange.max
+    priceRange.max;
 
   // Calculate stats
   const bookingStats = {
     total: bookings.length,
     filtered: filteredBookings.length,
-    confirmed: bookings.filter((b) => b.status === "confirmed" || b.status === "approved").length,
+    confirmed: bookings.filter(
+      (b) => b.status === "confirmed" || b.status === "approved"
+    ).length,
     pending: bookings.filter((b) => b.status === "pending").length,
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
-    totalRevenue: bookings.reduce((sum, b) => sum + Number.parseFloat(b.service_total_price || 0), 0),
-  }
+    totalRevenue: bookings.reduce(
+      (sum, b) => sum + Number.parseFloat(b.service_total_price || 0),
+      0
+    ),
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -224,13 +266,17 @@ export default function AllBookingsPage() {
       opacity: 1,
       transition: { duration: 0.5, staggerChildren: 0.1 },
     },
-  }
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-    hover: { y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" },
-  }
+    hover: {
+      y: -5,
+      boxShadow:
+        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    },
+  };
 
   if (loading) {
     return (
@@ -242,12 +288,14 @@ export default function AllBookingsPage() {
                 <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin"></div>
                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
               </div>
-              <p className="text-gray-500 dark:text-gray-400 font-medium">Loading bookings...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">
+                Loading bookings...
+              </p>
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -260,7 +308,7 @@ export default function AllBookingsPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -275,14 +323,18 @@ export default function AllBookingsPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Bookings Management</h1>
-              <p className="text-gray-600 dark:text-gray-400">Manage and track all customer bookings efficiently</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Bookings Management
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Manage and track all customer bookings efficiently
+              </p>
             </div>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</p>
@@ -292,9 +344,9 @@ export default function AllBookingsPage() {
                   <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Confirmed</p>
@@ -304,8 +356,8 @@ export default function AllBookingsPage() {
                   <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
               </div>
-            </div>
-
+            </div> */}
+            {/* 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -316,9 +368,9 @@ export default function AllBookingsPage() {
                   <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Cancelled</p>
@@ -328,9 +380,9 @@ export default function AllBookingsPage() {
                   <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
@@ -342,7 +394,7 @@ export default function AllBookingsPage() {
                   <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Filters */}
@@ -397,9 +449,9 @@ export default function AllBookingsPage() {
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
-                    const [field, order] = e.target.value.split("-")
-                    setSortBy(field)
-                    setSortOrder(order)
+                    const [field, order] = e.target.value.split("-");
+                    setSortBy(field);
+                    setSortOrder(order);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -453,7 +505,9 @@ export default function AllBookingsPage() {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Type
+                </label>
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -470,42 +524,56 @@ export default function AllBookingsPage() {
 
               {/* Date From */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  From Date
+                </label>
                 <input
                   type="date"
                   value={dateFilter.from}
-                  onChange={(e) => setDateFilter({ ...dateFilter, from: e.target.value })}
+                  onChange={(e) =>
+                    setDateFilter({ ...dateFilter, from: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Date To */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  To Date
+                </label>
                 <input
                   type="date"
                   value={dateFilter.to}
-                  onChange={(e) => setDateFilter({ ...dateFilter, to: e.target.value })}
+                  onChange={(e) =>
+                    setDateFilter({ ...dateFilter, to: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Price Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price Range</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Price Range
+                </label>
                 <div className="flex gap-2">
                   <input
                     type="number"
                     placeholder="Min"
                     value={priceRange.min}
-                    onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                    onChange={(e) =>
+                      setPriceRange({ ...priceRange, min: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={priceRange.max}
-                    onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                    onChange={(e) =>
+                      setPriceRange({ ...priceRange, max: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -548,18 +616,25 @@ export default function AllBookingsPage() {
                         key={booking.id}
                         onClick={() => handleRowClick(booking)}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group"
-                        whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.05)" }}
+                        whileHover={{
+                          backgroundColor: "rgba(59, 130, 246, 0.05)",
+                        }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-full">
-                            <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{index + 1}</span>
+                            <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                              {index + 1}
+                            </span>
                           </div>
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <img
-                              src={booking.service?.images?.[0] || "/placeholder.svg?height=40&width=40"}
+                              src={
+                                booking.service?.images?.[0] ||
+                                "/placeholder.svg?height=40&width=40"
+                              }
                               alt={booking.service?.name || "Service"}
                               className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 mr-3"
                             />
@@ -581,7 +656,8 @@ export default function AllBookingsPage() {
 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center text-sm text-gray-900 dark:text-white">
-                            <DollarSign className="h-4 w-4 text-green-500 mr-1" />${booking.service?.base_price || "0"}
+                            <DollarSign className="h-4 w-4 text-green-500 mr-1" />
+                            ${booking.service?.base_price || "0"}
                           </div>
                         </td>
 
@@ -606,7 +682,7 @@ export default function AllBookingsPage() {
                           {booking.service?.category ? (
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                                booking.service.category.name,
+                                booking.service.category.name
                               )}`}
                             >
                               <Tag className="h-3 w-3 mr-1" />
@@ -621,7 +697,7 @@ export default function AllBookingsPage() {
                           {booking.service?.type ? (
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                                booking.service.type.name,
+                                booking.service.type.name
                               )}`}
                             >
                               <Tag className="h-3 w-3 mr-1" />
@@ -634,7 +710,10 @@ export default function AllBookingsPage() {
 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-green-600 dark:text-green-400">
-                            ${Number(booking.service_total_price || 0).toLocaleString()}
+                            $
+                            {Number(
+                              booking.service_total_price || 0
+                            ).toLocaleString()}
                           </div>
                         </td>
 
@@ -649,15 +728,17 @@ export default function AllBookingsPage() {
                           <div className="flex space-x-2">
                             <button
                               onClick={(e) => {
-                                e.stopPropagation()
-                                handleRowClick(booking)
+                                e.stopPropagation();
+                                handleRowClick(booking);
                               }}
                               className="group/view p-2 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition-all duration-200 hover:shadow-md"
                             >
                               <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover/view:scale-110 transition-transform" />
                             </button>
                             <button
-                              onClick={(e) => handleConfirmCancel(e, booking.id)}
+                              onClick={(e) =>
+                                handleConfirmCancel(e, booking.id)
+                              }
                               className="group/delete p-2 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-all duration-200 hover:shadow-md"
                             >
                               <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400 group-hover/delete:scale-110 transition-transform" />
@@ -674,9 +755,13 @@ export default function AllBookingsPage() {
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center">
                   <Calendar className="h-10 w-10 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No bookings found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No bookings found
+                </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {isFilterActive ? "Try adjusting your filters" : "No bookings have been made yet"}
+                  {isFilterActive
+                    ? "Try adjusting your filters"
+                    : "No bookings have been made yet"}
                 </p>
               </div>
             )}
@@ -697,14 +782,16 @@ export default function AllBookingsPage() {
                 >
                   <div className="relative h-48">
                     <img
-                      src={booking.service?.images?.[0] || "/default-clean.webp"}
+                      src={
+                        booking.service?.images?.[0] || "/default-clean.webp"
+                      }
                       alt={booking.service?.name || "Service"}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-3 right-3">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          booking.status,
+                          booking.status
                         )}`}
                       >
                         {booking.status || "pending"}
@@ -728,7 +815,9 @@ export default function AllBookingsPage() {
                           <Calendar className="h-4 w-4 mr-1" />
                           <span>Date</span>
                         </div>
-                        <span className="text-gray-900 dark:text-white">{formatDate(booking.scheduled_date)}</span>
+                        <span className="text-gray-900 dark:text-white">
+                          {formatDate(booking.scheduled_date)}
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between text-sm">
@@ -746,7 +835,9 @@ export default function AllBookingsPage() {
                           <Users className="h-4 w-4 mr-1" />
                           <span>Guests</span>
                         </div>
-                        <span className="text-gray-900 dark:text-white">{booking.service_booking_count || "0"}</span>
+                        <span className="text-gray-900 dark:text-white">
+                          {booking.service_booking_count || "0"}
+                        </span>
                       </div>
                     </div>
 
@@ -755,7 +846,7 @@ export default function AllBookingsPage() {
                         {booking.service?.category && (
                           <span
                             className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                              booking.service.category.name,
+                              booking.service.category.name
                             )}`}
                           >
                             {booking.service.category.name}
@@ -765,8 +856,8 @@ export default function AllBookingsPage() {
                       <div className="flex space-x-2">
                         <button
                           onClick={(e) => {
-                            e.stopPropagation()
-                            handleRowClick(booking)
+                            e.stopPropagation();
+                            handleRowClick(booking);
                           }}
                           className="group/view p-2 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition-all duration-200 hover:shadow-md"
                         >
@@ -788,9 +879,13 @@ export default function AllBookingsPage() {
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center">
                   <Calendar className="h-10 w-10 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No bookings found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No bookings found
+                </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {isFilterActive ? "Try adjusting your filters" : "No bookings have been made yet"}
+                  {isFilterActive
+                    ? "Try adjusting your filters"
+                    : "No bookings have been made yet"}
                 </p>
               </div>
             )}
@@ -822,11 +917,13 @@ export default function AllBookingsPage() {
                   <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                     <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancel Booking</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Cancel Booking
+                  </h3>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Are you sure you want to cancel this booking? This action cannot be undone and may affect the
-                  customer's plans.
+                  Are you sure you want to cancel this booking? This action
+                  cannot be undone and may affect the customer's plans.
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -848,5 +945,5 @@ export default function AllBookingsPage() {
         </AnimatePresence>
       </div>
     </motion.div>
-  )
+  );
 }

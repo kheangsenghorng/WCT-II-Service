@@ -13,10 +13,11 @@ import ServicesForDetails from "@/components/ServicesForPage";
 function PageTour() {
   const params = useParams();
   const serviceId = params?.serviceId;
+  console.log(params);
 
-  if (!serviceId) {
-    return <div className="p-4 text-red-500">Service ID is not provided.</div>;
-  }
+  // if (!serviceId) {
+  //   return <div className="p-4 text-red-500">Service ID is not provided.</div>;
+  // }
 
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
