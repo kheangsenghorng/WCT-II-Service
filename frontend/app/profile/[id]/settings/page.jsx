@@ -1,43 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
-import { Save, User, Phone, Mail, AlertTriangle, Camera, ArrowLeft, Check } from "lucide-react"
-import { useUserStore } from "@/store/useUserStore"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useRef, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  Save,
+  User,
+  Phone,
+  Mail,
+  AlertTriangle,
+  Camera,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SettingsPage() {
-  const { user, updateUser, fetchUserById } = useUserStore()
-  const { id } = useParams()
-  const router = useRouter()
+  const { user, updateUser, fetchUserById } = useUserStore();
+  const { id } = useParams();
+  const router = useRouter();
 
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [avatarPreview, setAvatarPreview] = useState("/default-user.svg")
-  const [avatarFile, setAvatarFile] = useState(null)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
-  const fileInputRef = useRef(null)
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState("/default-user.svg");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (id) {
-      fetchUserById(id)
+      fetchUserById(id);
     }
-  }, [id])
+  }, [id]);
 
   useEffect(() => {
     if (user) {
-      setFirstName(user.first_name || "")
-      setLastName(user.last_name || "")
-      setPhone(user?.phone || "")
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+      setPhone(user?.phone || "");
       setAvatarPreview(
-        user.image?.startsWith("http") ? user.image : user.image ? `/${user.image}` : "/default-avatar.png",
-      )
+        user.image?.startsWith("http")
+          ? user.image
+          : user.image
+          ? `/${user.image}`
+          : "/default-avatar.png"
+      );
     }
-  }, [user])
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -45,52 +58,52 @@ export default function SettingsPage() {
         firstName !== (user.first_name || "") ||
         lastName !== (user.last_name || "") ||
         phone !== (user.phone || "") ||
-        avatarFile !== null
-      setHasChanges(hasFormChanges)
+        avatarFile !== null;
+      setHasChanges(hasFormChanges);
     }
-  }, [firstName, lastName, phone, avatarFile, user])
+  }, [firstName, lastName, phone, avatarFile, user]);
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setIsUploading(true)
-      const reader = new FileReader()
+      setIsUploading(true);
+      const reader = new FileReader();
       reader.onloadend = () => {
         if (reader.result) {
-          setAvatarPreview(reader.result)
-          setIsUploading(false)
+          setAvatarPreview(reader.result);
+          setIsUploading(false);
         }
-      }
-      reader.readAsDataURL(file)
-      setAvatarFile(file)
+      };
+      reader.readAsDataURL(file);
+      setAvatarFile(file);
     }
-  }
+  };
 
   const handleUpdate = () => {
-    setShowConfirmModal(true)
-  }
+    setShowConfirmModal(true);
+  };
 
   const confirmUpdate = async () => {
-    if (!user) return
+    if (!user) return;
 
-    const formData = new FormData()
-    formData.append("first_name", firstName)
-    formData.append("last_name", lastName)
-    formData.append("phone", phone)
+    const formData = new FormData();
+    formData.append("first_name", firstName);
+    formData.append("last_name", lastName);
+    formData.append("phone", phone);
     if (avatarFile) {
-      formData.append("image", avatarFile)
+      formData.append("image", avatarFile);
     }
 
     try {
-      await updateUser(user.id, formData)
-      await fetchUserById(user.id)
-      router.push(`/profile/${user.id}/myprofile`)
+      await updateUser(user.id, formData);
+      await fetchUserById(user.id);
+      router.push(`/profile/${user.id}/myprofile`);
     } catch (error) {
-      console.error("Update failed:", error)
+      console.error("Update failed:", error);
     } finally {
-      setShowConfirmModal(false)
+      setShowConfirmModal(false);
     }
-  }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -99,7 +112,7 @@ export default function SettingsPage() {
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" },
     },
-  }
+  };
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.9 },
@@ -113,7 +126,7 @@ export default function SettingsPage() {
       scale: 0.9,
       transition: { duration: 0.2 },
     },
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -136,25 +149,36 @@ export default function SettingsPage() {
             </motion.button>
             <div>
               <h1 className="text-3xl font-bold">Edit Profile</h1>
-              <p className="text-blue-100 mt-1">Update your personal information</p>
+              <p className="text-blue-100 mt-1">
+                Update your personal information
+              </p>
             </div>
           </motion.div>
         </div>
       </div>
 
       <div className="relative -mt-4 px-4 pb-12">
-        <motion.div className="max-w-2xl mx-auto" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div
+          className="max-w-2xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Main Settings Card */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/20 overflow-hidden">
             {/* Avatar Section */}
             <div className="p-8 pb-6 text-center">
-              <motion.div className="relative inline-block" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+              <motion.div
+                className="relative inline-block"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
                 <div className="relative w-32 h-32 mx-auto">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-1">
                     <div className="w-full h-full bg-white dark:bg-gray-800 rounded-full p-1">
                       <div className="relative w-full h-full rounded-full overflow-hidden">
-                        <Image
-                          src={avatarPreview || "/default-avatar.png"}
+                        <img
+                          src={avatarPreview}
                           alt="Avatar"
                           fill
                           className="object-cover"
@@ -249,7 +273,11 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Phone Field */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-green-500" />
@@ -268,7 +296,11 @@ export default function SettingsPage() {
                 </motion.div>
 
                 {/* Email Field (Disabled) */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-purple-500" />
@@ -405,5 +437,5 @@ export default function SettingsPage() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
