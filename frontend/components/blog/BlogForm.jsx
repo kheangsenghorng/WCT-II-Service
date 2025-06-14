@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { useEffect, useRef, useState } from "react"
-import { useBlogStore } from "@/store/useBlogStore"
-import Image from "next/image"
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { useBlogStore } from "@/store/useBlogStore";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Upload,
   X,
@@ -21,20 +21,20 @@ import {
   Edit3,
   Loader2,
   AlertCircle,
-} from "lucide-react"
+} from "lucide-react";
 
 export default function BlogForm({ showForm, setShowForm }) {
-  const { id: adminId } = useParams()
+  const { id: adminId } = useParams();
   const {
     selectedBlog,
     clearSelectedBlog,
     fetchBlogs,
     createBlog,
     updateBlog,
-  } = useBlogStore()
+  } = useBlogStore();
 
-  const [formError, setFormError] = useState("")
-  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -42,9 +42,9 @@ export default function BlogForm({ showForm, setShowForm }) {
     image: null,
     previewUrl: null,
     removeImage: false,
-  })
+  });
 
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef(null);
 
   // Set form data when selectedBlog changes
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function BlogForm({ showForm, setShowForm }) {
         image: null,
         previewUrl: selectedBlog.image_url || null,
         removeImage: false,
-      })
+      });
     } else {
       setFormData({
         title: "",
@@ -63,87 +63,87 @@ export default function BlogForm({ showForm, setShowForm }) {
         image: null,
         previewUrl: null,
         removeImage: false,
-      })
+      });
     }
-  }, [selectedBlog])
+  }, [selectedBlog]);
 
   const revokePreviewUrl = () => {
     if (formData.previewUrl && formData.image) {
-      URL.revokeObjectURL(formData.previewUrl)
+      URL.revokeObjectURL(formData.previewUrl);
     }
-  }
+  };
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      revokePreviewUrl()
+      revokePreviewUrl();
       setFormData((prev) => ({
         ...prev,
         image: file,
         previewUrl: URL.createObjectURL(file),
         removeImage: false,
-      }))
+      }));
     }
-  }
+  };
 
   const handleChange = (field) => (e) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
   const handleRemoveImageToggle = () => {
     setFormData((prev) => ({
       ...prev,
       removeImage: !prev.removeImage,
       previewUrl: !prev.removeImage ? null : selectedBlog?.image_url || null,
-    }))
-  }
+    }));
+  };
 
   const handleClose = () => {
-    clearSelectedBlog()
-    revokePreviewUrl()
-    setShowForm(false)
-  }
+    clearSelectedBlog();
+    revokePreviewUrl();
+    setShowForm(false);
+  };
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault()
-    setFormError("")
-    setSubmitting(true)
+    e.preventDefault();
+    setFormError("");
+    setSubmitting(true);
 
     if (!formData.title.trim() || !formData.content.trim()) {
-      setFormError("Title and content are required.")
-      setSubmitting(false)
-      return
+      setFormError("Title and content are required.");
+      setSubmitting(false);
+      return;
     }
 
     try {
-      const data = new FormData()
-      data.append("title", formData.title)
-      data.append("content", formData.content)
-      data.append("admin_id", adminId)
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("content", formData.content);
+      data.append("admin_id", adminId);
 
       if (formData.image) {
-        data.append("image", formData.image)
+        data.append("image", formData.image);
       } else if (selectedBlog && formData.removeImage) {
-        data.append("remove_image", "true")
+        data.append("remove_image", "true");
       }
 
       if (selectedBlog) {
-        await updateBlog(selectedBlog.id, data)
+        await updateBlog(selectedBlog.id, data);
       } else {
-        await createBlog(data, adminId)
+        await createBlog(data, adminId);
       }
 
-      await fetchBlogs(adminId)
-      handleClose()
+      await fetchBlogs(adminId);
+      handleClose();
     } catch (error) {
-      console.error(error)
-      setFormError("Failed to save blog. Please try again.")
+      console.error(error);
+      setFormError("Failed to save blog. Please try again.");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
-  if (!showForm) return null
+  if (!showForm) return null;
 
   return (
     <motion.div
@@ -173,7 +173,10 @@ export default function BlogForm({ showForm, setShowForm }) {
         </div>
 
         {formError && (
-          <Alert variant="destructive" className="mb-4 flex items-center space-x-2">
+          <Alert
+            variant="destructive"
+            className="mb-4 flex items-center space-x-2"
+          >
             <AlertCircle className="h-5 w-5" />
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -208,7 +211,9 @@ export default function BlogForm({ showForm, setShowForm }) {
               disabled={submitting}
               required
             />
-            <p className="text-sm text-muted-foreground mt-1">{formData.content.length} characters</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {formData.content.length} characters
+            </p>
           </div>
 
           <div>
@@ -223,7 +228,9 @@ export default function BlogForm({ showForm, setShowForm }) {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mt-1">Click to upload</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Click to upload
+                </p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -234,10 +241,10 @@ export default function BlogForm({ showForm, setShowForm }) {
                 />
               </div>
 
-              {formData.previewUrl && (
+              {formData?.previewUrl && (
                 <div className="relative w-48 h-28 rounded-lg overflow-hidden border border-border">
-                  <Image
-                    src={formData.previewUrl}
+                  <img
+                    src={formData?.previewUrl}
                     alt="Preview"
                     fill
                     className="object-cover"
@@ -293,5 +300,5 @@ export default function BlogForm({ showForm, setShowForm }) {
         </form>
       </motion.div>
     </motion.div>
-  )
+  );
 }
