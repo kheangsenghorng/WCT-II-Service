@@ -2,7 +2,7 @@
 
 import React from "react";
 import Gallery from "@/components/Gallery";
-import Explore from "@/components/Explore";
+// import Explore from "@/components/Explore";
 import BookingForm from "@/components/BookingForm";
 import PhnomPenhTour from "@/components/PhnomPenhTour";
 import AdditionalInfo from "@/components/AdditionalInfo";
@@ -25,9 +25,9 @@ function PageTour() {
       <Gallery servicesId={serviceId} />
 
       {/* Explore component */}
-      <div className="ml-4 mt-4">
+      {/* <div className="ml-4 mt-4">
         <Explore />
-      </div>
+      </div> */}
 
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Main content (left) */}
