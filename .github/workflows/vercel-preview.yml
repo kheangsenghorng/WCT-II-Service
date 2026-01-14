@@ -6,11 +6,15 @@ env:
 
 on:
   push:
-    branches-ignore:
+    branches: 
       - main
     paths:
       - "frontend/**"
-
+  pull_request:
+     branches:
+       - main
+     paths:
+      - frontend/**
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
